@@ -2,12 +2,16 @@
 
 namespace Webkul\Moldable\Providers;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Webkul\Moldable\Http\Middleware\ResolveWorkspace;
 
 class MoldableServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function boot(Router $router): void
     {
+        $router->aliasMiddleware('moldable.workspace', ResolveWorkspace::class);
+
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
         $this->loadRoutesFrom(__DIR__.'/../Routes/api.php');
