@@ -4,7 +4,8 @@ namespace Webkul\Moldable\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Webkul\Moldable\Models\CustomField;
+use Webkul\Attribute\Models\Attribute;
+use Webkul\Attribute\Models\AttributeOption;
 use Webkul\Moldable\Models\IndustryTemplate;
 use Webkul\Moldable\Models\SavedView;
 
@@ -22,24 +23,45 @@ class TemplateController
 
         $definition = $template->definition ?? [];
         $createdFields = [];
+
         foreach ($definition['fields'] ?? [] as $index => $field) {
             if (empty($field['key']) || empty($field['label']) || empty($field['type'])) {
                 continue;
             }
 
-            $createdFields[] = CustomField::updateOrCreate(
-                ['workspace_id' => $workspace->id, 'entity_type' => 'lead', 'key' => $field['key']],
+            $attribute = Attribute::firstOrCreate(
+                ['code' => $field['key'], 'entity_type' => 'leads'],
                 [
-                    'label' => $field['label'],
+                    'name' => $field['label'],
                     'type' => $field['type'],
-                    'options' => $field['options'] ?? [],
-                    'config' => $field['config'] ?? [],
-                    'group_name' => $field['group_name'] ?? $template->industry,
                     'sort_order' => $index,
+                    'validation' => $field['validation'] ?? null,
                     'is_required' => $field['is_required'] ?? false,
-                    'is_active' => true,
+                    'is_unique' => false,
+                    'quick_add' => $field['quick_add'] ?? false,
+                    'is_user_defined' => true,
                 ]
             );
+
+            $attribute->update([
+                'name' => $field['label'],
+                'type' => $field['type'],
+                'sort_order' => $index,
+                'is_user_defined' => true,
+            ]);
+
+            if (! empty($field['options'])) {
+                $attribute->options()->delete();
+                foreach (array_values($field['options']) as $optionIndex => $option) {
+                    AttributeOption::create([
+                        'attribute_id' => $attribute->id,
+                        'name' => is_array($option) ? $option['name'] : $option,
+                        'sort_order' => is_array($option) ? ($option['sort_order'] ?? $optionIndex) : $optionIndex,
+                    ]);
+                }
+            }
+
+            $createdFields[] = $attribute->load('options');
         }
 
         $createdViews = [];
@@ -49,7 +71,7 @@ class TemplateController
             }
 
             $createdViews[] = SavedView::updateOrCreate(
-                ['workspace_id' => $workspace->id, 'entity_type' => 'lead', 'name' => $view['name']],
+                ['workspace_id' => $workspace->id, 'entity_type' => 'leads', 'name' => $view['name']],
                 [
                     'user_id' => $request->user()->getAuthIdentifier(),
                     'filters' => $view['filters'] ?? [],
@@ -63,7 +85,7 @@ class TemplateController
         }
 
         return response()->json([
-            'message' => 'Industry template installed.',
+            'message' => 'Industry template installed using the existing Attribute system.',
             'template' => $template->key,
             'fields' => $createdFields,
             'views' => $createdViews,
