@@ -73,7 +73,7 @@ class ViewController
         ]);
 
         if (($data['is_default'] ?? false) === true) {
-            $workspace->views()->where('entity_type', $view->entity_type)->whereKeyNot($view->id)->update(['is_default' => false]);
+            $workspace->views()->where('entity_type', $view->entity_type)->where('id', '!=', $view->id)->update(['is_default' => false]);
         }
 
         $view->update($data);
