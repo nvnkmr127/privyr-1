@@ -1,6 +1,9 @@
 {
     "name": "krayin/laravel-moldable",
     "license": "MIT",
+    "require": {
+        "krayin/laravel-attribute": "^1.0"
+    },
     "autoload": {
         "psr-4": {
             "Webkul\\Moldable\\": "src/"
