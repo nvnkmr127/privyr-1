@@ -20,15 +20,15 @@
                 {!! view_render_event('admin.leads.view.stages.items.before', ['lead' => $lead]) !!}
 
                 <div
-                    class="stage relative flex h-7 cursor-pointer items-center justify-center bg-white pl-7 pr-4 dark:bg-gray-900 ltr:first:rounded-l-lg rtl:first:rounded-r-lg"
+                    class="stage relative flex h-8 cursor-pointer items-center justify-center bg-white border border-slate-200 pl-7 pr-4 ltr:first:rounded-l-lg rtl:first:rounded-r-lg hover:bg-slate-50 transition"
                     :class="{
-                        '!bg-green-500 text-white dark:text-gray-900 ltr:after:bg-green-500 rtl:before:bg-green-500': currentStage.sort_order >= stage.sort_order,
-                        '!bg-red-500 text-white dark:text-gray-900 ltr:after:bg-red-500 rtl:before:bg-red-500': currentStage.code == 'lost',
+                        '!bg-slate-900 !border-slate-900 text-white ltr:after:bg-slate-900 rtl:before:bg-slate-900': currentStage.sort_order >= stage.sort_order,
+                        '!bg-slate-200 !border-slate-200 text-slate-900 ltr:after:bg-slate-200 rtl:before:bg-slate-200': currentStage.code == 'lost',
                     }"
                     v-if="! ['won', 'lost'].includes(stage.code)"
                     @click="update(stage)"
                 >
-                    <span class="z-20 whitespace-nowrap text-sm font-medium dark:text-white">
+                    <span class="z-20 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider text-slate-500" :class="{'!text-white': currentStage.sort_order >= stage.sort_order, '!text-slate-900': currentStage.code == 'lost'}">
                         @{{ stage.name }}
                     </span>
                 </div>
@@ -44,20 +44,20 @@
                     {!! view_render_event('admin.leads.view.stages.items.dropdown.toggle.before', ['lead' => $lead]) !!}
 
                     <div
-                        class="relative flex h-7 min-w-24 cursor-pointer items-center justify-center rounded-r-lg bg-white pl-7 pr-4 dark:bg-gray-900"
+                        class="relative flex h-8 min-w-24 cursor-pointer items-center justify-center rounded-r-lg bg-white border border-slate-200 border-l-0 pl-7 pr-4 hover:bg-slate-50 transition"
                         :class="{
-                            '!bg-green-500 text-white dark:text-gray-900 after:bg-green-500': ['won', 'lost'].includes(currentStage.code) && currentStage.code == 'won',
-                            '!bg-red-500 text-white dark:text-gray-900 after:bg-red-500': ['won', 'lost'].includes(currentStage.code) && currentStage.code == 'lost',
+                            '!bg-slate-900 !border-slate-900 text-white after:bg-slate-900': ['won', 'lost'].includes(currentStage.code) && currentStage.code == 'won',
+                            '!bg-slate-200 !border-slate-200 text-slate-900 after:bg-slate-200': ['won', 'lost'].includes(currentStage.code) && currentStage.code == 'lost',
                         }"
                         @click="stageToggler = ! stageToggler"
                     >
-                        <span class="z-20 whitespace-nowrap text-sm font-medium dark:text-white">
+                        <span class="z-20 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider text-slate-500" :class="{'!text-white': ['won'].includes(currentStage.code), '!text-slate-900': ['lost'].includes(currentStage.code)}">
                              @{{ stages.filter(stage => ['won', 'lost'].includes(stage.code)).map(stage => stage.name).join('/') }}
                         </span>
 
                         <span
-                            class="text-2xl dark:text-gray-900"
-                            :class="{'icon-up-arrow': stageToggler, 'icon-down-arrow': ! stageToggler}"
+                            class="text-2xl text-slate-400"
+                            :class="{'icon-up-arrow': stageToggler, 'icon-down-arrow': ! stageToggler, '!text-white': ['won'].includes(currentStage.code), '!text-slate-900': ['lost'].includes(currentStage.code)}"
                         ></span>
                     </div>
 

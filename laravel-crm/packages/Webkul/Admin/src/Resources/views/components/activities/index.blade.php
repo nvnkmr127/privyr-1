@@ -39,14 +39,14 @@
         <template v-else>
             {!! view_render_event('admin.components.activities.content.before') !!}
 
-            <div class="rounded-md border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="flex flex-wrap gap-2 border-b border-gray-300 dark:border-gray-800">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-2xs">
+                <div class="flex flex-wrap gap-2 border-b border-slate-200 px-2 pt-2">
                     {!! view_render_event('admin.components.activities.content.types.before') !!}
 
                     <div
                         v-for="type in types"
-                        class="cursor-pointer px-3 py-2.5 text-sm font-medium dark:text-white"
-                        :class="{'border-brandColor border-b-2 !text-brandColor transition': selectedType == type.name }"
+                        class="cursor-pointer px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 transition"
+                        :class="{'border-slate-900 border-b-2 !text-slate-900': selectedType == type.name }"
                         @click="onTabChange(type.name)"
                     >
                         @{{ type.label }}
@@ -84,8 +84,8 @@
 
                                 <!-- Activity Details -->
                                 <div
-                                    class="flex w-full justify-between gap-4 rounded-md p-4"
-                                    :class="{'bg-gray-100 dark:bg-gray-950': index % 2 != 0 }"
+                                    class="flex w-full justify-between gap-4 rounded-xl p-4 transition-all"
+                                    :class="{'bg-slate-50 border border-slate-100': index % 2 != 0, 'border border-transparent': index % 2 == 0 }"
                                 >
                                     <div class="flex flex-col gap-2">
                                         {!! view_render_event('admin.components.activities.content.activity.item.title.before') !!}
@@ -224,7 +224,7 @@
                                         {!! view_render_event('admin.components.activities.content.activity.item.time_and_user.before') !!}
 
                                         <!-- Activity Time and User -->
-                                        <div class="text-gray-500 dark:text-gray-300">
+                                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2">
                                             @{{ $admin.formatDate(activity.created_at, 'd MMM yyyy, h:mm A', timezone) }},
 
                                             @{{ "@lang('admin::app.components.activities.index.by-user', ['user' => 'replace'])".replace('replace', activity.user?.name ?? '@lang('admin::app.components.activities.index.system')') }}
@@ -405,9 +405,6 @@
                             name: 'all',
                             label: "{{ trans('admin::app.components.activities.index.all') }}",
                         }, {
-                            name: 'planned',
-                            label: "{{ trans('admin::app.components.activities.index.planned') }}",
-                        }, {
                             name: 'note',
                             label: "{{ trans('admin::app.components.activities.index.notes') }}",
                         }, {
@@ -416,9 +413,6 @@
                         }, {
                             name: 'meeting',
                             label: "{{ trans('admin::app.components.activities.index.meetings') }}",
-                        }, {
-                            name: 'lunch',
-                            label: "{{ trans('admin::app.components.activities.index.lunches') }}",
                         }, {
                             name: 'file',
                             label: "{{ trans('admin::app.components.activities.index.files') }}",
@@ -449,14 +443,13 @@
                     selectedType: this.activeType,
 
                     typeClasses: {
-                        email: 'icon-mail bg-green-200 text-green-900 dark:!text-green-900',
-                        note: 'icon-note bg-orange-200 text-orange-800 dark:!text-orange-800',
-                        call: 'icon-call bg-cyan-200 text-cyan-800 dark:!text-cyan-800',
-                        meeting: 'icon-activity bg-blue-200 text-blue-800 dark:!text-blue-800',
-                        lunch: 'icon-activity bg-blue-200 text-blue-800 dark:!text-blue-800',
-                        file: 'icon-file bg-green-200 text-green-900 dark:!text-green-900',
-                        system: 'icon-system-generate bg-yellow-200 text-yellow-900 dark:!text-yellow-900',
-                        default: 'icon-activity bg-blue-200 text-blue-800 dark:!text-blue-800',
+                        email: 'icon-mail bg-slate-100 text-slate-800',
+                        note: 'icon-note bg-slate-100 text-slate-800',
+                        call: 'icon-call bg-slate-100 text-slate-800',
+                        meeting: 'icon-activity bg-slate-100 text-slate-800',
+                        file: 'icon-file bg-slate-100 text-slate-800',
+                        system: 'icon-system-generate bg-slate-100 text-slate-800',
+                        default: 'icon-activity bg-slate-100 text-slate-800',
                     },
 
                     typeIllustrations: {
@@ -464,12 +457,6 @@
                             image: "{{ vite()->asset('images/empty-placeholders/activities.svg') }}",
                             title: "{{ trans('admin::app.components.activities.index.empty-placeholders.all.title') }}",
                             description: "{{ trans('admin::app.components.activities.index.empty-placeholders.all.description') }}",
-                        },
-
-                        planned: {
-                            image: "{{ vite()->asset('images/empty-placeholders/plans.svg') }}",
-                            title: "{{ trans('admin::app.components.activities.index.empty-placeholders.planned.title') }}",
-                            description: "{{ trans('admin::app.components.activities.index.empty-placeholders.planned.description') }}",
                         },
 
                         note: {
@@ -488,12 +475,6 @@
                             image: "{{ vite()->asset('images/empty-placeholders/meetings.svg') }}",
                             title: "{{ trans('admin::app.components.activities.index.empty-placeholders.meetings.title') }}",
                             description: "{{ trans('admin::app.components.activities.index.empty-placeholders.meetings.description') }}",
-                        },
-
-                        lunch: {
-                            image: "{{ vite()->asset('images/empty-placeholders/lunches.svg') }}",
-                            title: "{{ trans('admin::app.components.activities.index.empty-placeholders.lunches.title') }}",
-                            description: "{{ trans('admin::app.components.activities.index.empty-placeholders.lunches.description') }}",
                         },
 
                         file: {

@@ -7,27 +7,41 @@
 
     <!-- Create Lead Form -->
     <x-admin::form :action="route('admin.leads.store')">
-        <div class="flex flex-col gap-4">
-            <div class="scroll-reactive-sticky sticky top-[60px] z-[1000] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
-                <div class="flex flex-col gap-2">
+        <div class="max-w-3xl mx-auto space-y-8 pt-4 w-full">
+            <!-- Top Page Header Bar -->
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-6">
+                <div class="flex flex-col gap-1">
                     <x-admin::breadcrumbs name="leads.create" />
-
-                    <div class="text-xl font-bold dark:text-white">
-                        @lang('admin::app.leads.create.title')
+                    
+                    <div class="flex items-center gap-3 mt-1">
+                        <h1 class="text-2xl font-black tracking-tight text-slate-900">
+                            @lang('admin::app.leads.create.title')
+                        </h1>
+                        <span class="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-700 shadow-sm">
+                            New Lead
+                        </span>
                     </div>
+                    
+                    <p class="text-xs font-medium text-slate-400 mt-1">
+                        Add a new prospect to your CRM and start tracking activities.
+                    </p>
                 </div>
 
                 {!! view_render_event('admin.leads.create.save_button.before') !!}
 
-                <div class="flex items-center gap-x-2.5">
-                    <!-- Save button for person -->
+                <div class="flex items-center gap-x-3">
+                    <a href="{{ route('admin.leads.index') }}" class="text-xs font-bold text-slate-500 hover:text-slate-900 transition">
+                        Cancel
+                    </a>
+                    
                     <div class="flex items-center gap-x-2.5">
                         {!! view_render_event('admin.leads.create.form_buttons.before') !!}
 
                         <button
                             type="submit"
-                            class="primary-button"
+                            class="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-black shadow-md shadow-slate-900/10 transition flex items-center gap-2"
                         >
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             @lang('admin::app.leads.create.save-btn')
                         </button>
 
@@ -70,48 +84,34 @@
             type="text/x-template"
             id="v-lead-create-template"
         >
-            <div class="box-shadow flex flex-col gap-4 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
+            <div class="max-w-3xl mx-auto flex flex-col gap-6 items-start w-full">
                 {!! view_render_event('admin.leads.edit.form_controls.before') !!}
 
-                <div class="flex flex-col gap-6 p-6">
-                    {!! view_render_event('admin.leads.create.details.before') !!}
+                <!-- Auto-generated Title to bypass Krayin requirement -->
+                <input type="hidden" name="title" value="New Lead" id="hidden_lead_title" />
 
-                    <!-- Details section -->
-                    <div
-                        class="flex flex-col gap-4"
-                        id="lead-details"
-                    >
-                        <div class="flex flex-col gap-1 border-b pb-2 dark:border-gray-800">
-                            <p class="text-base font-bold text-gray-800 dark:text-white">
-                                📋 @lang('admin::app.leads.create.details')
-                            </p>
+                <!-- Contact Person -->
+                <div class="w-full space-y-6">
+                    {!! view_render_event('admin.leads.create.contact_person.before') !!}
 
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                Enter prospect and lead information below.
+                    <div class="flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white shadow-2xs p-8" id="contact-person">
+                        <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
+                            <h2 class="text-xl font-black text-slate-900 tracking-tight">
+                                Contact Information
+                            </h2>
+
+                            <p class="text-sm font-medium text-slate-500">
+                                Enter the prospect's primary contact details to create a new lead.
                             </p>
                         </div>
 
                         <div class="w-full">
-                            {!! view_render_event('admin.leads.create.details.attributes.before') !!}
-
-                            <!-- Lead Attributes Grid -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <x-admin::attributes
-                                    :custom-attributes="$attributes"
-                                    :custom-validations="[
-                                        'expected_close_date' => [
-                                            'date_format:yyyy-MM-dd',
-                                            'after:' .  \Carbon\Carbon::yesterday()->format('Y-m-d')
-                                        ],
-                                    ]"
-                                />
-                            </div>
-
-                            {!! view_render_event('admin.leads.create.details.attributes.after') !!}
+                            <!-- Contact Person Component -->
+                            @include('admin::leads.common.contact')
                         </div>
                     </div>
 
-                    {!! view_render_event('admin.leads.create.details.after') !!}
+                    {!! view_render_event('admin.leads.create.contact_person.after') !!}
                 </div>
 
                 {!! view_render_event('admin.leads.form_controls.after') !!}
@@ -124,30 +124,9 @@
 
                 data() {
                     return {
-                        activeTab: 'lead-details',
-
-                        tabs: [
-                            { id: 'lead-details', label: "@lang('admin::app.leads.create.details')" },
-                            { id: 'contact-person', label: "@lang('admin::app.leads.create.contact-person')" }
-                        ],
+                        // Layout is now grid-based, so tabs are no longer used for navigation,
+                        // but we keep the logic empty to avoid errors if referenced elsewhere.
                     };
-                },
-
-                methods: {
-                    /**
-                     * Scroll to the section.
-                     *
-                     * @param {String} tabId
-                     *
-                     * @returns {void}
-                     */
-                    scrollToSection(tabId) {
-                        const section = document.getElementById(tabId);
-
-                        if (section) {
-                            section.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    },
                 },
             });
         </script>

@@ -1,6 +1,6 @@
-<div id="add-field-drawer" class="hidden fixed inset-0 z-[1000] overflow-hidden bg-gray-900/50 backdrop-blur-sm transition-opacity">
-    <div class="fixed inset-y-0 right-0 flex max-w-full pl-10">
-        <div class="w-screen max-w-xl bg-white dark:bg-gray-900 shadow-2xl border-l border-gray-200 dark:border-gray-800 flex flex-col justify-between">
+<div id="add-field-drawer" class="hidden fixed inset-0 z-[10000] overflow-hidden bg-gray-900/50 backdrop-blur-sm transition-opacity">
+    <div class="flex min-h-screen items-center justify-center p-4" onclick="if(event.target === this) closeAddFieldDrawer()">
+        <div class="w-full max-w-5xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col">
             <!-- Drawer Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                 <div class="flex items-center gap-3">
@@ -19,351 +19,360 @@
             <div class="flex-1 overflow-y-auto p-6 space-y-6">
                 <form id="add-field-drawer-form" onsubmit="submitAddFieldDrawer(event)" class="space-y-6">
 
-                    <!-- Section 1: Basic Information -->
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                            <span class="h-2 w-2 rounded-full bg-blue-600"></span>
-                            1. Basic Information
-                        </h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Field Label *</label>
-                                <input type="text" name="name" required placeholder="e.g. Project Budget" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Field Code (Auto-generated if empty)</label>
-                                <input type="text" name="code" placeholder="e.g. project_budget" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-xs" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Entity *</label>
-                                <select name="entity_type" required class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
-                                    @foreach(config('moldable.entities', []) as $entityCode => $entityMeta)
-                                        <option value="{{ $entityCode }}">{{ $entityMeta['name'] ?? ucfirst($entityCode) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Field Type -->
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                            <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
-                            2. Field Type
-                        </h3>
-
-                        <!-- Searchable Type Selector -->
-                        <div class="space-y-3">
-                            <div class="relative">
-                                <span class="icon-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></span>
-                                <input
-                                    type="text"
-                                    id="type-search-input"
-                                    placeholder="Search field types (e.g. Text, Select, Date)..."
-                                    oninput="filterFieldTypes(this.value)"
-                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 py-2 pl-9 pr-3 text-xs bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <input type="hidden" name="type" id="selected-type-hidden-input" value="text" />
-
-                            <!-- Grouped Type Grid -->
-                            <div id="grouped-type-container" class="space-y-4 max-h-72 overflow-y-auto pr-1">
-                                <!-- Text Group -->
-                                <div class="type-group" data-group="Text">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Text</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('text')" class="type-card flex items-center gap-2.5 rounded-lg border border-blue-500 bg-blue-50/40 dark:bg-blue-950/40 p-2.5 text-left transition hover:border-blue-500" data-key="text" data-label="Text">
-                                            <span class="icon-text text-base text-blue-600 dark:text-blue-400"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Text</div>
-                                                <div class="text-[10px] text-gray-400">Single line string</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('textarea')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="textarea" data-label="Textarea">
-                                            <span class="icon-align-left text-base text-gray-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Textarea</div>
-                                                <div class="text-[10px] text-gray-400">Multi-line text</div>
-                                            </div>
-                                        </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <!-- Section 1: Basic Information -->
+                            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
+                                <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                    <span class="h-2 w-2 rounded-full bg-blue-600"></span>
+                                    1. Basic Information
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Field Label *</label>
+                                        <input type="text" name="name" required placeholder="e.g. Project Budget" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
                                     </div>
-                                </div>
-
-                                <!-- Number Group -->
-                                <div class="type-group" data-group="Number">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Number</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('price')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="price" data-label="Price">
-                                            <span class="icon-currency-dollar text-base text-emerald-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Price</div>
-                                                <div class="text-[10px] text-gray-400">Currency & amount</div>
-                                            </div>
-                                        </button>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Field Code (Auto-generated if empty)</label>
+                                        <input type="text" name="code" placeholder="e.g. project_budget" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-xs" />
                                     </div>
-                                </div>
-
-                                <!-- Date & Time Group -->
-                                <div class="type-group" data-group="Date & Time">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Date & Time</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('date')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="date" data-label="Date">
-                                            <span class="icon-calendar text-base text-amber-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Date</div>
-                                                <div class="text-[10px] text-gray-400">Calendar date</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('datetime')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="datetime" data-label="Datetime">
-                                            <span class="icon-clock text-base text-amber-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Datetime</div>
-                                                <div class="text-[10px] text-gray-400">Date with timestamp</div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Selection Group -->
-                                <div class="type-group" data-group="Selection">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Selection</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('select')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="select" data-label="Select">
-                                            <span class="icon-chevron-down text-base text-indigo-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Select</div>
-                                                <div class="text-[10px] text-gray-400">Single select list</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('multiselect')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="multiselect" data-label="Multiselect">
-                                            <span class="icon-list text-base text-indigo-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Multiselect</div>
-                                                <div class="text-[10px] text-gray-400">Multiple option choices</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('checkbox')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="checkbox" data-label="Checkbox">
-                                            <span class="icon-check-square text-base text-indigo-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Checkbox</div>
-                                                <div class="text-[10px] text-gray-400">Checkbox options</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('boolean')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="boolean" data-label="Boolean">
-                                            <span class="icon-toggle text-base text-indigo-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Boolean</div>
-                                                <div class="text-[10px] text-gray-400">Yes/No toggle</div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Relationship Group -->
-                                <div class="type-group" data-group="Relationship">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Relationship</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('lookup')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="lookup" data-label="Lookup">
-                                            <span class="icon-search text-base text-purple-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Lookup</div>
-                                                <div class="text-[10px] text-gray-400">Related model reference</div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Contact Group -->
-                                <div class="type-group" data-group="Contact">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Contact</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('email')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="email" data-label="Email">
-                                            <span class="icon-mail text-base text-rose-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Email</div>
-                                                <div class="text-[10px] text-gray-400">Email address</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('phone')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="phone" data-label="Phone">
-                                            <span class="icon-phone text-base text-rose-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Phone</div>
-                                                <div class="text-[10px] text-gray-400">Phone number</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('address')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="address" data-label="Address">
-                                            <span class="icon-map-pin text-base text-rose-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Address</div>
-                                                <div class="text-[10px] text-gray-400">Location address</div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- File Group -->
-                                <div class="type-group" data-group="File">
-                                    <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">File</h4>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button type="button" onclick="selectTypeCard('file')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="file" data-label="File">
-                                            <span class="icon-paperclip text-base text-teal-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">File</div>
-                                                <div class="text-[10px] text-gray-400">Document upload</div>
-                                            </div>
-                                        </button>
-                                        <button type="button" onclick="selectTypeCard('image')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="image" data-label="Image">
-                                            <span class="icon-image text-base text-teal-500"></span>
-                                            <div>
-                                                <div class="text-xs font-semibold text-gray-900 dark:text-white">Image</div>
-                                                <div class="text-[10px] text-gray-400">Image upload</div>
-                                            </div>
-                                        </button>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Entity *</label>
+                                        <select name="entity_type" required class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                            @foreach(config('moldable.entities', []) as $entityCode => $entityMeta)
+                                                <option value="{{ $entityCode }}">{{ $entityMeta['name'] ?? ucfirst($entityCode) }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Section 3: Configuration -->
-                    <div id="section-configuration" class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                            <span class="h-2 w-2 rounded-full bg-amber-600"></span>
-                            3. Configuration
-                        </h3>
+                            <!-- Section 2: Field Type -->
+                            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
+                                <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                    <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
+                                    2. Field Type
+                                </h3>
 
-                        <!-- Select / Multiselect / Checkbox Options Config -->
-                        <div id="options-config-container" class="hidden space-y-3">
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Select Options</label>
-                            <div id="options-list" class="space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <input type="text" placeholder="Option Name" class="option-name-input flex-1 rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
-                                    <button type="button" onclick="removeOptionRow(this)" class="text-red-500 text-xs hover:underline">Remove</button>
+                                <!-- Searchable Type Selector -->
+                                <div class="space-y-3">
+                                    <div class="relative">
+                                        <span class="icon-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></span>
+                                        <input
+                                            type="text"
+                                            id="type-search-input"
+                                            placeholder="Search field types (e.g. Text, Select, Date)..."
+                                            oninput="filterFieldTypes(this.value)"
+                                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 py-2 pl-9 pr-3 text-xs bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-blue-500"
+                                        />
+                                    </div>
+
+                                    <input type="hidden" name="type" id="selected-type-hidden-input" value="text" />
+
+                                    <!-- Grouped Type Grid -->
+                                    <div id="grouped-type-container" class="space-y-4 max-h-72 overflow-y-auto pr-1">
+                                        <!-- Text Group -->
+                                        <div class="type-group" data-group="Text">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Text</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('text')" class="type-card flex items-center gap-2.5 rounded-lg border border-blue-500 bg-blue-50/40 dark:bg-blue-950/40 p-2.5 text-left transition hover:border-blue-500" data-key="text" data-label="Text">
+                                                    <span class="icon-text text-base text-blue-600 dark:text-blue-400"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Text</div>
+                                                        <div class="text-[10px] text-gray-400">Single line string</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('textarea')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="textarea" data-label="Textarea">
+                                                    <span class="icon-align-left text-base text-gray-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Textarea</div>
+                                                        <div class="text-[10px] text-gray-400">Multi-line text</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Number Group -->
+                                        <div class="type-group" data-group="Number">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Number</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('price')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="price" data-label="Price">
+                                                    <span class="icon-currency-dollar text-base text-emerald-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Price</div>
+                                                        <div class="text-[10px] text-gray-400">Currency & amount</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Date & Time Group -->
+                                        <div class="type-group" data-group="Date & Time">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Date & Time</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('date')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="date" data-label="Date">
+                                                    <span class="icon-calendar text-base text-amber-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Date</div>
+                                                        <div class="text-[10px] text-gray-400">Calendar date</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('datetime')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="datetime" data-label="Datetime">
+                                                    <span class="icon-clock text-base text-amber-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Datetime</div>
+                                                        <div class="text-[10px] text-gray-400">Date with timestamp</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Selection Group -->
+                                        <div class="type-group" data-group="Selection">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Selection</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('select')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="select" data-label="Select">
+                                                    <span class="icon-chevron-down text-base text-indigo-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Select</div>
+                                                        <div class="text-[10px] text-gray-400">Single select list</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('multiselect')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="multiselect" data-label="Multiselect">
+                                                    <span class="icon-list text-base text-indigo-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Multiselect</div>
+                                                        <div class="text-[10px] text-gray-400">Multiple option choices</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('checkbox')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="checkbox" data-label="Checkbox">
+                                                    <span class="icon-check-square text-base text-indigo-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Checkbox</div>
+                                                        <div class="text-[10px] text-gray-400">Checkbox options</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('boolean')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="boolean" data-label="Boolean">
+                                                    <span class="icon-toggle text-base text-indigo-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Boolean</div>
+                                                        <div class="text-[10px] text-gray-400">Yes/No toggle</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Relationship Group -->
+                                        <div class="type-group" data-group="Relationship">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Relationship</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('lookup')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="lookup" data-label="Lookup">
+                                                    <span class="icon-search text-base text-purple-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Lookup</div>
+                                                        <div class="text-[10px] text-gray-400">Related model reference</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Contact Group -->
+                                        <div class="type-group" data-group="Contact">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">Contact</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('email')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="email" data-label="Email">
+                                                    <span class="icon-mail text-base text-rose-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Email</div>
+                                                        <div class="text-[10px] text-gray-400">Email address</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('phone')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="phone" data-label="Phone">
+                                                    <span class="icon-phone text-base text-rose-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Phone</div>
+                                                        <div class="text-[10px] text-gray-400">Phone number</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('address')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="address" data-label="Address">
+                                                    <span class="icon-map-pin text-base text-rose-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Address</div>
+                                                        <div class="text-[10px] text-gray-400">Location address</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- File Group -->
+                                        <div class="type-group" data-group="File">
+                                            <h4 class="text-[11px] font-bold uppercase text-gray-400 dark:text-gray-500 mb-2">File</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <button type="button" onclick="selectTypeCard('file')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="file" data-label="File">
+                                                    <span class="icon-paperclip text-base text-teal-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">File</div>
+                                                        <div class="text-[10px] text-gray-400">Document upload</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" onclick="selectTypeCard('image')" class="type-card flex items-center gap-2.5 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left transition hover:border-blue-500" data-key="image" data-label="Image">
+                                                    <span class="icon-image text-base text-teal-500"></span>
+                                                    <div>
+                                                        <div class="text-xs font-semibold text-gray-900 dark:text-white">Image</div>
+                                                        <div class="text-[10px] text-gray-400">Image upload</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <button type="button" onclick="addOptionRow()" class="text-xs text-blue-600 font-semibold hover:underline">+ Add Option</button>
-                        </div>
-
-                        <!-- Lookup Target Entity Config -->
-                        <div id="lookup-config-container" class="hidden space-y-3">
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Lookup Entity Model</label>
-                            <select name="lookup_type" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
-                                <option value="users">Users</option>
-                                <option value="persons">Persons</option>
-                                <option value="products">Products</option>
-                                <option value="leads">Leads</option>
-                            </select>
-                        </div>
-
-                        <!-- Text / Textarea Format Config -->
-                        <div id="text-config-container" class="hidden space-y-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Validation Regex Pattern</label>
-                                <input type="text" name="text_pattern" placeholder="e.g. ^[A-Za-z0-9]+$" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono" />
                             </div>
                         </div>
 
-                        <!-- File / Image Upload Limits Config -->
-                        <div id="file-config-container" class="hidden space-y-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Allowed Extensions</label>
-                                <input type="text" name="allowed_extensions" placeholder="e.g. jpg, png, pdf, docx" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Maximum Size (MB)</label>
-                                <input type="number" name="max_size_mb" placeholder="10" min="1" max="100" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
-                            </div>
-                        </div>
+                        <div class="space-y-6">
+                            <!-- Section 3: Configuration -->
+                            <div id="section-configuration" class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
+                                <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                    <span class="h-2 w-2 rounded-full bg-amber-600"></span>
+                                    3. Configuration
+                                </h3>
 
-                        <p id="config-default-msg" class="text-xs text-gray-400">No extra configuration needed for this field type.</p>
-                    </div>
+                                <!-- Select / Multiselect / Checkbox Options Config -->
+                                <div id="options-config-container" class="hidden space-y-3">
+                                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Select Options</label>
+                                    <div id="options-list" class="space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <input type="text" placeholder="Option Name" class="option-name-input flex-1 rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                                            <button type="button" onclick="removeOptionRow(this)" class="text-red-500 text-xs hover:underline">Remove</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="addOptionRow()" class="text-xs text-blue-600 font-semibold hover:underline">+ Add Option</button>
+                                </div>
 
-                    <!-- Section 4: Validation -->
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                            <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
-                            4. Validation
-                        </h3>
-                        <div class="space-y-4">
-                            <!-- is_required Toggle -->
-                            <div class="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-800 p-3 bg-gray-50/40 dark:bg-gray-800/30">
-                                <div>
-                                    <label for="is_required" class="text-xs font-semibold text-gray-900 dark:text-white cursor-pointer">
-                                        Required Field
+                                <!-- Lookup Target Entity Config -->
+                                <div id="lookup-config-container" class="hidden space-y-3">
+                                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Lookup Entity Model</label>
+                                    <select name="lookup_type" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                        <option value="users">Users</option>
+                                        <option value="persons">Persons</option>
+                                        <option value="products">Products</option>
+                                        <option value="leads">Leads</option>
+                                    </select>
+                                </div>
+
+                                <!-- Text / Textarea Format Config -->
+                                <div id="text-config-container" class="hidden space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Validation Regex Pattern</label>
+                                        <input type="text" name="text_pattern" placeholder="e.g. ^[A-Za-z0-9]+$" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono" />
+                                    </div>
+                                </div>
+
+                                <!-- File / Image Upload Limits Config -->
+                                <div id="file-config-container" class="hidden space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Allowed Extensions</label>
+                                        <input type="text" name="allowed_extensions" placeholder="e.g. jpg, png, pdf, docx" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Maximum Size (MB)</label>
+                                        <input type="number" name="max_size_mb" placeholder="10" min="1" max="100" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                                    </div>
+                                </div>
+
+                                <p id="config-default-msg" class="text-xs text-gray-400">No extra configuration needed for this field type.</p>
+                            </div>
+
+                            <!-- Section 4: Validation -->
+                            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
+                                <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+                                    4. Validation
+                                </h3>
+                                <div class="space-y-4">
+                                    <!-- is_required Toggle -->
+                                    <div class="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-800 p-3 bg-gray-50/40 dark:bg-gray-800/30">
+                                        <div>
+                                            <label for="is_required" class="text-xs font-semibold text-gray-900 dark:text-white cursor-pointer">
+                                                Required Field
+                                            </label>
+                                            <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                                                Enforce mandatory input when saving entity records.
+                                            </p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="is_required" id="is_required" value="1" class="sr-only peer" />
+                                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+
+                                    <!-- is_unique Toggle -->
+                                    <div class="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-800 p-3 bg-gray-50/40 dark:bg-gray-800/30">
+                                        <div>
+                                            <label for="is_unique" class="text-xs font-semibold text-gray-900 dark:text-white cursor-pointer">
+                                                Unique Value Constraint
+                                            </label>
+                                            <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                                                Prevent duplicate values across all records for this entity.
+                                            </p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="is_unique" id="is_unique" value="1" class="sr-only peer" />
+                                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Custom Validation Rules</label>
+                                        <input type="text" name="validation" placeholder="e.g. numeric|min:0" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 5: Visibility -->
+                            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
+                                <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                    <span class="h-2 w-2 rounded-full bg-purple-600"></span>
+                                    5. Visibility
+                                </h3>
+                                <!-- quick_add Toggle -->
+                                <div class="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-800 p-3 bg-gray-50/40 dark:bg-gray-800/30">
+                                    <div>
+                                        <label for="quick_add" class="text-xs font-semibold text-gray-900 dark:text-white cursor-pointer">
+                                            Show in Quick Add
+                                        </label>
+                                        <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                                            Include this field in quick entity creation forms & modals.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="quick_add" id="quick_add" value="1" checked class="sr-only peer" />
+                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-600 peer-checked:bg-blue-600"></div>
                                     </label>
-                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">
-                                        Enforce mandatory input when saving entity records.
-                                    </p>
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="is_required" id="is_required" value="1" class="sr-only peer" />
-                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-600 peer-checked:bg-blue-600"></div>
-                                </label>
                             </div>
 
-                            <!-- is_unique Toggle -->
-                            <div class="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-800 p-3 bg-gray-50/40 dark:bg-gray-800/30">
+                            <!-- Section 6: Advanced -->
+                            <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
+                                <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                    <span class="h-2 w-2 rounded-full bg-slate-600"></span>
+                                    6. Advanced
+                                </h3>
                                 <div>
-                                    <label for="is_unique" class="text-xs font-semibold text-gray-900 dark:text-white cursor-pointer">
-                                        Unique Value Constraint
-                                    </label>
-                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">
-                                        Prevent duplicate values across all records for this entity.
-                                    </p>
+                                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Sort Order</label>
+                                    <input type="number" name="sort_order" value="0" min="0" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="is_unique" id="is_unique" value="1" class="sr-only peer" />
-                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-600 peer-checked:bg-blue-600"></div>
-                                </label>
                             </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Custom Validation Rules</label>
-                                <input type="text" name="validation" placeholder="e.g. numeric|min:0" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 5: Visibility -->
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                            <span class="h-2 w-2 rounded-full bg-purple-600"></span>
-                            5. Visibility
-                        </h3>
-                        <!-- quick_add Toggle -->
-                        <div class="flex items-center justify-between rounded-lg border border-gray-100 dark:border-gray-800 p-3 bg-gray-50/40 dark:bg-gray-800/30">
-                            <div>
-                                <label for="quick_add" class="text-xs font-semibold text-gray-900 dark:text-white cursor-pointer">
-                                    Show in Quick Add
-                                </label>
-                                <p class="text-[10px] text-gray-500 dark:text-gray-400">
-                                    Include this field in quick entity creation forms & modals.
-                                </p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="quick_add" id="quick_add" value="1" checked class="sr-only peer" />
-                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-600 peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Section 6: Advanced -->
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 bg-white dark:bg-gray-900 space-y-4">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                            <span class="h-2 w-2 rounded-full bg-slate-600"></span>
-                            6. Advanced
-                        </h3>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Sort Order</label>
-                            <input type="number" name="sort_order" value="0" min="0" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
                         </div>
                     </div>
 
                     <!-- Drawer Footer Controls -->
-                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
-                        <button type="button" onclick="closeAddFieldDrawer()" class="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 rounded-lg">Cancel</button>
-                        <button type="submit" class="primary-button px-5 py-2 text-xs font-semibold shadow-sm">Save Field</button>
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800 mt-6">
+                        <button type="button" onclick="closeAddFieldDrawer()" class="rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-2.5 text-xs font-bold shadow-2xs transition">Cancel</button>
+                        <button type="submit" class="rounded-xl bg-slate-900 hover:bg-black text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-slate-900/10 transition flex items-center gap-2">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Save Field
+                        </button>
                     </div>
                 </form>
             </div>
@@ -485,26 +494,46 @@
         const container = document.getElementById('fields-list-container');
         if (container) {
             const newDiv = document.createElement('div');
-            newDiv.className = 'field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:border-gray-700';
+            newDiv.className = 'field-item flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 transition-all hover:border-blue-400 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/60 cursor-grab active:cursor-grabbing';
+            newDiv.setAttribute('draggable', 'true');
+            newDiv.setAttribute('ondragstart', 'handleDragStart(event)');
+            newDiv.setAttribute('ondragover', 'handleDragOver(event)');
+            newDiv.setAttribute('ondrop', 'handleDrop(event)');
             newDiv.setAttribute('data-name', name);
-            newDiv.setAttribute('data-type', type.charAt(0).toUpperCase() + type.slice(1));
+            const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+            newDiv.setAttribute('data-type', typeLabel);
             
             const code = form.code.value.trim() || name.toLowerCase().replace(/\s+/g, '_');
+            const isReq = form.is_required && form.is_required.checked;
+            const isQuick = form.quick_add && form.quick_add.checked;
 
             newDiv.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300">
+                    <span class="text-gray-400 cursor-grab select-none hover:text-gray-600">⋮⋮</span>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300">
                         <span class="icon-text text-lg"></span>
                     </div>
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">\${name}</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 font-mono">\${code}</p>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-white">\${name}</h3>
+                            \${isReq ? '<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded">* Required</span>' : ''}
+                            \${isQuick ? '<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Quick Add</span>' : ''}
+                        </div>
+                        <p class="text-xs text-gray-400 font-mono">\${code}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                        \${type.charAt(0).toUpperCase() + type.slice(1)}
+                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                        \${typeLabel}
                     </span>
+                    <div class="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-3">
+                        <button type="button" onclick="openAddFieldDrawer()" title="Edit Field" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                            <span class="icon-edit text-base"></span>
+                        </button>
+                        <button type="button" onclick="if(confirm('Delete field?')) this.closest('.field-item').remove()" title="Delete Field" class="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400">
+                            <span class="icon-delete text-base"></span>
+                        </button>
+                    </div>
                 </div>
             `;
             container.appendChild(newDiv);

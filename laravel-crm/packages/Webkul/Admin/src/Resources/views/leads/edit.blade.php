@@ -11,15 +11,15 @@
         :action="route('admin.leads.update', $lead->id)"
         method="PUT"
     >
-        <div class="flex flex-col gap-4">
-            <div class="scroll-reactive-sticky sticky top-[60px] z-[1000] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
-                <div class="flex flex-col gap-2">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6 pt-4">
+            <div class="scroll-reactive-sticky sticky top-[73px] z-[1000] flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-6 py-4 shadow-2xs">
+                <div class="flex flex-col gap-1">
                     <x-admin::breadcrumbs 
                         name="leads.edit" 
                         :entity="$lead"
                     />
 
-                    <div class="text-xl font-bold dark:text-white">
+                    <div class="text-2xl font-black tracking-tight text-slate-900 leading-tight">
                         @lang('admin::app.leads.edit.title')
                     </div>
                 </div>
@@ -33,7 +33,7 @@
 
                         <button
                             type="submit"
-                            class="primary-button"
+                            class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-black transition shadow-sm"
                         >
                             @lang('admin::app.leads.edit.save-btn')
                         </button>
@@ -61,8 +61,8 @@
             type="text/x-template"
             id="v-lead-edit-template"
         >
-            <div class="box-shadow flex flex-col gap-4 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="flex gap-2 border-b border-gray-300 dark:border-gray-800">
+            <div class="flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
+                <div class="flex gap-2 border-b border-slate-100 px-6 pt-2">
                     <!-- Tabs -->
                     <template v-for="tab in tabs" :key="tab.id">
                         {!! view_render_event('admin.leads.edit.tabs.before', ['lead' => $lead]) !!}
@@ -70,10 +70,10 @@
                         <a
                             :href="'#' + tab.id"
                             :class="[
-                                'inline-block px-3 py-2.5 border-b-2  text-sm font-medium ',
+                                'inline-block px-4 py-3 border-b-2 text-[11px] font-bold tracking-widest uppercase transition',
                                 activeTab === tab.id
-                                ? 'text-brandColor border-brandColor dark:brandColor dark:brandColor'
-                                : 'text-gray-600 dark:text-gray-300  border-transparent hover:text-gray-800 hover:border-gray-400 dark:hover:border-gray-400  dark:hover:text-white'
+                                ? 'text-slate-900 border-slate-900'
+                                : 'text-slate-400 border-transparent hover:text-slate-900 hover:border-slate-300'
                             ]"
                             @click="scrollToSection(tab.id)"
                             :text="tab.label"
@@ -83,7 +83,7 @@
                     </template>
                 </div>
 
-                <div class="flex flex-col gap-4 px-4 py-2">
+                <div class="flex flex-col gap-8 px-8 py-6">
                     {!! view_render_event('admin.leads.edit.lead_details.before', ['lead' => $lead]) !!}
 
                     <!-- Details section -->
@@ -91,12 +91,12 @@
                         class="flex flex-col gap-4" 
                         id="lead-details"
                     >
-                        <div class="flex flex-col gap-1">
-                            <p class="text-base font-semibold dark:text-white">
+                        <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">
                                 @lang('admin::app.leads.edit.details')
-                            </p>
+                            </h2>
 
-                            <p class="text-gray-600 dark:text-white">
+                            <p class="text-sm font-medium text-slate-500">
                                 @lang('admin::app.leads.edit.details-info')
                             </p>
                         </div>
@@ -131,12 +131,12 @@
                         class="flex flex-col gap-4" 
                         id="contact-person"
                     >
-                        <div class="flex flex-col gap-1">
-                            <p class="text-base font-semibold dark:text-white">
+                        <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">
                                 @lang('admin::app.leads.edit.contact-person')
-                            </p>
+                            </h2>
 
-                            <p class="text-gray-600 dark:text-white">
+                            <p class="text-sm font-medium text-slate-500">
                                 @lang('admin::app.leads.edit.contact-info')
                             </p>
                         </div>
@@ -156,12 +156,12 @@
                         class="flex flex-col gap-4" 
                         id="products"
                     >
-                        <div class="flex flex-col gap-1">
-                            <p class="text-base font-semibold dark:text-white">
+                        <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">
                                 @lang('admin::app.leads.edit.products')
-                            </p>
+                            </h2>
 
-                            <p class="text-gray-600 dark:text-white">
+                            <p class="text-sm font-medium text-slate-500">
                                 @lang('admin::app.leads.edit.products-info')
                             </p>
                         </div>

@@ -8,10 +8,10 @@
     {!! view_render_event('admin.components.activities.actions.file.create_btn.before') !!}
 
     <button
-        class="flex h-[74px] w-[84px] flex-col items-center justify-center gap-1 rounded-lg border border-transparent bg-cyan-200 font-medium text-cyan-900 transition-all hover:border-cyan-400"
+        class="flex h-20 w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-transparent bg-blue-50 text-xs font-bold text-blue-600 transition-all hover:bg-blue-100"
         @click="$refs.fileActionComponent.openModal('mail')"
     >
-        <span class="icon-file text-2xl dark:!text-cyan-900"></span>
+        <span class="icon-file text-2xl"></span>
 
         @lang('admin::app.components.activities.actions.file.btn')
     </button>
