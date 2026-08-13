@@ -17,6 +17,7 @@ Route::middleware('auth:api')->prefix('v1/moldable')->group(function () {
         Route::get('/workspace/teams', [WorkspaceController::class, 'teams']);
         Route::post('/workspace/teams', [WorkspaceController::class, 'createTeam']);
 
+        Route::get('/field-types', [BuilderController::class, 'types']);
         Route::get('/fields', [BuilderController::class, 'fields']);
         Route::post('/fields', [BuilderController::class, 'storeField']);
         Route::put('/fields/{field}', [BuilderController::class, 'updateField']);

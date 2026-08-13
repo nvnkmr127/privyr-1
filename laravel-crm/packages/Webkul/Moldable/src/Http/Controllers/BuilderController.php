@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeOption;
+use Webkul\Moldable\Services\FieldTypeRegistry;
 
 class BuilderController
 {
+    public function types(): JsonResponse
+    {
+        return response()->json(FieldTypeRegistry::all());
+    }
+
     public function fields(Request $request): JsonResponse
     {
         $query = Attribute::query()
@@ -32,7 +38,7 @@ class BuilderController
             'entity_type' => ['required', 'string', 'max:80'],
             'code' => ['nullable', 'string', 'max:120', 'alpha_dash'],
             'name' => ['required', 'string', 'max:160'],
-            'type' => ['required', 'in:text,textarea,price,boolean,select,multiselect,checkbox,email,address,phone,lookup,datetime,date,file,image'],
+            'type' => ['required', FieldTypeRegistry::validationRule()],
             'lookup_type' => ['nullable', 'string', 'max:80'],
             'validation' => ['nullable', 'string', 'max:255'],
             'is_required' => ['nullable', 'boolean'],
@@ -40,15 +46,16 @@ class BuilderController
             'quick_add' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'options' => ['nullable', 'array'],
+            'options.*.id' => ['nullable', 'integer', 'exists:attribute_options,id'],
             'options.*.name' => ['required_with:options', 'string', 'max:160'],
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $code = Str::limit($data['code'] ?? Str::snake($data['name']), 120, '');
-
-        if (Attribute::where('code', $code)->where('entity_type', $data['entity_type'])->exists()) {
-            return response()->json(['message' => 'An attribute with this code already exists for this entity.'], 422);
+        if (Attribute::where('entity_type', $data['entity_type'])->whereRaw('LOWER(name) = ?', [mb_strtolower($data['name'])])->exists()) {
+            return response()->json(['message' => 'An attribute with this display name already exists for this entity.'], 422);
         }
+
+        $code = $this->generateUniqueCode($data['name'], $data['entity_type'], $data['code'] ?? null);
 
         $attribute = Attribute::create([
             'code' => $code,
@@ -71,11 +78,13 @@ class BuilderController
 
     public function updateField(Request $request, Attribute $field): JsonResponse
     {
-        abort_unless($field->is_user_defined, 404);
+        if (! $field->is_user_defined) {
+            return response()->json(['message' => 'System attributes cannot be modified.'], 403);
+        }
 
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:160'],
-            'type' => ['sometimes', 'in:text,textarea,price,boolean,select,multiselect,checkbox,email,address,phone,lookup,datetime,date,file,image'],
+            'type' => ['sometimes', FieldTypeRegistry::validationRule()],
             'lookup_type' => ['nullable', 'string', 'max:80'],
             'validation' => ['nullable', 'string', 'max:255'],
             'is_required' => ['sometimes', 'boolean'],
@@ -83,9 +92,23 @@ class BuilderController
             'quick_add' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'options' => ['sometimes', 'array'],
+            'options.*.id' => ['nullable', 'integer', 'exists:attribute_options,id'],
             'options.*.name' => ['required_with:options', 'string', 'max:160'],
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        unset($data['code'], $data['entity_type'], $data['is_user_defined']);
+
+        if (isset($data['name'])) {
+            $duplicateNameExists = Attribute::where('entity_type', $field->entity_type)
+                ->where('id', '!=', $field->id)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower($data['name'])])
+                ->exists();
+
+            if ($duplicateNameExists) {
+                return response()->json(['message' => 'An attribute with this display name already exists for this entity.'], 422);
+            }
+        }
 
         $options = $data['options'] ?? null;
         unset($data['options']);
@@ -100,7 +123,10 @@ class BuilderController
 
     public function deleteField(Request $request, Attribute $field): JsonResponse
     {
-        abort_unless($field->is_user_defined, 404);
+        if (! $field->is_user_defined) {
+            return response()->json(['message' => 'System attributes cannot be deleted.'], 403);
+        }
+
         $field->delete();
 
         return response()->json(['message' => 'Attribute deleted.']);
@@ -108,14 +134,56 @@ class BuilderController
 
     private function syncOptions(Attribute $attribute, array $options): void
     {
-        $attribute->options()->delete();
+        $existingOptionIds = [];
 
-        foreach (array_values($options) as $index => $option) {
-            AttributeOption::create([
+        foreach (array_values($options) as $index => $optionData) {
+            $name = is_array($optionData) ? ($optionData['name'] ?? null) : $optionData;
+            if (empty($name)) {
+                continue;
+            }
+
+            $sortOrder = is_array($optionData) ? ($optionData['sort_order'] ?? $index) : $index;
+            $optionId = is_array($optionData) ? ($optionData['id'] ?? null) : null;
+
+            if ($optionId) {
+                $option = $attribute->options()->find($optionId);
+                if ($option) {
+                    $option->update([
+                        'name' => $name,
+                        'sort_order' => $sortOrder,
+                    ]);
+                    $existingOptionIds[] = $option->id;
+                    continue;
+                }
+            }
+
+            $newOption = AttributeOption::create([
                 'attribute_id' => $attribute->id,
-                'name' => $option['name'],
-                'sort_order' => $option['sort_order'] ?? $index,
+                'name' => $name,
+                'sort_order' => $sortOrder,
             ]);
+            $existingOptionIds[] = $newOption->id;
         }
+
+        $attribute->options()->whereNotIn('id', $existingOptionIds)->delete();
+    }
+
+    private function generateUniqueCode(string $name, string $entityType, ?string $customCode = null): string
+    {
+        $base = ! empty($customCode) ? $customCode : $name;
+        $slug = Str::limit(Str::snake($base), 110, '');
+        if (empty($slug)) {
+            $slug = 'attr';
+        }
+
+        $code = $slug;
+        $counter = 2;
+
+        while (Attribute::where('code', $code)->where('entity_type', $entityType)->exists()) {
+            $code = $slug.'_'.$counter;
+            $counter++;
+        }
+
+        return $code;
     }
 }

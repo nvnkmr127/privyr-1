@@ -18,11 +18,25 @@ class Attribute extends Model implements AttributeContract
         'type',
         'entity_type',
         'lookup_type',
+        'sort_order',
+        'validation',
         'is_required',
         'is_unique',
         'quick_add',
-        'validation',
         'is_user_defined',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'sort_order'      => 'integer',
+        'is_required'     => 'boolean',
+        'is_unique'       => 'boolean',
+        'quick_add'       => 'boolean',
+        'is_user_defined' => 'boolean',
     ];
 
     /**

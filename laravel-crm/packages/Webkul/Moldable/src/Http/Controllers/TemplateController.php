@@ -8,6 +8,7 @@ use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeOption;
 use Webkul\Moldable\Models\IndustryTemplate;
 use Webkul\Moldable\Models\SavedView;
+use Webkul\Moldable\Services\FieldTypeRegistry;
 
 class TemplateController
 {
@@ -25,7 +26,7 @@ class TemplateController
         $createdFields = [];
 
         foreach ($definition['fields'] ?? [] as $index => $field) {
-            if (empty($field['key']) || empty($field['label']) || empty($field['type'])) {
+            if (empty($field['key']) || empty($field['label']) || empty($field['type']) || ! FieldTypeRegistry::isValid($field['type'])) {
                 continue;
             }
 
