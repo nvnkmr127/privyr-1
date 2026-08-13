@@ -17,6 +17,15 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <label for="entity-selector" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Entity:</label>
+                    <select id="entity-selector" class="rounded-lg border border-gray-300 dark:border-gray-700 py-1.5 px-3 text-xs font-semibold bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500">
+                        @foreach(config('moldable.entities', []) as $code => $meta)
+                            <option value="{{ $code }}">{{ $meta['name'] ?? ucfirst($code) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <button
                     type="button"
                     onclick="openAddFieldDrawer()"
@@ -51,21 +60,32 @@
                 </div>
             </div>
 
+            <!-- Field Groups Presentation Layer (MOLD-021) -->
+            <div class="mb-6 flex items-center gap-2 overflow-x-auto border-b border-gray-200 pb-3 dark:border-gray-800 scrollbar-none">
+                <span class="text-xs font-bold uppercase text-gray-400 dark:text-gray-500 mr-2">Groups:</span>
+                <button type="button" class="rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm">Property Details</button>
+                <button type="button" class="rounded-full bg-gray-100 dark:bg-gray-800 px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Customer Details</button>
+                <button type="button" class="rounded-full bg-gray-100 dark:bg-gray-800 px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Project Details</button>
+                <button type="button" class="rounded-full bg-gray-100 dark:bg-gray-800 px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Financial Details</button>
+                <button type="button" class="rounded-full bg-gray-100 dark:bg-gray-800 px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Follow-up Details</button>
+            </div>
+
             <!-- Field Group Section -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-800">
                     <h2 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <span class="h-2 w-2 rounded-full bg-blue-600"></span>
-                        Lead Fields
+                        Property Details (Lead Fields)
                     </h2>
                     <span id="field-count-badge" class="text-xs text-gray-500 dark:text-gray-400">4 fields</span>
                 </div>
 
-                <!-- Fields List -->
+                <!-- Fields List with Drag & Drop (MOLD-020) -->
                 <div id="fields-list-container" class="grid gap-3">
                     <!-- Property Type -->
-                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:border-gray-700" data-name="Property Type" data-type="Select">
+                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="1" data-name="Property Type" data-type="Select">
                         <div class="flex items-center gap-3">
+                            <span class="text-gray-400 cursor-grab select-none">::</span>
                             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300">
                                 <span class="icon-chevron-down text-lg"></span>
                             </div>
@@ -83,8 +103,9 @@
                     </div>
 
                     <!-- Budget -->
-                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:border-gray-700" data-name="Budget" data-type="Price">
+                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="2" data-name="Budget" data-type="Price">
                         <div class="flex items-center gap-3">
+                            <span class="text-gray-400 cursor-grab select-none">::</span>
                             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300">
                                 <span class="icon-currency-dollar text-lg"></span>
                             </div>
@@ -102,8 +123,9 @@
                     </div>
 
                     <!-- Location -->
-                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:border-gray-700" data-name="Location" data-type="Text">
+                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="3" data-name="Location" data-type="Text">
                         <div class="flex items-center gap-3">
+                            <span class="text-gray-400 cursor-grab select-none">::</span>
                             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300">
                                 <span class="icon-text text-lg"></span>
                             </div>
@@ -121,8 +143,9 @@
                     </div>
 
                     <!-- Possession Date -->
-                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:border-gray-700" data-name="Possession Date" data-type="Date">
+                    <div class="field-item flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="4" data-name="Possession Date" data-type="Date">
                         <div class="flex items-center gap-3">
+                            <span class="text-gray-400 cursor-grab select-none">::</span>
                             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-300">
                                 <span class="icon-calendar text-lg"></span>
                             </div>
@@ -252,6 +275,72 @@
             container.appendChild(newDiv);
             document.getElementById('add-field-modal').classList.add('hidden');
             form.reset();
+        }
+
+        let draggedItem = null;
+        let previousDOMState = null;
+
+        function handleDragStart(e) {
+            draggedItem = e.currentTarget;
+            e.dataTransfer.effectAllowed = 'move';
+            e.currentTarget.classList.add('opacity-50');
+
+            const container = document.getElementById('fields-list-container');
+            previousDOMState = Array.from(container.children).map(node => node.cloneNode(true));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.currentTarget;
+            if (target && target !== draggedItem && target.classList.contains('field-item')) {
+                const container = document.getElementById('fields-list-container');
+                const children = Array.from(container.children);
+                const draggedIdx = children.indexOf(draggedItem);
+                const targetIdx = children.indexOf(target);
+
+                if (draggedIdx < targetIdx) {
+                    container.insertBefore(draggedItem, target.nextSibling);
+                } else {
+                    container.insertBefore(draggedItem, target);
+                }
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (draggedItem) {
+                draggedItem.classList.remove('opacity-50');
+
+                const container = document.getElementById('fields-list-container');
+                const items = Array.from(container.children);
+                const orders = items.map((item, index) => ({
+                    id: parseInt(item.getAttribute('data-id') || 0),
+                    sort_order: index
+                })).filter(o => o.id > 0);
+
+                fetch('/v1/moldable/fields/reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({ orders: orders })
+                }).then(res => {
+                    if (!res.ok) {
+                        throw new Error('Reorder failed');
+                    }
+                }).catch(err => {
+                    console.warn('Reorder failed, rolling back UI state:', err);
+                    if (previousDOMState && container) {
+                        container.innerHTML = '';
+                        previousDOMState.forEach(node => container.appendChild(node));
+                    }
+                });
+
+                draggedItem = null;
+            }
         }
     </script>
 

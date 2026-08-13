@@ -11,6 +11,27 @@ use Webkul\Moldable\Services\FieldTypeRegistry;
 
 class BuilderController
 {
+    public function reorderFields(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'orders' => ['required', 'array'],
+            'orders.*.id' => ['required', 'integer', 'exists:attributes,id'],
+            'orders.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($data['orders'] as $item) {
+            Attribute::whereKey($item['id'])->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json(['message' => 'Fields reordered successfully.']);
+    }
+
+    public function entities(): JsonResponse
+    {
+        $entities = config('moldable.entities', []);
+        return response()->json(array_values($entities));
+    }
+
     public function types(): JsonResponse
     {
         return response()->json(FieldTypeRegistry::all());

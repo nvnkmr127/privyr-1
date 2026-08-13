@@ -37,10 +37,9 @@
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Entity *</label>
                                 <select name="entity_type" required class="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
-                                    <option value="leads" selected>Leads</option>
-                                    <option value="persons">Persons</option>
-                                    <option value="organizations">Organizations</option>
-                                    <option value="products">Products</option>
+                                    @foreach(config('moldable.entities', []) as $entityCode => $entityMeta)
+                                        <option value="{{ $entityCode }}">{{ $entityMeta['name'] ?? ucfirst($entityCode) }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
