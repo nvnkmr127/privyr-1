@@ -60,12 +60,18 @@ class WorkspaceController
     public function addMember(Request $request): JsonResponse
     {
         $workspace = $request->attributes->get('moldable_workspace');
+        $this->requireRole($request, $workspace, ['owner', 'admin']);
+
         $data = $request->validate([
             'user_id' => ['required', 'integer'],
             'role' => ['nullable', 'in:owner,admin,manager,member,viewer'],
             'team_id' => ['nullable', 'integer'],
             'permissions' => ['nullable', 'array'],
         ]);
+
+        if (! empty($data['team_id'])) {
+            abort_unless(Team::where('workspace_id', $workspace->id)->whereKey($data['team_id'])->exists(), 422, 'Team does not belong to this workspace.');
+        }
 
         $member = WorkspaceMember::updateOrCreate(
             ['workspace_id' => $workspace->id, 'user_id' => $data['user_id']],
@@ -83,6 +89,8 @@ class WorkspaceController
     public function createTeam(Request $request): JsonResponse
     {
         $workspace = $request->attributes->get('moldable_workspace');
+        $this->requireRole($request, $workspace, ['owner', 'admin', 'manager']);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'slug' => ['nullable', 'string', 'max:120', 'alpha_dash'],
@@ -108,5 +116,17 @@ class WorkspaceController
     public function teams(Request $request): JsonResponse
     {
         return response()->json($request->attributes->get('moldable_workspace')->teams()->withCount('members')->orderBy('name')->get());
+    }
+
+    private function requireRole(Request $request, Workspace $workspace, array $roles): void
+    {
+        $allowed = WorkspaceMember::query()
+            ->where('workspace_id', $workspace->id)
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('is_active', true)
+            ->whereIn('role', $roles)
+            ->exists();
+
+        abort_unless($allowed, 403, 'You do not have permission to manage this workspace.');
     }
 }
