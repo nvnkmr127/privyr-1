@@ -1,0 +1,190 @@
+<?php
+
+namespace Webkul\Lead\Services;
+
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Webkul\Contact\Repositories\PersonRepository;
+use Webkul\Lead\Models\LeadCaptureLog;
+use Webkul\Lead\Models\LeadSourceConnector;
+use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Repositories\PipelineRepository;
+
+class LeadCaptureService
+{
+    public function __construct(
+        protected LeadRepository $leadRepository,
+        protected PersonRepository $personRepository,
+        protected PipelineRepository $pipelineRepository
+    ) {}
+
+    /**
+     * Process incoming payload from any connected source (Meta, Google, IndiaMART, JustDial, Webhook, API, Zapier, QR).
+     *
+     * @param  LeadSourceConnector  $connector
+     * @param  array  $payload
+     * @return \Webkul\Lead\Contracts\Lead|null
+     */
+    public function processIncomingPayload(LeadSourceConnector $connector, array $payload)
+    {
+        try {
+            $mappedData = $this->mapPayloadToFields($payload, $connector->field_mappings ?? []);
+
+            $email = $mappedData['person']['emails'] ?? null;
+            $phone = $mappedData['person']['contact_numbers'] ?? null;
+
+            // Duplicate Detection
+            $existingPerson = $this->detectDuplicateContact($email, $phone);
+
+            if ($existingPerson && $connector->duplicate_action === 'skip') {
+                LeadCaptureLog::create([
+                    'connector_id' => $connector->id,
+                    'raw_payload' => $payload,
+                    'status' => 'duplicate_flagged',
+                    'error_message' => 'Duplicate contact found. Ingestion skipped as per connector configuration.',
+                ]);
+
+                return null;
+            }
+
+            // Create or update Person
+            $personData = [
+                'name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
+                'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
+                'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
+            ];
+
+            if ($existingPerson && in_array($connector->duplicate_action, ['update', 'attach_contact'])) {
+                $person = $existingPerson;
+            } else {
+                $person = $this->personRepository->create($personData);
+            }
+
+            // Pipeline & Stage Fallbacks
+            $pipelineId = $connector->default_lead_pipeline_id ?? $this->pipelineRepository->getDefaultPipeline()?->id;
+            $pipeline = $this->pipelineRepository->find($pipelineId);
+            $stageId = $connector->default_lead_pipeline_stage_id ?? $pipeline?->stages?->first()?->id;
+
+            // Create Lead
+            $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($person->name ?? 'New Lead'));
+            $leadData = [
+                'title' => $leadTitle,
+                'description' => $mappedData['description'] ?? 'Captured automatically via '.$connector->name,
+                'lead_value' => $mappedData['lead_value'] ?? 0,
+                'person_id' => $person->id,
+                'user_id' => $connector->default_user_id,
+                'lead_pipeline_id' => $pipelineId,
+                'lead_pipeline_stage_id' => $stageId,
+                'is_unread' => true,
+                'last_contacted_at' => null,
+            ];
+
+            $lead = $this->leadRepository->create($leadData);
+
+            // Update Connector Statistics
+            $connector->increment('captured_count');
+            $connector->update(['last_received_at' => Carbon::now()]);
+
+            // Create Log Entry
+            LeadCaptureLog::create([
+                'connector_id' => $connector->id,
+                'raw_payload' => $payload,
+                'status' => 'success',
+                'lead_id' => $lead->id,
+            ]);
+
+            return $lead;
+        } catch (\Throwable $e) {
+            LeadCaptureLog::create([
+                'connector_id' => $connector->id,
+                'raw_payload' => $payload,
+                'status' => 'error',
+                'error_message' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Map payload keys to CRM attributes using configured mappings or smart heuristics.
+     *
+     * @param  array  $payload
+     * @param  array  $fieldMappings
+     * @return array
+     */
+    public function mapPayloadToFields(array $payload, array $fieldMappings = []): array
+    {
+        $result = [
+            'title' => null,
+            'description' => null,
+            'lead_value' => null,
+            'person' => [
+                'name' => null,
+                'emails' => null,
+                'contact_numbers' => null,
+            ],
+        ];
+
+        // 1. If explicit field mappings exist, apply them
+        if (! empty($fieldMappings)) {
+            foreach ($fieldMappings as $incomingKey => $crmTarget) {
+                $value = data_get($payload, $incomingKey);
+                if ($value !== null) {
+                    data_set($result, $crmTarget, $value);
+                }
+            }
+        }
+
+        // 2. Smart Heuristic Auto-Mapper for unmapped keys
+        $flatPayload = Arr::dot($payload);
+        foreach ($flatPayload as $key => $val) {
+            if (empty($val) || is_array($val)) continue;
+
+            $lowerKey = Str::lower($key);
+
+            if (! $result['person']['name'] && (Str::contains($lowerKey, ['name', 'full_name', 'sender_name', 'contact_name']))) {
+                $result['person']['name'] = $val;
+            } elseif (! $result['person']['emails'] && (Str::contains($lowerKey, ['email', 'mail']))) {
+                $result['person']['emails'] = $val;
+            } elseif (! $result['person']['contact_numbers'] && (Str::contains($lowerKey, ['phone', 'mobile', 'contact', 'whatsapp', 'tel']))) {
+                $result['person']['contact_numbers'] = $val;
+            } elseif (! $result['title'] && (Str::contains($lowerKey, ['title', 'subject', 'query', 'requirement', 'product']))) {
+                $result['title'] = $val;
+            } elseif (! $result['lead_value'] && (Str::contains($lowerKey, ['budget', 'value', 'price', 'amount'])) && is_numeric($val)) {
+                $result['lead_value'] = (float) $val;
+            } elseif (! $result['description'] && (Str::contains($lowerKey, ['description', 'notes', 'comment', 'message']))) {
+                $result['description'] = $val;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Detect duplicate person by email or phone number.
+     *
+     * @param  string|null  $email
+     * @param  string|null  $phone
+     * @return \Webkul\Contact\Contracts\Person|null
+     */
+    public function detectDuplicateContact(?string $email, ?string $phone)
+    {
+        if (empty($email) && empty($phone)) {
+            return null;
+        }
+
+        $query = $this->personRepository->getModel()->newQuery();
+
+        if ($email) {
+            $query->where('emails', 'like', "%{$email}%");
+        }
+
+        if ($phone) {
+            $query->orWhere('contact_numbers', 'like', "%{$phone}%");
+        }
+
+        return $query->first();
+    }
+}
