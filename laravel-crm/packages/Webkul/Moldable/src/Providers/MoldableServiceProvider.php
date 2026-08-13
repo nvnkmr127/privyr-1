@@ -14,6 +14,9 @@ class MoldableServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
+        $this->loadViewsFrom(__DIR__.'/../Resources/views', 'moldable');
+
         $this->loadRoutesFrom(__DIR__.'/../Routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../Routes/web.php');
     }
 }

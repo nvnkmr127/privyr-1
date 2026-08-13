@@ -54,7 +54,7 @@ class WorkspaceController
     {
         $workspace = $request->attributes->get('moldable_workspace');
 
-        return response()->json($workspace->loadCount('members')->load(['teams', 'fields', 'views']));
+        return response()->json($workspace->loadCount('members')->load(['teams', 'views']));
     }
 
     public function addMember(Request $request): JsonResponse
