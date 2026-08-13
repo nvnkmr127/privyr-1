@@ -8,6 +8,11 @@ use Webkul\Moldable\Http\Middleware\ResolveWorkspace;
 
 class MoldableServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../Config/moldable.php', 'moldable');
+    }
+
     public function boot(Router $router): void
     {
         $router->aliasMiddleware('moldable.workspace', ResolveWorkspace::class);

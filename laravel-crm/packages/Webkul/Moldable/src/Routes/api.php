@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Webkul\Moldable\Http\Controllers\BuilderController;
+use Webkul\Moldable\Http\Controllers\GroupController;
 use Webkul\Moldable\Http\Controllers\ResourceController;
 use Webkul\Moldable\Http\Controllers\TemplateController;
 use Webkul\Moldable\Http\Controllers\ViewController;
@@ -18,10 +19,18 @@ Route::middleware('auth:api')->prefix('v1/moldable')->group(function () {
         Route::post('/workspace/teams', [WorkspaceController::class, 'createTeam']);
 
         Route::get('/field-types', [BuilderController::class, 'types']);
+        Route::get('/entities', [BuilderController::class, 'entities']);
         Route::get('/fields', [BuilderController::class, 'fields']);
         Route::post('/fields', [BuilderController::class, 'storeField']);
+        Route::post('/fields/reorder', [BuilderController::class, 'reorderFields']);
         Route::put('/fields/{field}', [BuilderController::class, 'updateField']);
         Route::delete('/fields/{field}', [BuilderController::class, 'deleteField']);
+
+        Route::get('/groups', [GroupController::class, 'index']);
+        Route::post('/groups', [GroupController::class, 'store']);
+        Route::put('/groups/{group}', [GroupController::class, 'update']);
+        Route::delete('/groups/{group}', [GroupController::class, 'destroy']);
+        Route::post('/groups/{group}/assign', [GroupController::class, 'assignAttributes']);
 
         Route::get('/views', [ViewController::class, 'index']);
         Route::post('/views', [ViewController::class, 'store']);

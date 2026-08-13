@@ -61,4 +61,5 @@ return [
     UserServiceProvider::class,
     WarehouseServiceProvider::class,
     WebFormServiceProvider::class,
+    Webkul\Moldable\Providers\MoldableServiceProvider::class,
 ];
