@@ -1,0 +1,17 @@
+{
+    "name": "krayin/laravel-moldable",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Webkul\\Moldable\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\Moldable\\Providers\\MoldableServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}
