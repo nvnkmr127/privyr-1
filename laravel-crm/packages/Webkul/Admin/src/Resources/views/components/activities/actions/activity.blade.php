@@ -8,10 +8,10 @@
     {!! view_render_event('admin.components.activities.actions.activity.create_btn.before') !!}
 
     <button
-        class="flex h-[74px] w-[84px] flex-col items-center justify-center gap-1 rounded-lg border border-transparent bg-blue-200 font-medium text-blue-800 transition-all hover:border-blue-400"
+        class="flex h-20 w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-transparent bg-purple-50 text-xs font-bold text-purple-600 transition-all hover:bg-purple-100"
         @click="$refs.actionComponent.openModal('mail')"
     >
-        <span class="icon-activity text-2xl dark:!text-blue-800"></span>
+        <span class="icon-activity text-2xl"></span>
 
         @lang('admin::app.components.activities.actions.activity.btn')
     </button>

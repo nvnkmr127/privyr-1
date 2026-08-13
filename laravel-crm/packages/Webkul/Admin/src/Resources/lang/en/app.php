@@ -2386,6 +2386,12 @@ return [
         'inventory-info' => 'Manage all your inventory related settings in the CRM',
         'data_transfer' => 'Data Transfer',
         'data_transfer_info' => 'Manage persons, products and leads data transfer related settings in the CRM',
+        'web-forms' => 'Web Forms',
+        'web-forms-info' => 'Manage website lead capture forms and embed codes',
+        'moldable-builder' => 'Moldable Field Builder',
+        'moldable-builder-info' => 'Configure custom fields, groups, views, and entity attributes',
+        'google-contacts' => 'Google Contacts Sync',
+        'google-contacts-info' => 'Synchronize contacts automatically with Google Contacts API',
     ],
     'user' => [
         'account' => [

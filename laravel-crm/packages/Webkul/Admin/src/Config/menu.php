@@ -106,12 +106,26 @@ return [
         'sort' => 3,
         'icon-class' => 'icon-settings-type',
     ], [
+        'key' => 'settings.lead.web_forms',
+        'name' => 'admin::app.layouts.web-forms',
+        'info' => 'admin::app.layouts.web-forms-info',
+        'route' => 'admin.settings.web_forms.index',
+        'sort' => 4,
+        'icon-class' => 'icon-form',
+    ], [
         'key' => 'settings.automation',
         'name' => 'admin::app.layouts.automation',
         'info' => 'admin::app.layouts.automation-info',
         'route' => 'admin.settings.attributes.index',
         'sort' => 3,
         'icon-class' => '',
+    ], [
+        'key' => 'settings.automation.moldable_builder',
+        'name' => 'admin::app.layouts.moldable-builder',
+        'info' => 'admin::app.layouts.moldable-builder-info',
+        'route' => 'admin.moldable.builder.index',
+        'sort' => 0,
+        'icon-class' => 'icon-attribute',
     ], [
         'key' => 'settings.automation.attributes',
         'name' => 'admin::app.layouts.attributes',
@@ -169,11 +183,25 @@ return [
         'sort' => 3,
         'icon-class' => 'icon-settings-flow',
     ], [
+        'key' => 'settings.automation.email_templates',
+        'name' => 'admin::app.layouts.email-templates',
+        'info' => 'admin::app.layouts.email-templates-info',
+        'route' => 'admin.settings.email_templates.index',
+        'sort' => 4,
+        'icon-class' => 'icon-mail',
+    ], [
+        'key' => 'settings.automation.google_contacts',
+        'name' => 'admin::app.layouts.google-contacts',
+        'info' => 'admin::app.layouts.google-contacts-info',
+        'route' => 'admin.settings.google_contacts.index',
+        'sort' => 5,
+        'icon-class' => 'icon-user',
+    ], [
         'key' => 'settings.automation.data_transfer',
         'name' => 'admin::app.layouts.data_transfer',
         'info' => 'admin::app.layouts.data_transfer_info',
         'route' => 'admin.settings.data_transfer.imports.index',
-        'sort' => 4,
+        'sort' => 6,
         'icon-class' => 'icon-download',
     ], [
         'key' => 'settings.other_settings',
@@ -189,6 +217,13 @@ return [
         'route' => 'admin.settings.tags.index',
         'sort' => 1,
         'icon-class' => 'icon-settings-tag',
+    ], [
+        'key' => 'settings.other_settings.warehouses',
+        'name' => 'admin::app.layouts.warehouses',
+        'info' => 'admin::app.layouts.warehouses-info',
+        'route' => 'admin.settings.warehouses.index',
+        'sort' => 2,
+        'icon-class' => 'icon-product',
     ],
 
     /**

@@ -1,11 +1,11 @@
 {!! view_render_event('admin.leads.view.person.before', ['lead' => $lead]) !!}
 
-<div class="flex w-full flex-col gap-4 border-b border-gray-300 p-4 dark:border-gray-800">
+<div class="flex w-full flex-col gap-4 p-6">
     @if ($lead?->person)
         <x-admin::accordion class="select-none !border-none">
             <x-slot:header class="!p-0">
-                <div class="flex w-full items-center justify-between gap-4 font-semibold dark:text-white">
-                    <h4>@lang('admin::app.leads.view.persons.title')</h4>
+                <div class="flex w-full items-center justify-between gap-4">
+                    <h4 class="text-sm font-bold text-slate-900">@lang('admin::app.leads.view.persons.title')</h4>
 
                     <div class="flex items-center gap-1">
                         @if (bouncer()->hasPermission('leads.edit') && bouncer()->hasPermission('contacts.persons.edit'))
@@ -35,7 +35,7 @@
 
                         <a
                             href="{{ route('admin.contacts.persons.view', $lead->person->id) }}"
-                            class="font-semibold text-brandColor"
+                            class="font-bold text-slate-900 hover:underline"
                             target="_blank"
                         >
                             {{ $lead->person->name }}
@@ -46,7 +46,7 @@
                         {!! view_render_event('admin.leads.view.person.job_title.before', ['lead' => $lead]) !!}
 
                         @if ($lead->person->job_title)
-                            <span class="dark:text-white">
+                            <span class="text-xs font-medium text-slate-500">
                                 @if ($lead->person->organization)
                                     @lang('admin::app.leads.view.persons.job-title', [
                                         'job_title' => $lead->person->job_title,
@@ -63,16 +63,16 @@
                         {!! view_render_event('admin.leads.view.person.email.before', ['lead' => $lead]) !!}
 
                         @foreach ($lead->person->emails as $email)
-                            <div class="flex gap-1">
+                            <div class="flex items-center gap-2 mt-1">
                                 <a
-                                    class="text-brandColor"
+                                    class="text-xs font-semibold text-slate-800 hover:underline"
                                     href="mailto:{{ $email['value'] }}"
                                 >
                                     {{ $email['value'] }}
                                 </a>
 
-                                <span class="text-gray-500 dark:text-gray-300">
-                                    ({{ $email['label'] }})
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    {{ $email['label'] }}
                                 </span>
                             </div>
                         @endforeach
@@ -82,16 +82,16 @@
                         {!! view_render_event('admin.leads.view.person.contact_numbers.before', ['lead' => $lead]) !!}
 
                         @foreach ($lead->person->contact_numbers as $contactNumber)
-                            <div class="flex gap-1">
+                            <div class="flex items-center gap-2 mt-1">
                                 <a
-                                    class="text-brandColor"
+                                    class="text-xs font-semibold text-slate-800 hover:underline"
                                     href="callto:{{ $contactNumber['value'] }}"
                                 >
                                     {{ $contactNumber['value'] }}
                                 </a>
 
-                                <span class="text-gray-500 dark:text-gray-300">
-                                    ({{ $contactNumber['label'] }})
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    {{ $contactNumber['label'] }}
                                 </span>
                             </div>
                         @endforeach
@@ -102,8 +102,8 @@
             </x-slot>
         </x-admin::accordion>
     @else
-        <div class="flex w-full items-center justify-between gap-4 font-semibold dark:text-white">
-            <h4>@lang('admin::app.leads.view.persons.title')</h4>
+        <div class="flex w-full items-center justify-between gap-4">
+            <h4 class="text-sm font-bold text-slate-900">@lang('admin::app.leads.view.persons.title')</h4>
         </div>
 
         @if (bouncer()->hasPermission('leads.edit') && bouncer()->hasPermission('contacts.persons.edit'))
@@ -177,9 +177,11 @@
                     @if (bouncer()->hasPermission('leads.edit') && bouncer()->hasPermission('contacts.persons.edit'))
                         <a
                             type="button"
-                            class="icon-edit rounded-md p-1.5 text-2xl transition-all hover:bg-gray-100 dark:hover:bg-gray-950"
+                            class="flex items-center justify-center cursor-pointer rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition"
                             @click="toggleChangeForm"
-                        ></a>
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </a>
                     @endif
 
                     <div

@@ -30,7 +30,7 @@
                 <div class="flex gap-2.5 overflow-x-auto max-h-[calc(100vh-300px)]">
                     <!-- Stage Cards -->
                     <div
-                        class="flex min-w-[275px] max-w-[275px] flex-col gap-1 rounded-lg border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900"
+                        class="flex min-w-[280px] max-w-[280px] flex-col gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-2 dark:border-gray-800 dark:bg-gray-900"
                         v-for="(stage, index) in stageLeads"
                     >
                         {!! view_render_event('admin.leads.index.kanban.content.stage.header.before') !!}
@@ -39,8 +39,8 @@
                         <div class="flex flex-col px-2 py-3">
                             <!-- Stage Title and Action -->
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium dark:text-white">
-                                    @{{ stage.name }} (@{{ stage.leads.meta.total }})
+                                <span class="text-sm font-black tracking-wider text-slate-900 uppercase">
+                                    @{{ stage.name }} <span class="text-slate-400 font-semibold ml-1">(@{{ stage.leads.meta.total }})</span>
                                 </span>
 
                                 @if (bouncer()->hasPermission('leads.create'))
@@ -55,14 +55,14 @@
 
                             <!-- Stage Total Leads and Amount -->
                             <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-medium dark:text-white">
+                                <span class="text-xs font-bold text-slate-500">
                                     @{{ $admin.formatPrice(stage.lead_value) }}
                                 </span>
 
                                 <!-- Progress Bar -->
-                                <div class="h-1 w-36 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+                                <div class="h-1 w-32 overflow-hidden rounded-full bg-slate-200 dark:bg-gray-800">
                                     <div
-                                        class="h-1 bg-green-500"
+                                        class="h-1 bg-slate-900"
                                         :style="{ width: (stage.lead_value / totalStagesAmount) * 100 + '%' }"
                                     ></div>
                                 </div>
@@ -110,7 +110,7 @@
                                         @if (bouncer()->hasPermission('leads.create'))
                                             <a
                                                 :href="'{{ route('admin.leads.create') }}' + '?stage_id=' + stage.id"
-                                                class="secondary-button"
+                                                class="rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-2.5 text-xs font-bold shadow-2xs transition"
                                             >
                                                 @lang('admin::app.leads.index.kanban.create-lead-btn')
                                             </a>
@@ -124,7 +124,7 @@
                                 {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.before') !!}
 
                                 <a
-                                    class="lead-item flex cursor-pointer flex-col gap-5 rounded-lg border border-gray-300 shadow-xl shadow-slate-200 bg-gray-100 p-2 dark:border-gray-400 dark:bg-gray-400"
+                                    class="lead-item flex cursor-pointer flex-col gap-4 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm hover:shadow-md transition dark:border-gray-400 dark:bg-gray-400"
                                     :href="'{{ route('admin.leads.view', 'replaceId') }}'.replace('replaceId', element.id)"
                                 >
                                     {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.header.before') !!}
@@ -135,11 +135,11 @@
                                             <x-admin::avatar ::name="element.person ? element.person.name : 'Unknown'" />
 
                                             <div class="flex flex-col gap-0.5">
-                                                <span class="text-xs font-medium">
+                                                <span class="text-xs font-bold text-slate-900">
                                                     @{{ element.person ? element.person.name : 'Unknown' }}
                                                 </span>
 
-                                                <span class="text-[10px] leading-normal">
+                                                <span class="text-[10px] font-semibold text-slate-500 leading-normal">
                                                     @{{ element.person && element.person.organization ? element.person.organization.name : '' }}
                                                 </span>
                                             </div>
@@ -166,35 +166,35 @@
                                     {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.title.before') !!}
 
                                     <!-- Lead Title -->
-                                    <p class="text-xs font-medium">
+                                    <p class="text-[13px] font-bold text-slate-800 leading-snug">
                                         @{{ element.title }}
                                     </p>
 
                                     {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.title.after') !!}
 
-                                    <div class="flex flex-wrap gap-1">
+                                    <div class="flex flex-wrap gap-1 mt-1">
                                         <div
-                                            class="flex items-center gap-1 rounded-xl bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-800 dark:text-white"
+                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white"
                                             v-if="element.user"
                                         >
-                                            <span class="icon-settings-user text-sm"></span>
+                                            <span class="icon-settings-user text-[10px]"></span>
 
                                             @{{ element.user.name }}
                                         </div>
 
-                                        <div class="rounded-xl bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-800 dark:text-white">
+                                        <div class="rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white">
                                             @{{ element.formatted_lead_value }}
                                         </div>
 
                                         <div
-                                            class="rounded-xl bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-800 dark:text-white"
+                                            class="rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white"
                                             v-if="element.source"
                                         >
                                             @{{ element.source.name }}
                                         </div>
 
                                         <div
-                                            class="rounded-xl bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-800 dark:text-white"
+                                            class="rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white"
                                             v-if="element.type"
                                         >
                                             @{{ element.type.name }}
@@ -205,10 +205,11 @@
                                             {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.tag.before') !!}
 
                                             <div
-                                                class="rounded-xl bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-800"
+                                                class="rounded-lg border px-2 py-1 text-[10px] font-bold dark:bg-gray-800"
                                                 :style="{
-                                                    backgroundColor: tag.color,
-                                                    color: tagTextColor[tag.color]
+                                                    backgroundColor: tag.color ? tag.color : '#f1f5f9',
+                                                    borderColor: tag.color ? tag.color : '#e2e8f0',
+                                                    color: tagTextColor[tag.color] ? tagTextColor[tag.color] : '#475569'
                                                 }"
                                             >
                                                 @{{ tag.name }}

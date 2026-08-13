@@ -7,13 +7,13 @@
 
             <button
                 type="button"
-                class="flex cursor-pointer appearance-none items-center justify-between gap-x-2 rounded-md border bg-white px-2.5 py-[7px] text-center leading-6 text-gray-600 transition-all marker:shadow hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
+                class="flex cursor-pointer appearance-none items-center justify-between gap-x-3 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 focus:border-slate-300"
             >
                 <span class="whitespace-nowrap">
                     {{ $pipeline->name }}
                 </span>
                 
-                <span class="icon-down-arrow text-2xl"></span>
+                <span class="icon-down-arrow text-lg"></span>
             </button>
 
             {!! view_render_event('admin.leads.index.view_switcher.pipeline.button.after') !!}
@@ -23,8 +23,8 @@
             {!! view_render_event('admin.leads.index.view_switcher.pipeline.content.header.before') !!}
 
             <!-- Header -->
-            <div class="flex items-center justify-between px-3 py-2.5">
-                <span class="text-xs font-medium text-gray-500 dark:text-gray-300">
+            <div class="flex items-center justify-between px-4 py-3">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     @lang('admin::app.leads.index.view-switcher.all-pipelines')
                 </span>
             </div>
@@ -40,7 +40,7 @@
                         'pipeline_id' => $tempPipeline->id,
                         'view_type' => request('view_type')
                     ]) }}"
-                    class="block px-3 py-2.5 pl-4 text-gray-600 transition-all hover:bg-gray-100 dark:hover:bg-gray-950 dark:text-gray-300 {{ $pipeline->id == $tempPipeline->id ? 'bg-gray-100 dark:bg-gray-950' : '' }}"
+                    class="block px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 {{ $pipeline->id == $tempPipeline->id ? 'bg-slate-50 text-slate-900' : '' }}"
                 >
                     {{ $tempPipeline->name }}
                 </a>
@@ -54,9 +54,9 @@
             <a
                 href="{{ route('admin.settings.pipelines.create') }}"
                 target="_blank"
-                class="flex items-center justify-between border-t border-gray-300 px-3 py-2.5 text-brandColor dark:border-gray-800"
+                class="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-xs font-bold text-slate-900 hover:bg-slate-50 transition"
             >
-                <span class="font-medium">                    
+                <span>                    
                     @lang('admin::app.leads.index.view-switcher.create-new-pipeline')
                 </span>
             </a>
@@ -65,49 +65,6 @@
         </x-slot>
     </x-admin::dropdown>
 
-    <div class="flex items-center gap-0.5">
-        {!! view_render_event('admin.leads.index.view_switcher.pipeline.view_type.before') !!}
-
-        @if (request()->routeIs('admin.leads.inbox'))
-            <a href="{{ route('admin.leads.index') }}" class="flex">
-                <span class="icon-kanban p-2 text-2xl"></span>
-            </a>
-
-            <a href="{{ route('admin.leads.index', ['view_type' => 'table']) }}" class="flex">
-                <span class="icon-list p-2 text-2xl"></span>
-            </a>
-
-            <span class="icon-mail rounded-md bg-white p-2 text-2xl dark:bg-gray-900"></span>
-        @elseif (request('view_type'))
-            <a
-                class="flex"
-                href="{{ route('admin.leads.index') }}"
-            >
-                <span class="icon-kanban p-2 text-2xl"></span>
-            </a>
-
-            <span class="icon-list rounded-md bg-gray-100 p-2 text-2xl dark:bg-gray-950"></span>
-
-            <a href="{{ route('admin.leads.inbox') }}" class="flex" title="@lang('admin::app.leads.inbox.title')">
-                <span class="icon-mail p-2 text-2xl"></span>
-            </a>
-        @else
-            <span class="icon-kanban rounded-md bg-white p-2 text-2xl dark:bg-gray-900"></span>
-
-            <a
-                href="{{ route('admin.leads.index', ['view_type' => 'table']) }}"
-                class="flex"
-            >
-                <span class="icon-list p-2 text-2xl"></span>
-            </a>
-
-            <a href="{{ route('admin.leads.inbox') }}" class="flex" title="@lang('admin::app.leads.inbox.title')">
-                <span class="icon-mail p-2 text-2xl"></span>
-            </a>
-        @endif
-
-        {!! view_render_event('admin.leads.index.view_switcher.pipeline.view_type.after') !!}
-    </div>
 </div>
 
 {!! view_render_event('admin.leads.index.view_switcher.after') !!}
