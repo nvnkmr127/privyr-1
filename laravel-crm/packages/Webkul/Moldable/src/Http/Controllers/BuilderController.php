@@ -20,7 +20,10 @@ class BuilderController
         ]);
 
         foreach ($data['orders'] as $item) {
-            Attribute::whereKey($item['id'])->update(['sort_order' => $item['sort_order']]);
+            // Only user-defined fields are reorderable; never move system attributes.
+            Attribute::whereKey($item['id'])
+                ->where('is_user_defined', true)
+                ->update(['sort_order' => $item['sort_order']]);
         }
 
         return response()->json(['message' => 'Fields reordered successfully.']);
@@ -28,8 +31,16 @@ class BuilderController
 
     public function entities(): JsonResponse
     {
-        $entities = config('moldable.entities', []);
-        return response()->json(array_values($entities));
+        // Expose only presentation metadata — never the internal model class names.
+        $entities = collect(config('moldable.entities', []))
+            ->map(fn ($entity) => [
+                'code' => $entity['code'] ?? null,
+                'name' => $entity['name'] ?? null,
+                'icon' => $entity['icon'] ?? null,
+            ])
+            ->values();
+
+        return response()->json($entities);
     }
 
     public function types(): JsonResponse
@@ -117,8 +128,6 @@ class BuilderController
             'options.*.name' => ['required_with:options', 'string', 'max:160'],
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
-
-        unset($data['code'], $data['entity_type'], $data['is_user_defined']);
 
         if (isset($data['name'])) {
             $duplicateNameExists = Attribute::where('entity_type', $field->entity_type)

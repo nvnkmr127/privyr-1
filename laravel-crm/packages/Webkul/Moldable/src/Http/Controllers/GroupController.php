@@ -5,6 +5,7 @@ namespace Webkul\Moldable\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Webkul\Attribute\Models\Attribute;
 use Webkul\Moldable\Models\FieldGroup;
 use Webkul\Moldable\Models\FieldGroupAttribute;
 
@@ -91,9 +92,20 @@ class GroupController
             'attribute_ids.*' => ['integer', 'exists:attributes,id'],
         ]);
 
+        $attributeIds = array_values(array_unique($data['attribute_ids']));
+
+        // Every assigned field must belong to the same entity as the group.
+        $matching = Attribute::whereIn('id', $attributeIds)
+            ->where('entity_type', $group->entity_type)
+            ->count();
+
+        if ($matching !== count($attributeIds)) {
+            return response()->json(['message' => 'All fields must belong to the same entity as the group.'], 422);
+        }
+
         $group->groupAttributes()->delete();
 
-        foreach (array_values($data['attribute_ids']) as $order => $attributeId) {
+        foreach ($attributeIds as $order => $attributeId) {
             FieldGroupAttribute::create([
                 'group_id' => $group->id,
                 'attribute_id' => $attributeId,

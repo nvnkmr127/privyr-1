@@ -222,6 +222,11 @@ return [
         'route' => ['admin.settings.attributes.index', 'admin.settings.email_templates.index', 'admin.settings.workflows.index'],
         'sort' => 4,
     ], [
+        'key' => 'settings.automation.moldable_builder',
+        'name' => 'admin::app.acl.moldable-builder',
+        'route' => 'admin.moldable.builder.index',
+        'sort' => 0,
+    ], [
         'key' => 'settings.automation.attributes',
         'name' => 'admin::app.acl.attributes',
         'route' => 'admin.settings.attributes.index',

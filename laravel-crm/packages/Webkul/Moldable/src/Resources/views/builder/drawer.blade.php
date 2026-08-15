@@ -6,7 +6,7 @@
                 <div class="flex items-center gap-3">
                     <span class="icon-add text-xl text-blue-600 dark:text-blue-400"></span>
                     <div>
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Add Field</h2>
+                        <h2 id="drawer-title" class="text-lg font-bold text-gray-900 dark:text-white">Add Field</h2>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Configure custom attribute settings</p>
                     </div>
                 </div>
@@ -18,6 +18,7 @@
             <!-- Drawer Content (Sections) -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6">
                 <form id="add-field-drawer-form" onsubmit="submitAddFieldDrawer(event)" class="space-y-6">
+                    <input type="hidden" name="field_id" id="edit-field-id" value="" />
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-6">
@@ -381,12 +382,63 @@
 </div>
 
 <script>
-    function openAddFieldDrawer() {
+    // Opens the drawer. Pass a field object to edit an existing attribute,
+    // or a type string (e.g. 'select') to preset the field type for a new one.
+    function openAddFieldDrawer(preset, field) {
+        const form = document.getElementById('add-field-drawer-form');
+        const title = document.getElementById('drawer-title');
+        form.reset();
+        document.getElementById('edit-field-id').value = '';
+        resetOptionRows();
+
+        if (field && typeof field === 'object') {
+            title.textContent = 'Edit Field';
+            document.getElementById('edit-field-id').value = field.id;
+            form.name.value = field.name || '';
+            form.code.value = field.code || '';
+            form.code.readOnly = true;
+            if (form.entity_type) form.entity_type.value = field.entity_type || 'leads';
+            if (form.entity_type) form.entity_type.disabled = true;
+            if (form.validation) form.validation.value = field.validation || '';
+            if (form.is_required) form.is_required.checked = !!field.is_required;
+            if (form.is_unique) form.is_unique.checked = !!field.is_unique;
+            if (form.quick_add) form.quick_add.checked = !!field.quick_add;
+            if (form.sort_order) form.sort_order.value = field.sort_order ?? 0;
+            selectTypeCard(field.type || 'text');
+            (field.options || []).forEach((opt, i) => {
+                if (i === 0) {
+                    const first = document.querySelector('#options-list .option-name-input');
+                    if (first) first.value = opt.name;
+                } else {
+                    addOptionRow(opt.name);
+                }
+            });
+        } else {
+            title.textContent = 'Add Field';
+            form.code.readOnly = false;
+            if (form.entity_type) {
+                form.entity_type.disabled = false;
+                const active = document.getElementById('entity-selector');
+                if (active) form.entity_type.value = active.value;
+            }
+            selectTypeCard(typeof preset === 'string' ? preset : 'text');
+        }
+
         document.getElementById('add-field-drawer').classList.remove('hidden');
     }
 
     function closeAddFieldDrawer() {
         document.getElementById('add-field-drawer').classList.add('hidden');
+    }
+
+    function resetOptionRows() {
+        const list = document.getElementById('options-list');
+        if (!list) return;
+        list.innerHTML = `
+            <div class="flex items-center gap-2">
+                <input type="text" placeholder="Option Name" class="option-name-input flex-1 rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                <button type="button" onclick="removeOptionRow(this)" class="text-red-500 text-xs hover:underline">Remove</button>
+            </div>`;
     }
 
     function selectTypeCard(typeKey) {
@@ -458,12 +510,13 @@
         }
     }
 
-    function addOptionRow() {
+    function addOptionRow(value) {
         const list = document.getElementById('options-list');
         const div = document.createElement('div');
         div.className = 'flex items-center gap-2';
+        const safe = typeof value === 'string' ? value.replace(/"/g, '&quot;') : '';
         div.innerHTML = `
-            <input type="text" placeholder="Option Name" class="option-name-input flex-1 rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+            <input type="text" value="${safe}" placeholder="Option Name" class="option-name-input flex-1 rounded-lg border border-gray-300 dark:border-gray-700 p-2 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
             <button type="button" onclick="removeOptionRow(this)" class="text-red-500 text-xs hover:underline">Remove</button>
         `;
         list.appendChild(div);
@@ -473,76 +526,51 @@
         btn.parentElement.remove();
     }
 
-    function submitAddFieldDrawer(e) {
+    async function submitAddFieldDrawer(e) {
         e.preventDefault();
         const form = e.target;
-        const name = form.name.value;
+        const name = form.name.value.trim();
         const type = form.type.value;
-
         if (!name) return;
 
-        // Collect options if present
-        const optionInputs = form.querySelectorAll('.option-name-input');
+        const editId = document.getElementById('edit-field-id').value;
+
         const options = [];
-        optionInputs.forEach((inp, idx) => {
+        form.querySelectorAll('.option-name-input').forEach((inp, idx) => {
             if (inp.value.trim()) {
                 options.push({ name: inp.value.trim(), sort_order: idx });
             }
         });
 
-        // Add to list container on page
-        const container = document.getElementById('fields-list-container');
-        if (container) {
-            const newDiv = document.createElement('div');
-            newDiv.className = 'field-item flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 transition-all hover:border-blue-400 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/60 cursor-grab active:cursor-grabbing';
-            newDiv.setAttribute('draggable', 'true');
-            newDiv.setAttribute('ondragstart', 'handleDragStart(event)');
-            newDiv.setAttribute('ondragover', 'handleDragOver(event)');
-            newDiv.setAttribute('ondrop', 'handleDrop(event)');
-            newDiv.setAttribute('data-name', name);
-            const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-            newDiv.setAttribute('data-type', typeLabel);
-            
-            const code = form.code.value.trim() || name.toLowerCase().replace(/\s+/g, '_');
-            const isReq = form.is_required && form.is_required.checked;
-            const isQuick = form.quick_add && form.quick_add.checked;
+        const payload = {
+            name,
+            type,
+            validation: form.validation ? (form.validation.value.trim() || null) : null,
+            lookup_type: type === 'lookup' && form.lookup_type ? form.lookup_type.value : null,
+            is_required: !!(form.is_required && form.is_required.checked),
+            is_unique: !!(form.is_unique && form.is_unique.checked),
+            quick_add: !!(form.quick_add && form.quick_add.checked),
+            sort_order: form.sort_order ? parseInt(form.sort_order.value || '0', 10) : 0,
+            options,
+        };
 
-            newDiv.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-gray-400 cursor-grab select-none hover:text-gray-600">⋮⋮</span>
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300">
-                        <span class="icon-text text-lg"></span>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-sm font-bold text-gray-900 dark:text-white">\${name}</h3>
-                            \${isReq ? '<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded">* Required</span>' : ''}
-                            \${isQuick ? '<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Quick Add</span>' : ''}
-                        </div>
-                        <p class="text-xs text-gray-400 font-mono">\${code}</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                        \${typeLabel}
-                    </span>
-                    <div class="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-3">
-                        <button type="button" onclick="openAddFieldDrawer()" title="Edit Field" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
-                            <span class="icon-edit text-base"></span>
-                        </button>
-                        <button type="button" onclick="if(confirm('Delete field?')) this.closest('.field-item').remove()" title="Delete Field" class="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400">
-                            <span class="icon-delete text-base"></span>
-                        </button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(newDiv);
-        }
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
 
-        closeAddFieldDrawer();
-        form.reset();
-        if (typeof filterFields === 'function') {
-            filterFields(document.getElementById('field-search-input')?.value || '');
+        try {
+            if (editId) {
+                await MoldableBuilder.api('/fields/' + editId, { method: 'PUT', body: JSON.stringify(payload) });
+            } else {
+                payload.code = form.code.value.trim() || null;
+                payload.entity_type = form.entity_type ? form.entity_type.value : 'leads';
+                await MoldableBuilder.api('/fields', { method: 'POST', body: JSON.stringify(payload) });
+            }
+            closeAddFieldDrawer();
+            await MoldableBuilder.refresh();
+        } catch (err) {
+            alert(err.message || 'Could not save the field.');
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
         }
     }
 </script>

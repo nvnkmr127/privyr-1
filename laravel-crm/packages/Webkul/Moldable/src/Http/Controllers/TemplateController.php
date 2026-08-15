@@ -23,6 +23,7 @@ class TemplateController
         abort_unless($template->is_active, 404);
 
         $definition = $template->definition ?? [];
+        $entityType = $definition['entity_type'] ?? 'leads';
         $createdFields = [];
 
         foreach ($definition['fields'] ?? [] as $index => $field) {
@@ -30,9 +31,18 @@ class TemplateController
                 continue;
             }
 
-            $attribute = Attribute::firstOrCreate(
-                ['code' => $field['key'], 'entity_type' => 'leads'],
-                [
+            $attribute = Attribute::where('code', $field['key'])->where('entity_type', $entityType)->first();
+
+            // Never touch an existing system attribute — a template must not be able
+            // to convert a built-in field into a user-defined (deletable) one.
+            if ($attribute && ! $attribute->is_user_defined) {
+                continue;
+            }
+
+            if (! $attribute) {
+                $attribute = Attribute::create([
+                    'code' => $field['key'],
+                    'entity_type' => $entityType,
                     'name' => $field['label'],
                     'type' => $field['type'],
                     'sort_order' => $index,
@@ -41,15 +51,14 @@ class TemplateController
                     'is_unique' => false,
                     'quick_add' => $field['quick_add'] ?? false,
                     'is_user_defined' => true,
-                ]
-            );
-
-            $attribute->update([
-                'name' => $field['label'],
-                'type' => $field['type'],
-                'sort_order' => $index,
-                'is_user_defined' => true,
-            ]);
+                ]);
+            } else {
+                $attribute->update([
+                    'name' => $field['label'],
+                    'type' => $field['type'],
+                    'sort_order' => $index,
+                ]);
+            }
 
             if (! empty($field['options'])) {
                 $attribute->options()->delete();
@@ -72,7 +81,7 @@ class TemplateController
             }
 
             $createdViews[] = SavedView::updateOrCreate(
-                ['workspace_id' => $workspace->id, 'entity_type' => 'leads', 'name' => $view['name']],
+                ['workspace_id' => $workspace->id, 'entity_type' => $entityType, 'name' => $view['name']],
                 [
                     'user_id' => $request->user()->getAuthIdentifier(),
                     'filters' => $view['filters'] ?? [],
