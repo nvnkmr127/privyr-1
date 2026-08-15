@@ -63,7 +63,7 @@ class WorkspaceController
         $this->requireRole($request, $workspace, ['owner', 'admin']);
 
         $data = $request->validate([
-            'user_id' => ['required', 'integer'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
             'role' => ['nullable', 'in:owner,admin,manager,member,viewer'],
             'team_id' => ['nullable', 'integer'],
             'permissions' => ['nullable', 'array'],

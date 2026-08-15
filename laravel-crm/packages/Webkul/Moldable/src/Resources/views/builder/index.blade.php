@@ -6,7 +6,7 @@
     <div class="max-w-7xl mx-auto space-y-8">
 
         <!-- Top Page Header Bar -->
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="scroll-reactive-sticky flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-3">
                     <h1 class="text-2xl font-black tracking-tight text-slate-900">
@@ -24,7 +24,7 @@
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-2xs">
                     <label for="entity-selector" class="text-xs font-medium text-slate-400">Target Entity</label>
-                    <select id="entity-selector" class="rounded-lg border-0 py-0 pl-1 pr-6 text-xs font-bold text-slate-900 bg-transparent outline-none cursor-pointer">
+                    <select id="entity-selector" onchange="MoldableBuilder.setEntity(this.value)" class="rounded-lg border-0 py-0 pl-1 pr-6 text-xs font-bold text-slate-900 bg-transparent outline-none cursor-pointer">
                         @foreach(config('moldable.entities', ['leads' => ['name' => 'Leads'], 'persons' => ['name' => 'Persons'], 'organizations' => ['name' => 'Organizations'], 'products' => ['name' => 'Products'], 'quotes' => ['name' => 'Quotes']]) as $code => $meta)
                             <option value="{{ $code }}">{{ $meta['name'] ?? ucfirst($code) }}</option>
                         @endforeach
@@ -43,29 +43,15 @@
         </div>
 
         <!-- Entities Switcher Navigation Tabs Bar -->
-        <div class="flex items-center gap-3 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-3 shadow-2xs scrollbar-none">
+        <div id="entity-pill-bar" class="flex items-center gap-3 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-3 shadow-2xs scrollbar-none">
             <span class="text-xs font-black text-slate-900 px-3 uppercase tracking-wider">Entities</span>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="switchEntityPill(this, 'leads')" class="entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-900 bg-white px-4 py-2 text-xs font-bold text-slate-900 shadow-2xs transition">
-                    <span>Leads</span>
-                    <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">12</span>
-                </button>
-                <button type="button" onclick="switchEntityPill(this, 'persons')" class="entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
-                    <span>Persons</span>
-                    <span class="rounded-md bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-600">8</span>
-                </button>
-                <button type="button" onclick="switchEntityPill(this, 'organizations')" class="entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
-                    <span>Organizations</span>
-                    <span class="rounded-md bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-600">6</span>
-                </button>
-                <button type="button" onclick="switchEntityPill(this, 'products')" class="entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
-                    <span>Products</span>
-                    <span class="rounded-md bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-600">5</span>
-                </button>
-                <button type="button" onclick="switchEntityPill(this, 'quotes')" class="entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
-                    <span>Quotes</span>
-                    <span class="rounded-md bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-600">4</span>
-                </button>
+                @foreach(config('moldable.entities', ['leads' => ['name' => 'Leads'], 'persons' => ['name' => 'Persons'], 'organizations' => ['name' => 'Organizations'], 'products' => ['name' => 'Products'], 'quotes' => ['name' => 'Quotes']]) as $code => $meta)
+                    <button type="button" onclick="switchEntityPill(this, '{{ $code }}')" data-entity-pill="{{ $code }}" class="entity-pill-btn flex items-center gap-2 rounded-xl border {{ $loop->first ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100' }} px-4 py-2 text-xs font-bold shadow-2xs transition">
+                        <span>{{ $meta['name'] ?? ucfirst($code) }}</span>
+                        <span data-entity-count="{{ $code }}" class="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">0</span>
+                    </button>
+                @endforeach
             </div>
         </div>
 
@@ -86,83 +72,9 @@
                         </button>
                     </div>
 
+                    <!-- Groups are loaded from /v1/moldable/groups for the active entity. -->
                     <div id="field-groups-nav" class="space-y-3">
-
-                        <!-- Group Item: Property Details -->
-                        <div onclick="selectGroupTab(this, 'Property Details')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs">
-                            <div class="flex items-center gap-4">
-                                <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
-                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-bold text-slate-900">Property Details</h3>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Information about the property</p>
-                                </div>
-                            </div>
-                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">4</span>
-                        </div>
-
-                        <!-- Group Item: Customer Details -->
-                        <div onclick="selectGroupTab(this, 'Customer Details')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs">
-                            <div class="flex items-center gap-4">
-                                <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
-                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-bold text-slate-900">Customer Details</h3>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Details about the customer</p>
-                                </div>
-                            </div>
-                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">3</span>
-                        </div>
-
-                        <!-- Group Item: Project Details -->
-                        <div onclick="selectGroupTab(this, 'Project Details')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs">
-                            <div class="flex items-center gap-4">
-                                <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
-                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-bold text-slate-900">Project Details</h3>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Project related information</p>
-                                </div>
-                            </div>
-                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">2</span>
-                        </div>
-
-                        <!-- Group Item: Financial Details -->
-                        <div onclick="selectGroupTab(this, 'Financial Details')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs">
-                            <div class="flex items-center gap-4">
-                                <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
-                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                                    <span class="text-base font-black">$</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-bold text-slate-900">Financial Details</h3>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Financial and budget details</p>
-                                </div>
-                            </div>
-                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">2</span>
-                        </div>
-
-                        <!-- Group Item: Follow-up Details -->
-                        <div onclick="selectGroupTab(this, 'Follow-up Details')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs">
-                            <div class="flex items-center gap-4">
-                                <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
-                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                                    <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-bold text-slate-900">Follow-up Details</h3>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Follow up and reminders</p>
-                                </div>
-                            </div>
-                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">1</span>
-                        </div>
-
+                        <div class="py-6 text-center text-xs text-slate-400">Loading groups…</div>
                     </div>
                 </div>
             </div>
@@ -170,11 +82,11 @@
             <!-- Right Box Stack: Resource Overview & Quick Field Types -->
             <div class="lg:col-span-5 xl:col-span-5 space-y-6">
 
-                <!-- Card 1: Resource Overview -->
+                <!-- Card 1: Resource Overview / Metrics -->
                 <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-4">
                     <div>
                         <h2 class="text-sm font-bold text-slate-900">Resource Overview</h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Field builder summary</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Resource Metrics &middot; field builder summary</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -183,9 +95,9 @@
                                 <svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             </div>
                             <div>
-                                <div class="text-2xl font-black text-slate-900" id="stat-total-fields">12</div>
+                                <div class="text-2xl font-black text-slate-900" id="stat-total-fields">0</div>
                                 <div class="text-xs font-bold text-slate-800">Total Fields</div>
-                                <div class="text-[10px] text-slate-400">Across all groups</div>
+                                <div class="text-[10px] text-slate-400">For this entity</div>
                             </div>
                         </div>
 
@@ -194,7 +106,7 @@
                                 <svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             </div>
                             <div>
-                                <div class="text-2xl font-black text-slate-900" id="stat-quick-add">8</div>
+                                <div class="text-2xl font-black text-slate-900" id="stat-quick-add">0</div>
                                 <div class="text-xs font-bold text-slate-800">Quick Add Fields</div>
                                 <div class="text-[10px] text-slate-400">Added for faster entry</div>
                             </div>
@@ -268,137 +180,14 @@
             <div class="flex items-center justify-between">
                 <h2 id="active-group-header-title" class="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    <span>Property Details ( Leads Fields )</span>
+                    <span>All Fields ( Leads )</span>
                 </h2>
-                <span id="field-count-badge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">4 fields</span>
+                <span id="field-count-badge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">0 fields</span>
             </div>
 
-            <!-- Fields Canvas List (Drag & Drop Reorderable) -->
+            <!-- Fields Canvas List (Drag & Drop Reorderable) — populated from the API -->
             <div id="fields-list-container" class="space-y-3">
-
-                <!-- Field Item: Property Type -->
-                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="1" data-name="Property Type" data-type="Select">
-                    <div class="flex items-center gap-4">
-                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500">⋮⋮</span>
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                            ≡
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-xs font-bold text-slate-900">Property Type</h3>
-                                <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">• Required</span>
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Quick Add</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 font-mono mt-0.5">property_type</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                            Select
-                        </span>
-                        <div class="flex items-center gap-2 border-l border-slate-100 pl-3">
-                            <button type="button" onclick="openAddFieldDrawer()" title="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button type="button" onclick="if(confirm('Delete field?')) this.closest('.field-item').remove()" title="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Field Item: Budget -->
-                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="2" data-name="Budget" data-type="Price">
-                    <div class="flex items-center gap-4">
-                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500">⋮⋮</span>
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                            $
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-xs font-bold text-slate-900">Budget</h3>
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Quick Add</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 font-mono mt-0.5">budget</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                            Price
-                        </span>
-                        <div class="flex items-center gap-2 border-l border-slate-100 pl-3">
-                            <button type="button" onclick="openAddFieldDrawer()" title="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button type="button" onclick="if(confirm('Delete field?')) this.closest('.field-item').remove()" title="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Field Item: Location -->
-                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="3" data-name="Location" data-type="Text">
-                    <div class="flex items-center gap-4">
-                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500">⋮⋮</span>
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                            T
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-xs font-bold text-slate-900">Location</h3>
-                            </div>
-                            <p class="text-[11px] text-slate-400 font-mono mt-0.5">project_location</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                            Text
-                        </span>
-                        <div class="flex items-center gap-2 border-l border-slate-100 pl-3">
-                            <button type="button" onclick="openAddFieldDrawer()" title="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button type="button" onclick="if(confirm('Delete field?')) this.closest('.field-item').remove()" title="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Field Item: Possession Date -->
-                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="4" data-name="Possession Date" data-type="Date">
-                    <div class="flex items-center gap-4">
-                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500">⋮⋮</span>
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-xs font-bold text-slate-900">Possession Date</h3>
-                            </div>
-                            <p class="text-[11px] text-slate-400 font-mono mt-0.5">possession_date</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                            Date
-                        </span>
-                        <div class="flex items-center gap-2 border-l border-slate-100 pl-3">
-                            <button type="button" onclick="openAddFieldDrawer()" title="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button type="button" onclick="if(confirm('Delete field?')) this.closest('.field-item').remove()" title="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+                <div class="py-6 text-center text-xs text-slate-400">Loading fields…</div>
             </div>
 
             <!-- Bottom Add Field Button Center Link -->
@@ -414,74 +203,227 @@
                 <p class="text-xs text-slate-500">No matching fields found for your query.</p>
             </div>
 
+            <!-- Empty State (no fields yet) -->
+            <div id="no-fields-yet" class="hidden py-12 text-center border border-dashed border-slate-200 rounded-2xl">
+                <p class="text-xs text-slate-500">No custom fields for this entity yet. Click <span class="font-bold">Add Field</span> to create one.</p>
+            </div>
+
         </div>
 
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const entitySelector = document.getElementById('entity-selector');
-            const entityBadge = document.getElementById('selected-entity-badge');
+        const MoldableBuilder = (function () {
+            const API = '/v1/moldable';
+            const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-            if (entitySelector) {
-                entitySelector.addEventListener('change', function() {
-                    const text = this.options[this.selectedIndex].text;
-                    if (entityBadge) entityBadge.textContent = text;
+            // Seed group names used when an entity has no saved presentation groups yet:
+            // Property Details, Customer Details, Project Details, Financial Details, Follow-up Details.
+            const DEFAULT_GROUPS = ['Property Details', 'Customer Details', 'Project Details', 'Financial Details', 'Follow-up Details'];
+
+            const TYPE_ICON = { text: 'T', textarea: '¶', price: '$', boolean: '◉', select: '≡', multiselect: '≣', checkbox: '☑', date: '📅', datetime: '🕑', lookup: '🔍', email: '@', phone: '☎', address: '⌂', file: '📎', image: '🖼' };
+
+            let currentEntity = 'leads';
+            let allFields = [];
+
+            function api(path, opts = {}) {
+                return fetch(API + path, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': CSRF,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    ...opts,
+                }).then(async (res) => {
+                    const isJson = (res.headers.get('content-type') || '').includes('json');
+                    const body = isJson ? await res.json().catch(() => null) : null;
+                    if (!res.ok) {
+                        const msg = (body && body.message) || ('Request failed (' + res.status + ')');
+                        throw Object.assign(new Error(msg), { status: res.status, body });
+                    }
+                    return body;
                 });
             }
 
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && typeof closeAddFieldDrawer === 'function') {
-                    closeAddFieldDrawer();
+            function esc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+
+            function entityFields() {
+                return allFields.filter((f) => f.entity_type === currentEntity)
+                    .sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id));
+            }
+
+            async function refresh() {
+                try {
+                    allFields = await api('/fields');
+                } catch (err) {
+                    document.getElementById('fields-list-container').innerHTML =
+                        '<div class="py-6 text-center text-xs text-red-500">' + esc(err.message) + '</div>';
+                    return;
                 }
-            });
-        });
-
-        function switchEntityPill(btn, entityCode) {
-            document.querySelectorAll('.entity-pill-btn').forEach(b => {
-                b.className = 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition';
-            });
-
-            btn.className = 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-900 bg-white px-4 py-2 text-xs font-bold text-slate-900 transition shadow-2xs';
-
-            const entitySelector = document.getElementById('entity-selector');
-            if (entitySelector) {
-                entitySelector.value = entityCode;
-                entitySelector.dispatchEvent(new Event('change'));
+                updatePillCounts();
+                renderFields();
+                loadGroups();
             }
-        }
 
-        function selectGroupTab(element, groupName) {
-            const headerTitle = document.getElementById('active-group-header-title');
-            const entitySelector = document.getElementById('entity-selector');
-            const entityText = entitySelector ? entitySelector.options[entitySelector.selectedIndex].text : 'Leads';
-
-            if (headerTitle) {
-                headerTitle.innerHTML = `<svg class="w-3.5 h-3.5 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>\${groupName} ( \${entityText} Fields )</span>`;
+            function updatePillCounts() {
+                document.querySelectorAll('[data-entity-count]').forEach((el) => {
+                    const code = el.getAttribute('data-entity-count');
+                    el.textContent = allFields.filter((f) => f.entity_type === code).length;
+                });
             }
-        }
 
-        function openNewGroupModal() {
-            const groupName = prompt('Enter New Field Group Name:');
-            if (groupName && groupName.trim()) {
-                const nav = document.getElementById('field-groups-nav');
-                const div = document.createElement('div');
-                div.onclick = function() { selectGroupTab(this, groupName.trim()); };
-                div.className = 'group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs';
-                div.innerHTML = `
+            function fieldCard(field) {
+                const icon = TYPE_ICON[field.type] || '•';
+                const typeLabel = field.type.charAt(0).toUpperCase() + field.type.slice(1);
+                const badges =
+                    (field.is_required ? '<span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">• Required</span>' : '') +
+                    (field.is_unique ? '<span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full" data-unique=1>Unique</span>' : '') +
+                    (field.quick_add ? '<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Quick Add</span>' : '');
+
+                return `
+                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="${field.id}" data-name="${esc(field.name)}" data-type="${esc(typeLabel)}">
+                    <div class="flex items-center gap-4">
+                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500">⋮⋮</span>
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">${esc(icon)}</div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xs font-bold text-slate-900">${esc(field.name)}</h3>
+                                ${badges}
+                            </div>
+                            <p class="text-[11px] text-slate-400 font-mono mt-0.5">${esc(field.code)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">${esc(typeLabel)}</span>
+                        <div class="flex items-center gap-2 border-l border-slate-100 pl-3">
+                            <button type="button" onclick="MoldableBuilder.edit(${field.id})" title="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
+                                <svg class="w-4 h-4 text-slate-600 icon-edit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button type="button" onclick="MoldableBuilder.remove(${field.id})" title="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
+                                <svg class="w-4 h-4 text-slate-600 icon-delete" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            function renderFields() {
+                const container = document.getElementById('fields-list-container');
+                const fields = entityFields();
+
+                document.getElementById('stat-total-fields').textContent = fields.length;
+                document.getElementById('stat-quick-add').textContent = fields.filter((f) => f.quick_add).length;
+                document.getElementById('field-count-badge').textContent = fields.length + ' field' + (fields.length === 1 ? '' : 's');
+
+                const emptyYet = document.getElementById('no-fields-yet');
+                if (fields.length === 0) {
+                    container.innerHTML = '';
+                    emptyYet.classList.remove('hidden');
+                    return;
+                }
+                emptyYet.classList.add('hidden');
+                container.innerHTML = fields.map(fieldCard).join('');
+                filterFields(document.getElementById('field-search-input')?.value || '');
+            }
+
+            function groupCard(group, count) {
+                return `
+                <div onclick="selectGroupTab(this, '${esc(group.name)}')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs" data-group-id="${group.id || ''}">
                     <div class="flex items-center gap-4">
                         <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
                             <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         </div>
                         <div>
-                            <h3 class="text-xs font-bold text-slate-900">\${groupName.trim()}</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Custom group section</p>
+                            <h3 class="text-xs font-bold text-slate-900">${esc(group.name)}</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">${group.id ? 'Presentation group' : 'Suggested group (not saved yet)'}</p>
                         </div>
                     </div>
-                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">0</span>
-                `;
-                nav.appendChild(div);
+                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">${count}</span>
+                </div>`;
+            }
+
+            async function loadGroups() {
+                const nav = document.getElementById('field-groups-nav');
+                let groups = [];
+                try {
+                    groups = await api('/groups?entity_type=' + encodeURIComponent(currentEntity));
+                } catch (err) {
+                    // Groups need a workspace; if that fails, fall back to suggested defaults.
+                    groups = [];
+                }
+                if (!Array.isArray(groups) || groups.length === 0) {
+                    nav.innerHTML = DEFAULT_GROUPS.map((name) => groupCard({ name, id: null }, 0)).join('');
+                    return;
+                }
+                nav.innerHTML = groups.map((g) => groupCard(g, (g.group_attributes || g.groupAttributes || []).length)).join('');
+            }
+
+            async function createGroup(name) {
+                try {
+                    await api('/groups', { method: 'POST', body: JSON.stringify({ name, entity_type: currentEntity }) });
+                    await loadGroups();
+                } catch (err) {
+                    alert(err.message || 'Could not create group.');
+                }
+            }
+
+            async function remove(id) {
+                if (!confirm('Delete this field? Existing values for it will no longer be shown.')) return;
+                try {
+                    await api('/fields/' + id, { method: 'DELETE' });
+                    await refresh();
+                } catch (err) {
+                    alert(err.message || 'Could not delete the field.');
+                }
+            }
+
+            function edit(id) {
+                const field = allFields.find((f) => String(f.id) === String(id));
+                if (field) openAddFieldDrawer(null, field);
+            }
+
+            function setEntity(entity) {
+                currentEntity = entity;
+                const badge = document.getElementById('selected-entity-badge');
+                const selector = document.getElementById('entity-selector');
+                const label = selector ? selector.options[selector.selectedIndex].text : entity;
+                if (badge) badge.textContent = label;
+                if (selector && selector.value !== entity) selector.value = entity;
+                const header = document.getElementById('active-group-header-title');
+                if (header) header.querySelector('span').textContent = 'All Fields ( ' + label + ' )';
+                renderFields();
+                loadGroups();
+            }
+
+            return { api, refresh, remove, edit, createGroup, setEntity, get entity() { return currentEntity; } };
+        })();
+
+        function switchEntityPill(btn, entityCode) {
+            document.querySelectorAll('.entity-pill-btn').forEach((b) => {
+                b.className = 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition';
+            });
+            btn.className = 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-900 bg-white px-4 py-2 text-xs font-bold text-slate-900 transition shadow-2xs';
+            MoldableBuilder.setEntity(entityCode);
+        }
+
+        function selectGroupTab(element, groupName) {
+            const header = document.getElementById('active-group-header-title');
+            const selector = document.getElementById('entity-selector');
+            const entityText = selector ? selector.options[selector.selectedIndex].text : 'Leads';
+            if (header) {
+                header.innerHTML = `<svg class="w-3.5 h-3.5 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>${groupName} ( ${entityText} )</span>`;
+            }
+        }
+
+        function openNewGroupModal() {
+            const groupName = prompt('Enter New Field Group Name:');
+            if (groupName && groupName.trim()) {
+                MoldableBuilder.createGroup(groupName.trim());
             }
         }
 
@@ -489,10 +431,9 @@
             const q = query.toLowerCase().trim();
             const items = document.querySelectorAll('.field-item');
             let visibleCount = 0;
-
-            items.forEach(item => {
-                const name = item.getAttribute('data-name').toLowerCase();
-                const type = item.getAttribute('data-type').toLowerCase();
+            items.forEach((item) => {
+                const name = (item.getAttribute('data-name') || '').toLowerCase();
+                const type = (item.getAttribute('data-type') || '').toLowerCase();
                 if (name.includes(q) || type.includes(q)) {
                     item.classList.remove('hidden');
                     visibleCount++;
@@ -500,21 +441,10 @@
                     item.classList.add('hidden');
                 }
             });
-
             const emptyState = document.getElementById('no-fields-matched');
             const countBadge = document.getElementById('field-count-badge');
-
-            if (emptyState) {
-                if (visibleCount === 0) {
-                    emptyState.classList.remove('hidden');
-                } else {
-                    emptyState.classList.add('hidden');
-                }
-            }
-
-            if (countBadge) {
-                countBadge.textContent = visibleCount + ' field' + (visibleCount === 1 ? '' : 's');
-            }
+            if (emptyState) emptyState.classList.toggle('hidden', !(visibleCount === 0 && items.length > 0));
+            if (countBadge) countBadge.textContent = visibleCount + ' field' + (visibleCount === 1 ? '' : 's');
         }
 
         let draggedItem = null;
@@ -524,9 +454,8 @@
             draggedItem = e.currentTarget;
             e.dataTransfer.effectAllowed = 'move';
             e.currentTarget.classList.add('opacity-50');
-
             const container = document.getElementById('fields-list-container');
-            previousDOMState = Array.from(container.children).map(node => node.cloneNode(true));
+            previousDOMState = Array.from(container.children).map((node) => node.cloneNode(true));
         }
 
         function handleDragOver(e) {
@@ -538,7 +467,6 @@
                 const children = Array.from(container.children);
                 const draggedIdx = children.indexOf(draggedItem);
                 const targetIdx = children.indexOf(target);
-
                 if (draggedIdx < targetIdx) {
                     container.insertBefore(draggedItem, target.nextSibling);
                 } else {
@@ -549,39 +477,30 @@
 
         function handleDrop(e) {
             e.preventDefault();
-            if (draggedItem) {
-                draggedItem.classList.remove('opacity-50');
+            if (!draggedItem) return;
+            draggedItem.classList.remove('opacity-50');
+            const container = document.getElementById('fields-list-container');
+            const orders = Array.from(container.children)
+                .map((item, index) => ({ id: parseInt(item.getAttribute('data-id') || 0, 10), sort_order: index }))
+                .filter((o) => o.id > 0);
 
-                const container = document.getElementById('fields-list-container');
-                const items = Array.from(container.children);
-                const orders = items.map((item, index) => ({
-                    id: parseInt(item.getAttribute('data-id') || 0),
-                    sort_order: index
-                })).filter(o => o.id > 0);
-
-                fetch('/v1/moldable/fields/reorder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify({ orders: orders })
-                }).then(res => {
-                    if (!res.ok) {
-                        throw new Error('Reorder failed');
-                    }
-                }).catch(err => {
+            MoldableBuilder.api('/fields/reorder', { method: 'POST', body: JSON.stringify({ orders }) })
+                .catch((err) => {
                     console.warn('Reorder failed, rolling back UI state:', err);
                     if (previousDOMState && container) {
                         container.innerHTML = '';
-                        previousDOMState.forEach(node => container.appendChild(node));
+                        previousDOMState.forEach((node) => container.appendChild(node));
                     }
                 });
-
-                draggedItem = null;
-            }
+            draggedItem = null;
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && typeof closeAddFieldDrawer === 'function') closeAddFieldDrawer();
+            });
+            MoldableBuilder.refresh();
+        });
     </script>
 
     @include('moldable::builder.drawer')

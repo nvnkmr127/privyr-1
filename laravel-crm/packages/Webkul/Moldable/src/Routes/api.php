@@ -8,7 +8,10 @@ use Webkul\Moldable\Http\Controllers\TemplateController;
 use Webkul\Moldable\Http\Controllers\ViewController;
 use Webkul\Moldable\Http\Controllers\WorkspaceController;
 
-Route::middleware('auth:api')->prefix('v1/moldable')->group(function () {
+// Session-guarded (admin) endpoints. The builder UI is a cookie-authenticated
+// admin page, so these use the same 'user' session guard as the web route
+// instead of a token 'api' guard that this application never defines.
+Route::middleware(['web', 'user'])->prefix('v1/moldable')->group(function () {
     Route::get('/workspaces', [WorkspaceController::class, 'index']);
     Route::post('/workspaces', [WorkspaceController::class, 'store']);
 

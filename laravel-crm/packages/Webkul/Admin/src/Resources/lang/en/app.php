@@ -24,6 +24,7 @@ return [
         'users' => 'Users',
         'user' => 'User',
         'automation' => 'Automation',
+        'moldable-builder' => 'Moldable Field Builder',
         'attributes' => 'Attributes',
         'pipelines' => 'Pipelines',
         'sources' => 'Sources',

@@ -56,8 +56,8 @@
                         AC
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-slate-900">Acme Workspace</div>
-                        <div class="text-[10px] text-slate-400 font-medium">Enterprise Plan</div>
+                        <div class="text-xs font-bold text-slate-900">Acme Global Workspace</div>
+                        <div class="text-[10px] text-slate-400 font-medium">Enterprise CRM Studio</div>
                     </div>
                 </div>
                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
