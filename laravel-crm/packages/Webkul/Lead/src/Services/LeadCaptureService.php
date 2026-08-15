@@ -4,6 +4,7 @@ namespace Webkul\Lead\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Lead\Models\LeadCaptureLog;
@@ -26,9 +27,20 @@ class LeadCaptureService
      * @param  array  $payload
      * @return \Webkul\Lead\Contracts\Lead|null
      */
-    public function processIncomingPayload(LeadSourceConnector $connector, array $payload)
+    public function processIncomingPayload(LeadSourceConnector $connector, array $payload, ?string $rawBody = null, ?string $signature = null)
     {
         try {
+            // Meta connectors: verify the payload signature, then resolve the full
+            // lead from Graph API when only a leadgen_id was pushed.
+            if ($connector->source_type === 'meta_ads') {
+                $this->assertValidFacebookSignature($rawBody, $signature);
+                $payload = $this->maybeFetchFacebookLead($connector, $payload);
+            }
+
+            // Flatten structured ad-platform payloads (Meta field_data, Google
+            // user_column_data) into scalar keys the field mapper can read.
+            $payload = $this->normalizeStructuredPayload($payload);
+
             $mappedData = $this->mapPayloadToFields($payload, $connector->field_mappings ?? []);
 
             $email = $mappedData['person']['emails'] ?? null;
@@ -160,6 +172,73 @@ class LeadCaptureService
         }
 
         return $result;
+    }
+
+    /**
+     * Reject the payload if a Facebook app secret is configured and the
+     * X-Hub-Signature-256 header does not match. No-op when either is absent.
+     */
+    protected function assertValidFacebookSignature(?string $rawBody, ?string $signature): void
+    {
+        $secret = config('services.facebook.client_secret');
+
+        if (! $secret || ! $signature || $rawBody === null) {
+            return;
+        }
+
+        $expected = 'sha256='.hash_hmac('sha256', $rawBody, $secret);
+
+        if (! hash_equals($expected, $signature)) {
+            throw new \RuntimeException('Invalid Facebook webhook signature.');
+        }
+    }
+
+    /**
+     * Meta pushes only a leadgen_id; fetch the full lead from the Graph API using
+     * the connector's OAuth page token (falling back to the configured token).
+     */
+    protected function maybeFetchFacebookLead(LeadSourceConnector $connector, array $payload): array
+    {
+        $leadgenId = data_get($payload, 'entry.0.changes.0.value.leadgen_id') ?? ($payload['leadgen_id'] ?? null);
+
+        if (! $leadgenId || ! empty($payload['field_data'])) {
+            return $payload;
+        }
+
+        $token = $connector->meta_page_access_token ?: config('services.facebook.access_token');
+
+        if (! $token) {
+            return $payload;
+        }
+
+        $response = Http::get("https://graph.facebook.com/v18.0/{$leadgenId}", ['access_token' => $token]);
+
+        return $response->successful() ? array_merge($payload, $response->json()) : $payload;
+    }
+
+    /**
+     * Flatten structured ad-platform lead payloads into scalar keys so the
+     * heuristic/explicit mapper can read them like any other webhook field.
+     */
+    protected function normalizeStructuredPayload(array $payload): array
+    {
+        // Meta Lead Ads: field_data => [['name' => 'email', 'values' => ['x']], ...]
+        foreach ((array) ($payload['field_data'] ?? []) as $field) {
+            $name = $field['name'] ?? null;
+            if ($name !== null && ! isset($payload[$name])) {
+                $payload[$name] = $field['values'][0] ?? null;
+            }
+        }
+
+        // Google Lead Form Ads: user_column_data => [['column_name' => 'EMAIL', 'string_value' => 'x'], ...]
+        foreach ((array) ($payload['user_column_data'] ?? []) as $column) {
+            $name = $column['column_name'] ?? null;
+            if ($name !== null && ! isset($payload[$name])) {
+                $payload[$name] = $column['string_value'] ?? null;
+            }
+        }
+
+        return $payload;
     }
 
     /**

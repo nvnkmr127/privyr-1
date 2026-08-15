@@ -27,14 +27,29 @@ class PublicLeadCaptureController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid or inactive webhook token'], 404);
         }
 
-        $payload = $request->all();
-
-        // Meta Lead Ads Verification Challenge (Hub Challenge)
+        // Meta Lead Ads subscription verification challenge (GET). Echo the
+        // challenge only when the verify token matches (when one is configured).
         if ($request->has('hub_challenge')) {
-            return response()->json((int) $request->input('hub_challenge'), 200);
+            $expected = config('services.facebook.webhook_verify_token');
+            $provided = $request->input('hub_verify_token');
+
+            if ($expected && $provided !== null && ! hash_equals((string) $expected, (string) $provided)) {
+                return response()->json(['status' => 'error', 'message' => 'Verification failed'], 403);
+            }
+
+            return response((string) $request->input('hub_challenge'), 200);
         }
 
-        $lead = $this->leadCaptureService->processIncomingPayload($connector, $payload);
+        try {
+            $lead = $this->leadCaptureService->processIncomingPayload(
+                $connector,
+                $request->all(),
+                $request->getContent(),
+                $request->header('X-Hub-Signature-256'),
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json([
             'status' => 'success',
