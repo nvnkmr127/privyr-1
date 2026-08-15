@@ -16,6 +16,9 @@ class LeadSourceConnector extends Model
         'source_type',
         'webhook_token',
         'api_key',
+        'meta_page_id',
+        'meta_page_name',
+        'meta_page_access_token',
         'is_active',
         'duplicate_action',
         'field_mappings',
@@ -30,6 +33,12 @@ class LeadSourceConnector extends Model
         'is_active' => 'boolean',
         'field_mappings' => 'array',
         'last_received_at' => 'datetime',
+        'meta_page_access_token' => 'encrypted',
+    ];
+
+    protected $hidden = [
+        'meta_page_access_token',
+        'api_key',
     ];
 
     public function pipeline(): BelongsTo

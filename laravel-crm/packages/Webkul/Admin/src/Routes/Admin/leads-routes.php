@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Webkul\Admin\Http\Controllers\Lead\ActivityController;
 use Webkul\Admin\Http\Controllers\Lead\EmailController;
+use Webkul\Admin\Http\Controllers\Lead\FacebookOAuthController;
 use Webkul\Admin\Http\Controllers\Lead\LeadConnectorController;
 use Webkul\Admin\Http\Controllers\Lead\LeadController;
-use Webkul\Admin\Http\Controllers\Lead\PublicLeadCaptureController;
 use Webkul\Admin\Http\Controllers\Lead\QuoteController;
 use Webkul\Admin\Http\Controllers\Lead\TagController;
 
@@ -16,19 +16,14 @@ Route::controller(LeadConnectorController::class)->prefix('settings/lead-connect
     Route::delete('{id}', 'destroy')->name('admin.settings.lead_connectors.delete');
     Route::post('test-mapping', 'testMapping')->name('admin.settings.lead_connectors.test_mapping');
     Route::get('check-duplicate', 'checkDuplicate')->name('admin.leads.check_duplicate');
+
+    // Meta (Facebook/Instagram) OAuth "Connect" flow — admin-initiated, returns to admin.
+    Route::get('{id}/facebook/connect', [FacebookOAuthController::class, 'connect'])->name('admin.settings.lead_connectors.facebook.connect');
+    Route::get('facebook/callback', [FacebookOAuthController::class, 'callback'])->name('admin.settings.lead_connectors.facebook.callback');
 });
 
-Route::controller(PublicLeadCaptureController::class)->prefix('api/v1/lead-capture')->group(function () {
-    Route::match(['get', 'post'], 'webhook/{token}', 'handleWebhook')->name('api.v1.lead_capture.webhook');
-    Route::match(['get', 'post'], 'indiamart', 'handleIndiaMART')->name('api.v1.lead_capture.indiamart');
-    Route::match(['get', 'post'], 'justdial', 'handleJustDial')->name('api.v1.lead_capture.justdial');
-    Route::match(['get', 'post'], 'realestate', 'handleRealEstate')->name('api.v1.lead_capture.realestate');
-});
-
-Route::controller(PublicLeadCaptureController::class)->prefix('lead-capture')->group(function () {
-    Route::get('qr/{token}', 'qrForm')->name('public.lead_capture.qr_form');
-    Route::post('qr/{token}', 'qrStore')->name('public.lead_capture.qr_store');
-});
+// NOTE: the public webhook receivers and QR form are registered in the Admin
+// package's Front/web.php (no admin auth), so external platforms can reach them.
 
 Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::get('', 'index')->name('admin.leads.index');

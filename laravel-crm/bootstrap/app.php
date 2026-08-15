@@ -26,6 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin/mail/inbound-parse',
             'admin/web-forms/forms/*',
             't/*/ping',
+            // Server-to-server lead webhooks (Meta, Google, Zapier, portals).
+            // The QR browser form (lead-capture/qr/*) is intentionally not listed.
+            'api/v1/lead-capture/webhook/*',
+            'api/v1/lead-capture/indiamart',
+            'api/v1/lead-capture/justdial',
+            'api/v1/lead-capture/realestate',
         ]);
 
         $middleware->api(prepend: [

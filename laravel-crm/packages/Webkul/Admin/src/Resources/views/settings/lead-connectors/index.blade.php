@@ -56,6 +56,26 @@
                                 <button type="button" onclick="navigator.clipboard.writeText('{{ route('api.v1.lead_capture.webhook', ['token' => $connector->webhook_token]) }}')" class="text-brandColor hover:underline text-[10px] font-sans font-bold">Copy</button>
                             </div>
                         </div>
+
+                        {{-- Meta (Facebook/Instagram) OAuth connect + setup hint --}}
+                        @if ($connector->source_type === 'meta_ads')
+                            <div class="mt-3 rounded bg-blue-50 p-2.5 dark:bg-blue-950/40">
+                                @if ($connector->meta_page_id)
+                                    <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                        <span class="icon-checked-circle"></span>
+                                        Connected: {{ $connector->meta_page_name ?? $connector->meta_page_id }}
+                                    </div>
+                                    <a href="{{ route('admin.settings.lead_connectors.facebook.connect', $connector->id) }}" class="mt-1 inline-block text-[10px] font-bold text-brandColor hover:underline">Reconnect Page</a>
+                                @else
+                                    <a href="{{ route('admin.settings.lead_connectors.facebook.connect', $connector->id) }}" class="inline-flex items-center gap-1.5 rounded-md bg-[#1877F2] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90">
+                                        Connect Facebook Page
+                                    </a>
+                                    <p class="mt-1.5 text-[10px] leading-relaxed text-gray-500 dark:text-gray-400">
+                                        In Meta App &rarr; Webhooks, set the Callback URL to the Webhook URL above and the Verify Token to your <code>FACEBOOK_WEBHOOK_VERIFY_TOKEN</code>, then subscribe the Page to the <code>leadgen</code> field.
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
                     <div class="mt-5 flex items-center justify-between border-t pt-3 dark:border-gray-800">

@@ -13,6 +13,15 @@ use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
 
+/**
+ * Legacy global (env-configured) lead ingestion API.
+ *
+ * The canonical, UI-driven path is the connector system:
+ * {@see \Webkul\Admin\Http\Controllers\Lead\PublicLeadCaptureController} +
+ * {@see \Webkul\Lead\Services\LeadCaptureService}, exposed per-connector at
+ * /api/v1/lead-capture/webhook/{token}. Prefer creating a Lead Connector
+ * (Settings → Lead Connectors) over this controller's provider endpoints.
+ */
 class LeadCaptureController extends Controller
 {
     public function __construct(
