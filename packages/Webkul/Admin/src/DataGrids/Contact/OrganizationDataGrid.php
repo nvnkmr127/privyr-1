@@ -2,8 +2,11 @@
 
 namespace Webkul\Admin\DataGrids\Contact;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Webkul\Attribute\Models\Attribute;
+use Webkul\Attribute\Models\AttributeValue;
 use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\DataGrid\DataGrid;
 
@@ -21,13 +24,30 @@ class OrganizationDataGrid extends DataGrid
      */
     public function prepareQueryBuilder(): Builder
     {
-        return DB::table('organizations')
+        $queryBuilder = DB::table('organizations')
             ->addSelect(
                 'organizations.id',
                 'organizations.name',
                 'organizations.address',
                 'organizations.created_at'
             );
+
+        if (request()->boolean('export')) {
+            $tablePrefix = DB::getTablePrefix();
+
+            foreach ($this->getCustomAttributes() as $attribute) {
+                $valueColumn = AttributeValue::$attributeTypeFields[$attribute->type] ?? 'text_value';
+
+                $queryBuilder->addSelect(DB::raw(
+                    '(SELECT '.$tablePrefix.'attribute_values.'.$valueColumn.
+                    ' FROM '.$tablePrefix.'attribute_values'.
+                    ' WHERE '.$tablePrefix.'attribute_values.entity_id = '.$tablePrefix.'organizations.id'.
+                    ' AND '.$tablePrefix.'attribute_values.attribute_id = '.(int) $attribute->id.
+                    ' AND '.$tablePrefix."attribute_values.entity_type = 'organizations'".
+                    ' LIMIT 1) as '.$attribute->code
+                ));
+            }
+        }
 
         if ($userIds = bouncer()->getAuthorizedUserIds()) {
             $queryBuilder->whereIn('organizations.user_id', $userIds);
@@ -36,6 +56,8 @@ class OrganizationDataGrid extends DataGrid
         $this->addFilter('id', 'organizations.id');
 
         $this->addFilter('organization', 'organizations.name');
+
+        return $queryBuilder;
     }
 
     /**
@@ -84,6 +106,31 @@ class OrganizationDataGrid extends DataGrid
             'sortable' => true,
             'closure' => fn ($row) => core()->formatDate($row->created_at),
         ]);
+
+        if (request()->boolean('export')) {
+            foreach ($this->getCustomAttributes() as $attribute) {
+                $this->addColumn([
+                    'index' => $attribute->code,
+                    'label' => $attribute->name,
+                    'type' => 'string',
+                    'searchable' => false,
+                    'sortable' => false,
+                    'filterable' => false,
+                    'visibility' => false,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Retrieve the user defined attributes for organizations.
+     */
+    protected function getCustomAttributes(): Collection
+    {
+        return Attribute::query()
+            ->where('entity_type', 'organizations')
+            ->where('is_user_defined', 1)
+            ->get();
     }
 
     /**

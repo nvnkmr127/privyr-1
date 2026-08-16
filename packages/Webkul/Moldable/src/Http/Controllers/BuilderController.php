@@ -4,9 +4,12 @@ namespace Webkul\Moldable\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeOption;
+use Webkul\Attribute\Models\AttributeValue;
 use Webkul\Moldable\Models\FieldGroupAttribute;
 use Webkul\Moldable\Models\WorkspaceResource;
 use Webkul\Moldable\Services\FieldTypeRegistry;
@@ -189,8 +192,12 @@ class BuilderController
                 ->delete();
         }
 
-        // Clean up group bindings and options
+        // Clean up group bindings, attribute values, web form bindings, and options
         FieldGroupAttribute::where('attribute_id', $field->id)->delete();
+        AttributeValue::where('attribute_id', $field->id)->delete();
+        if (Schema::hasTable('web_form_attributes')) {
+            DB::table('web_form_attributes')->where('attribute_id', $field->id)->delete();
+        }
         $field->options()->delete();
         $field->delete();
 

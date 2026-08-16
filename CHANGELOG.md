@@ -4,7 +4,8 @@ This changelog consists of the bug & security fixes and new features being inclu
 
 ## **v2.2.6 (Upcoming)**
 
-* [enhancement] Completed production audit, UI enhancements, multi-tenant isolation, group management, and full field builder lifecycle fixes for `/admin/moldable/builder`.
+* [enhancement] Centralized Moldable custom-field system (`/admin/moldable/builder`) across the workspace with full support for Leads, Contacts, Organizations, Products, Quotes, Lead Capture mapping, dynamic Web Forms, DataGrid exports, cascade deletion, and multi-tenant isolation.
+
 
 * [feature] Added instant new-lead push notifications to assigned agents' devices via the Firebase Cloud Messaging HTTP v1 API (service-account OAuth), with device-token registration APIs, automatic pruning of dead tokens, and a WhatsApp fallback when no device is registered.
 

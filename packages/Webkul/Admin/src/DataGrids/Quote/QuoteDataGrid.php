@@ -2,8 +2,11 @@
 
 namespace Webkul\Admin\DataGrids\Quote;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Webkul\Attribute\Models\Attribute;
+use Webkul\Attribute\Models\AttributeValue;
 use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\DataGrid\DataGrid;
 use Webkul\User\Repositories\UserRepository;
@@ -36,6 +39,21 @@ class QuoteDataGrid extends DataGrid
             )
             ->leftJoin('users', 'quotes.user_id', '=', 'users.id')
             ->leftJoin('persons', 'quotes.person_id', '=', 'persons.id');
+
+        if (request()->boolean('export')) {
+            foreach ($this->getCustomAttributes() as $attribute) {
+                $valueColumn = AttributeValue::$attributeTypeFields[$attribute->type] ?? 'text_value';
+
+                $queryBuilder->addSelect(DB::raw(
+                    '(SELECT '.$tablePrefix.'attribute_values.'.$valueColumn.
+                    ' FROM '.$tablePrefix.'attribute_values'.
+                    ' WHERE '.$tablePrefix.'attribute_values.entity_id = '.$tablePrefix.'quotes.id'.
+                    ' AND '.$tablePrefix.'attribute_values.attribute_id = '.(int) $attribute->id.
+                    ' AND '.$tablePrefix."attribute_values.entity_type = 'quotes'".
+                    ' LIMIT 1) as '.$attribute->code
+                ));
+            }
+        }
 
         if ($userIds = bouncer()->getAuthorizedUserIds()) {
             $queryBuilder->whereIn('quotes.user_id', $userIds);
@@ -174,6 +192,31 @@ class QuoteDataGrid extends DataGrid
             'filterable' => true,
             'closure' => fn ($row) => core()->formatDate($row->created_at),
         ]);
+
+        if (request()->boolean('export')) {
+            foreach ($this->getCustomAttributes() as $attribute) {
+                $this->addColumn([
+                    'index' => $attribute->code,
+                    'label' => $attribute->name,
+                    'type' => 'string',
+                    'searchable' => false,
+                    'sortable' => false,
+                    'filterable' => false,
+                    'visibility' => false,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Retrieve the user defined attributes for quotes.
+     */
+    protected function getCustomAttributes(): Collection
+    {
+        return Attribute::query()
+            ->where('entity_type', 'quotes')
+            ->where('is_user_defined', 1)
+            ->get();
     }
 
     /**
