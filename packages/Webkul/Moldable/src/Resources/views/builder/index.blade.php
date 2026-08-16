@@ -37,7 +37,7 @@
                     class="rounded-xl bg-slate-900 hover:bg-black text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-slate-900/10 transition flex items-center gap-2"
                 >
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Add Field
+                    Add New Field
                 </button>
             </div>
         </div>
@@ -123,7 +123,7 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" onclick="openAddFieldDrawer('text')" class="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-3 hover:border-slate-400 transition text-left shadow-2xs">
-                            <span class="font-bold text-xs text-slate-800 bg-slate-100 p-2 rounded-lg">T</span>
+                            <span class="font-bold text-xs text-slate-800 bg-slate-100 p-2 rounded-lg">Aa</span>
                             <span class="text-xs font-bold text-slate-900">Text</span>
                         </button>
                         <button type="button" onclick="openAddFieldDrawer('select')" class="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-3 hover:border-slate-400 transition text-left shadow-2xs">

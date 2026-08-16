@@ -183,9 +183,7 @@ class PersonDataGrid extends DataGrid
      */
     protected function getCustomAttributes(): Collection
     {
-        static $attributes;
-
-        return $attributes ??= Attribute::query()
+        return Attribute::query()
             ->where('entity_type', 'persons')
             ->where('is_user_defined', 1)
             ->get();

@@ -2,8 +2,11 @@
 
 namespace Webkul\Admin\DataGrids\Product;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Webkul\Attribute\Models\Attribute;
+use Webkul\Attribute\Models\AttributeValue;
 use Webkul\DataGrid\DataGrid;
 use Webkul\Tag\Repositories\TagRepository;
 
@@ -31,6 +34,21 @@ class ProductDataGrid extends DataGrid
             ->addSelect(DB::raw('SUM('.$tablePrefix.'product_inventories.allocated) as total_allocated'))
             ->addSelect(DB::raw('SUM('.$tablePrefix.'product_inventories.in_stock - '.$tablePrefix.'product_inventories.allocated) as total_on_hand'))
             ->groupBy('products.id');
+
+        if (request()->boolean('export')) {
+            foreach ($this->getCustomAttributes() as $attribute) {
+                $valueColumn = AttributeValue::$attributeTypeFields[$attribute->type] ?? 'text_value';
+
+                $queryBuilder->addSelect(DB::raw(
+                    '(SELECT '.$tablePrefix.'attribute_values.'.$valueColumn.
+                    ' FROM '.$tablePrefix.'attribute_values'.
+                    ' WHERE '.$tablePrefix.'attribute_values.entity_id = '.$tablePrefix.'products.id'.
+                    ' AND '.$tablePrefix.'attribute_values.attribute_id = '.(int) $attribute->id.
+                    ' AND '.$tablePrefix."attribute_values.entity_type = 'products'".
+                    ' LIMIT 1) as '.$attribute->code
+                ));
+            }
+        }
 
         if (request()->route('id')) {
             $queryBuilder->where('product_inventories.warehouse_id', request()->route('id'));
@@ -121,6 +139,31 @@ class ProductDataGrid extends DataGrid
                 ],
             ],
         ]);
+
+        if (request()->boolean('export')) {
+            foreach ($this->getCustomAttributes() as $attribute) {
+                $this->addColumn([
+                    'index' => $attribute->code,
+                    'label' => $attribute->name,
+                    'type' => 'string',
+                    'searchable' => false,
+                    'sortable' => false,
+                    'filterable' => false,
+                    'visibility' => false,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Retrieve the user defined attributes for products.
+     */
+    protected function getCustomAttributes(): Collection
+    {
+        return Attribute::query()
+            ->where('entity_type', 'products')
+            ->where('is_user_defined', 1)
+            ->get();
     }
 
     /**

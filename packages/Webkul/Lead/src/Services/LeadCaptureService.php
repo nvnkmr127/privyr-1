@@ -86,15 +86,22 @@ class LeadCaptureService
 
             // Create or update Person. entity_type is required by Krayin's
             // attribute-value layer (PersonRepository::create -> attributeValue save).
-            $personData = [
+            $customPersonAttributes = is_array($mappedData['person'] ?? null)
+                ? Arr::except($mappedData['person'], ['name', 'emails', 'contact_numbers', 'id'])
+                : [];
+
+            $personData = array_merge([
                 'entity_type' => 'persons',
                 'name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
                 'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
                 'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
-            ];
+            ], $customPersonAttributes);
 
             if ($existingPerson && in_array($connector->duplicate_action, ['update', 'attach_contact'])) {
                 $person = $existingPerson;
+                if (! empty($customPersonAttributes)) {
+                    $this->personRepository->update(array_merge($customPersonAttributes, ['entity_type' => 'persons']), $person->id);
+                }
             } else {
                 $person = $this->personRepository->create($personData);
 
@@ -111,7 +118,9 @@ class LeadCaptureService
 
             // Create Lead
             $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($person->name ?? 'New Lead'));
-            $leadData = [
+            $customLeadAttributes = Arr::except($mappedData, ['person', 'title', 'description', 'lead_value']);
+
+            $leadData = array_merge([
                 'entity_type' => 'leads',
                 'title' => $leadTitle,
                 'description' => $mappedData['description'] ?? 'Captured automatically via '.$connector->name,
@@ -122,7 +131,7 @@ class LeadCaptureService
                 'lead_pipeline_stage_id' => $stageId,
                 'is_unread' => true,
                 'last_contacted_at' => null,
-            ];
+            ], $customLeadAttributes);
 
             $lead = $this->leadRepository->create($leadData);
 
