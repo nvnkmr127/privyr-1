@@ -165,7 +165,7 @@ class LeadCaptureIntegrationController extends Controller
     }
 
     /**
-     * Toggle active / disconnect a connector (tenant-scoped).
+     * Disconnect (deactivate) a connector (tenant-scoped).
      */
     public function disconnect(Request $request, int $id)
     {
@@ -175,6 +175,19 @@ class LeadCaptureIntegrationController extends Controller
         $connector->update(['is_active' => false]);
 
         return response()->json(['message' => 'Integration disconnected.', 'connector' => $this->connectorPayload($connector)]);
+    }
+
+    /**
+     * Re-enable a previously disconnected connector (tenant-scoped).
+     */
+    public function reconnect(Request $request, int $id)
+    {
+        $connector = LeadSourceConnector::forWorkspace($this->currentWorkspace($request)->id)
+            ->whereKey($id)
+            ->firstOrFail();
+        $connector->update(['is_active' => true]);
+
+        return response()->json(['message' => 'Integration re-enabled.', 'connector' => $this->connectorPayload($connector)]);
     }
 
     /**

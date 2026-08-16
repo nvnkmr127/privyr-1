@@ -1,9 +1,9 @@
 @push('scripts')
     <script type="text/x-template" id="v-lead-capture-integrations-template">
 
-        <div class="flex h-[calc(100vh-140px)] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <!-- Sidebar: Source List -->
-            <div class="w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50/50 flex flex-col dark:border-gray-800 dark:bg-gray-900/50">
+        <div class="flex flex-col lg:flex-row min-h-[75vh] lg:h-[calc(100vh-140px)] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <!-- Sidebar: Source List (stacks above the wizard on small screens) -->
+            <div class="w-full lg:w-80 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 flex flex-col max-h-72 lg:max-h-none dark:border-gray-800 dark:bg-gray-900/50">
                 <div class="p-4 border-b border-gray-200 dark:border-gray-800">
                     <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Lead Sources</h3>
                 </div>
@@ -28,9 +28,9 @@
             </div>
 
             <!-- Main Pane -->
-            <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 relative overflow-hidden">
+            <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 relative overflow-hidden min-h-0">
                 <!-- Empty State -->
-                <div v-if="!activeSource" class="flex-1 flex flex-col items-center justify-center text-center p-8">
+                <div v-if="!activeSource" class="flex-1 flex flex-col items-center justify-center text-center p-8 min-h-0">
                     <div class="h-20 w-20 rounded-full bg-gray-50 flex items-center justify-center mb-4 dark:bg-gray-800">
                         <i class="icon-settings text-4xl text-gray-400"></i>
                     </div>
@@ -38,9 +38,9 @@
                     <p class="text-sm text-gray-500 mt-2 max-w-md">Pick a source. Each one has its own setup — webhook, embeddable form, or an OAuth connection.</p>
                 </div>
 
-                <div v-else class="flex-1 flex flex-col h-full overflow-hidden">
+                <div v-else class="flex-1 flex flex-col h-full overflow-hidden min-h-0">
                     <!-- Header -->
-                    <div class="flex items-center justify-between px-8 py-5 border-b border-gray-200 dark:border-gray-800">
+                    <div class="flex items-center justify-between px-8 py-5 border-b border-gray-200 dark:border-gray-800 shrink-0">
                         <div class="flex items-center gap-3">
                             <span class="text-3xl" v-html="activeSource.icon"></span>
                             <div>
@@ -69,8 +69,9 @@
                                             <button type="button" @click="copyPrimary(c)" class="px-2 py-1 rounded font-semibold text-brandColor hover:bg-brandColor/10">@{{ activeSource.kind === 'embed' ? 'Copy embed' : 'Copy URL' }}</button>
                                             <button type="button" @click="testConnector(c)" class="px-2 py-1 rounded font-semibold text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" :disabled="isTesting">Test</button>
                                             <a v-if="activeSource.kind === 'embed'" :href="c.form_url" target="_blank" class="px-2 py-1 rounded font-semibold text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Open</a>
-                                            <a v-if="metaConnect(c)" :href="metaConnect(c)" class="px-2 py-1 rounded font-semibold text-[#1877F2] hover:bg-blue-50">@{{ c.connection.state === 'connected' ? 'Reconnect' : 'Connect' }}</a>
-                                            <button v-if="c.is_active" type="button" @click="disconnectConnector(c)" class="px-2 py-1 rounded font-semibold text-red-600 hover:bg-red-50">Disconnect</button>
+                                            <button type="button" v-if="metaConnect(c)" @click="openOAuth(c)" class="px-2 py-1 rounded font-semibold text-[#1877F2] hover:bg-blue-50">@{{ c.connection.state === 'connected' ? 'Reconnect' : 'Connect' }}</button>
+                                            <button v-if="c.is_active" type="button" @click="disconnectConnector(c)" :disabled="busyId === c.id" class="px-2 py-1 rounded font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">Disconnect</button>
+                                            <button v-else type="button" @click="reconnectConnector(c)" :disabled="busyId === c.id" class="px-2 py-1 rounded font-semibold text-emerald-600 hover:bg-emerald-50 disabled:opacity-50">Enable</button>
                                         </div>
                                     </div>
                                     <div v-if="testFor === c.id && testResult" class="mt-2 text-xs rounded bg-gray-50 dark:bg-gray-800/60 p-2 text-gray-600 dark:text-gray-300">
@@ -207,9 +208,9 @@
                                             <div v-if="result.connection.state === 'unconfigured'" class="text-sm text-amber-600">
                                                 @{{ result.connection.message }}
                                             </div>
-                                            <a v-else :href="result.connection.connect_url" class="inline-flex items-center gap-2 rounded-md bg-[#1877F2] px-4 py-2 text-sm font-bold text-white hover:opacity-90">
+                                            <button type="button" @click="openOAuth(result)" class="inline-flex items-center gap-2 rounded-md bg-[#1877F2] px-4 py-2 text-sm font-bold text-white hover:opacity-90">
                                                 Connect Facebook Page
-                                            </a>
+                                            </button>
                                             <p class="mt-3 text-xs text-gray-500">The webhook is already live and will receive leads once a Page is connected. You can also finish now and connect later.</p>
                                         </template>
                                     </div>
@@ -249,7 +250,7 @@
 
                                     <div class="mt-4 flex items-center gap-3">
                                         <button type="button" @click="testConnector(result)" :disabled="isTesting" class="secondary-button text-sm px-4 py-2">
-                                            <i v-if="isTesting" class="icon-spinner animate-spin"></i> Send test lead
+                                            <i v-if="isTesting" class="icon-spinner animate-spin"></i> Run test (dry run)
                                         </button>
                                         <a :href="connectorsUrl" class="text-xs font-semibold text-brandColor hover:underline">Manage all connectors →</a>
                                     </div>
@@ -264,7 +265,7 @@
                     </div>
 
                     <!-- Footer -->
-                    <div class="px-8 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex items-center justify-between">
+                    <div class="px-8 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex items-center justify-between shrink-0">
                         <button type="button" class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-4 py-2" @click="handleBack">@{{ getBackText() }}</button>
                         <button type="button" class="primary-button flex items-center gap-2 px-6 py-2.5" @click="nextStep" :disabled="!canProceed || isSaving">
                             <i v-if="isSaving" class="icon-spinner animate-spin"></i>
@@ -290,6 +291,7 @@
                     result: null,
                     isSaving: false,
                     isTesting: false,
+                    busyId: null,
                     testResult: null,
                     testFor: null,
                     connectorsUrl: "{{ route('admin.settings.lead_connectors.index') }}",
@@ -373,6 +375,25 @@
                     if (this.currentStep > 1) this.currentStep--;
                     else this.activeSource = null;
                 },
+                openOAuth(c) {
+                    const url = c.connection && c.connection.connect_url ? c.connection.connect_url : null;
+                    if (!url) return;
+                    const width = 600;
+                    const height = 700;
+                    const left = (window.innerWidth - width) / 2;
+                    const top = (window.innerHeight - height) / 2;
+                    const win = window.open(url, 'oauth', `width=${width},height=${height},top=${top},left=${left}`);
+                    const timer = setInterval(() => {
+                        if (win && win.closed) {
+                            clearInterval(timer);
+                            if (this.currentStep === 2 && this.activeSource?.kind === 'oauth' && this.result && c.id === this.result.id) {
+                                this.nextStep();
+                            } else {
+                                window.location.reload();
+                            }
+                        }
+                    }, 500);
+                },
                 nextStep() {
                     if (this.currentStep === this.steps.length) { this.resetWizard(); return; }
                     if (this.currentStep === this.saveAt && !this.result) { this.save(); return; }
@@ -417,6 +438,10 @@
                         .finally(() => { this.isTesting = false; });
                 },
                 disconnectConnector(c) {
+                    if (this.busyId) return; // guard against double-clicks
+                    if (! window.confirm(`Disconnect “${c.name}”? It will stop receiving leads until re-enabled.`)) return;
+
+                    this.busyId = c.id;
                     this.$axios.post(`{{ url('admin/lead-capture/integrations') }}/${c.id}/disconnect`, {}, this.tenantConfig())
                         .then(res => {
                             Object.assign(c, res.data.connector);
@@ -424,7 +449,22 @@
                         })
                         .catch(err => {
                             this.$emitter.emit('add-flash', { type: 'error', message: this.errMsg(err, 'Disconnect failed.') });
-                        });
+                        })
+                        .finally(() => { this.busyId = null; });
+                },
+                reconnectConnector(c) {
+                    if (this.busyId) return;
+
+                    this.busyId = c.id;
+                    this.$axios.post(`{{ url('admin/lead-capture/integrations') }}/${c.id}/reconnect`, {}, this.tenantConfig())
+                        .then(res => {
+                            Object.assign(c, res.data.connector);
+                            this.$emitter.emit('add-flash', { type: 'success', message: res.data.message });
+                        })
+                        .catch(err => {
+                            this.$emitter.emit('add-flash', { type: 'error', message: this.errMsg(err, 'Re-enable failed.') });
+                        })
+                        .finally(() => { this.busyId = null; });
                 },
                 metaConnect(c) {
                     return c.connection && c.connection.connect_url ? c.connection.connect_url : null;

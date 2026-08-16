@@ -4,14 +4,14 @@
     </x-slot>
 
     <!-- Header -->
-    <div class="flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 mb-4">
-        <div class="flex flex-col gap-1">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 mb-4">
+        <div class="flex flex-col gap-1 min-w-0">
             <x-admin::breadcrumbs name="settings" />
             <div class="text-xl font-bold dark:text-white">
-                🔌 Lead Capture Integrations & Multi-Source Webhooks
+                🔌 Lead Capture Integrations &amp; Multi-Source Webhooks
             </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             @if (count($workspaces))
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Workspace</span>
