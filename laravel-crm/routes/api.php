@@ -37,6 +37,13 @@ Route::delete('/v1/content-templates/{id}', [App\Http\Controllers\Api\ContentTem
 Route::post('/v1/content-templates/preview/{lead}', [App\Http\Controllers\Api\ContentTemplateController::class, 'preview']);
 Route::post('/v1/leads/{lead}/log-activity', [App\Http\Controllers\Api\LeadActivityLoggerController::class, 'logActivity']);
 
+// Device push-token registration for instant new-lead alerts on agent phones.
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/v1/device-tokens', [App\Http\Controllers\Api\DeviceTokenController::class, 'index']);
+    Route::post('/v1/device-tokens', [App\Http\Controllers\Api\DeviceTokenController::class, 'store']);
+    Route::delete('/v1/device-tokens', [App\Http\Controllers\Api\DeviceTokenController::class, 'destroy']);
+});
+
 
 
 

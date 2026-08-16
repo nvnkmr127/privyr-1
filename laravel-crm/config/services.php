@@ -51,6 +51,14 @@ return [
             'Hi {name}, thanks for reaching out regarding {title}. Our team will contact you shortly.'),
     ],
 
+    'push' => [
+        // Firebase Cloud Messaging (or compatible) for instant new-lead alerts.
+        // Unset key = push is logged, not dispatched, so the CRM works ungated.
+        'driver' => env('PUSH_DRIVER', 'fcm'),
+        'key' => env('FCM_SERVER_KEY'),
+        'endpoint' => env('FCM_ENDPOINT', 'https://fcm.googleapis.com/fcm/send'),
+    ],
+
     'lead_capture' => [
         // Optional shared secret for generic webhooks (IndiaMART/JustDial/custom).
         // When set, generic capture calls must send it as ?key= or X-Capture-Secret.
