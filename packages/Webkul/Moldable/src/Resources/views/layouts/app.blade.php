@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Moldable CRM Studio' }}</title>
+    
+    {{ vite()->set(['src/Resources/assets/css/app.css', 'src/Resources/assets/js/app.js']) }}
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -29,6 +32,7 @@
         body { font-family: 'Inter', 'Roboto', 'Lato', 'Open Sans', system-ui, -apple-system, sans-serif; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        svg { display: inline-block; vertical-align: middle; }
     </style>
 </head>
 <body class="h-full bg-[#F8FAFC] text-slate-900 antialiased font-sans flex overflow-hidden">
@@ -59,8 +63,8 @@
                         $activeWs = \Webkul\Moldable\Models\Workspace::find($membership->workspace_id);
                     }
                 }
-                $wsTitle = $activeWs?->name ?? 'Default Workspace';
-                $wsInitials = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $wsTitle), 0, 2)) ?: 'WS';
+                $wsTitle = $activeWs?->name ?? 'Acme Global Workspace';
+                $wsInitials = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $wsTitle), 0, 2)) ?: 'AG';
                 $userName = auth()->guard('user')->user()->name ?? 'Admin';
                 $userInitials = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $userName), 0, 2)) ?: 'AD';
             @endphp
