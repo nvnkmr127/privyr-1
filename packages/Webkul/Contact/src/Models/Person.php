@@ -18,7 +18,7 @@ use Webkul\User\Models\UserProxy;
 
 class Person extends Model implements PersonContract
 {
-    use CustomAttribute, HasFactory, LogsActivity;
+    use \App\Support\Concerns\BelongsToWorkspace, CustomAttribute, HasFactory, LogsActivity;
 
     /**
      * Table name.

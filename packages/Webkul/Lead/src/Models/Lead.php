@@ -20,7 +20,7 @@ use Webkul\User\Models\UserProxy;
 
 class Lead extends Model implements LeadContract
 {
-    use CustomAttribute, LogsActivity;
+    use \App\Support\Concerns\BelongsToWorkspace, CustomAttribute, LogsActivity;
 
     /**
      * The attributes that are mass assignable.

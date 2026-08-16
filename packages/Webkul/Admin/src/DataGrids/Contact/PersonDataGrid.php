@@ -66,6 +66,12 @@ class PersonDataGrid extends DataGrid
             $queryBuilder->whereIn('persons.user_id', $userIds);
         }
 
+        // Tenant isolation (raw query builder — the Person model global scope
+        // does not apply here). Null = no current tenant / super-admin = see all.
+        if (($workspaceId = app(\App\Support\WorkspaceContext::class)->currentWorkspaceId()) !== null) {
+            $queryBuilder->where('persons.workspace_id', $workspaceId);
+        }
+
         $this->addFilter('id', 'persons.id');
         $this->addFilter('person_name', 'persons.name');
         $this->addFilter('organization', 'organizations.name');
