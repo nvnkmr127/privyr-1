@@ -73,6 +73,38 @@ it('is a no-op when push is not configured', function () {
     Http::assertNothingSent();
 });
 
+it('treats an HTTP 200 with zero deliveries as not sent and prunes the dead tokens', function () {
+    $admin = getDefaultAdmin();
+
+    config([
+        'services.push.key' => 'test-server-key',
+        'services.push.endpoint' => 'https://fcm.googleapis.com/fcm/send',
+    ]);
+
+    DeviceToken::create(['user_id' => $admin->id, 'token' => 'gone-1', 'platform' => 'android']);
+    DeviceToken::create(['user_id' => $admin->id, 'token' => 'gone-2', 'platform' => 'android']);
+
+    // Accepted by FCM, but every token is unregistered — nothing was delivered.
+    Http::fake([
+        'fcm.googleapis.com/*' => Http::response([
+            'success' => 0,
+            'failure' => 2,
+            'results' => [
+                ['error' => 'NotRegistered'],
+                ['error' => 'InvalidRegistration'],
+            ],
+        ], 200),
+    ]);
+
+    $sent = app(PushNotificationService::class)->sendToUser($admin, 'New Lead', 'Body');
+
+    expect($sent)->toBeFalse();
+
+    // Dead tokens pruned; nothing left to stamp as used.
+    $this->assertDatabaseMissing('device_tokens', ['token' => 'gone-1']);
+    $this->assertDatabaseMissing('device_tokens', ['token' => 'gone-2']);
+});
+
 it('dispatches a push to the agent devices and prunes dead tokens', function () {
     $admin = getDefaultAdmin();
 

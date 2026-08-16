@@ -54,18 +54,36 @@ class PushNotificationService
             return ['sent' => false, 'invalid_tokens' => [], 'reason' => 'http_error'];
         }
 
-        // FCM reports per-token failures positionally; surface dead tokens so
-        // the caller can prune them and keep the device table clean.
+        // FCM reports per-token results positionally; surface dead tokens so the
+        // caller can prune them, and count real deliveries so an HTTP 200 with
+        // zero successes isn't mistaken for a delivered push.
+        $results = (array) $response->json('results', []);
         $invalid = [];
+        $successCount = 0;
 
-        foreach ((array) $response->json('results', []) as $index => $result) {
+        foreach ($results as $index => $result) {
             $error = $result['error'] ?? null;
+
+            if ($error === null && ! empty($result['message_id'])) {
+                $successCount++;
+            }
 
             if (in_array($error, ['NotRegistered', 'InvalidRegistration', 'MismatchSenderId'], true)
                 && isset($tokens[$index])
             ) {
                 $invalid[] = $tokens[$index];
             }
+        }
+
+        // Fall back to FCM's top-level success counter when per-result data is absent.
+        if ($successCount === 0) {
+            $successCount = (int) $response->json('success', 0);
+        }
+
+        if ($successCount === 0) {
+            Log::warning('FCM push accepted but delivered to zero devices: '.$response->body());
+
+            return ['sent' => false, 'invalid_tokens' => $invalid, 'reason' => 'no_delivery'];
         }
 
         return ['sent' => true, 'invalid_tokens' => $invalid, 'reason' => null];
