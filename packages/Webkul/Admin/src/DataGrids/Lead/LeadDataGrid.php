@@ -288,8 +288,8 @@ class LeadDataGrid extends DataGrid
                 $waUrl = "https://wa.me/{$cleanPhone}?text=".rawurlencode("Hi! Regarding your inquiry: {$row->title}");
 
                 return "<div class=\"flex items-center gap-1.5\">
-                    <a href=\"{$waUrl}\" target=\"_blank\" class=\"inline-flex items-center justify-center w-7 h-7 rounded bg-emerald-600 text-white hover:bg-emerald-700 text-xs shadow-sm\" title=\"WhatsApp\">💬</a>
-                    <a href=\"tel:{$phone}\" class=\"inline-flex items-center justify-center w-7 h-7 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs shadow-sm\" title=\"Call\">📞</a>
+                    <a href=\"{$waUrl}\" target=\"_blank\" class=\"inline-flex items-center justify-center w-7 h-7 rounded bg-emerald-600 text-white hover:bg-emerald-700 text-xs shadow-sm\" title=\"WhatsApp\"><i class=\"fa-brands fa-whatsapp\"></i></a>
+                    <a href=\"tel:{$phone}\" class=\"inline-flex items-center justify-center w-7 h-7 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs shadow-sm\" title=\"Call\"><i class=\"fa-solid fa-phone\"></i></a>
                 </div>";
             },
         ]);
@@ -305,7 +305,7 @@ class LeadDataGrid extends DataGrid
                     return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">Fresh</span>';
                 }
 
-                return '<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-900/40 dark:text-red-300">🔥 Rotten</span>';
+                return '<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-900/40 dark:text-red-300"><i class="fa-solid fa-fire mr-1 text-red-500"></i> Rotten</span>';
             },
         ]);
 

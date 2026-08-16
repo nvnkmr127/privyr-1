@@ -7,12 +7,12 @@
     <div class="scroll-reactive-sticky sticky top-[60px] z-[100] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 mb-4">
         <div class="flex flex-col gap-1">
             <x-admin::breadcrumbs name="settings" />
-            <div class="text-xl font-bold dark:text-white">
-                ⚡ Visual Drip Sequence Builder
+            <div class="text-xl font-bold dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-amber-500"></i> Visual Drip Sequence Builder
             </div>
         </div>
-        <a href="{{ route('admin.leads.index') }}" class="secondary-button">
-            ← Back to Leads
+        <a href="{{ route('admin.leads.index') }}" class="secondary-button flex items-center gap-1">
+            <i class="fa-solid fa-arrow-left text-xs"></i> Back to Leads
         </a>
     </div>
 
@@ -26,11 +26,11 @@
                 <div class="flex items-center justify-between mb-2">
                     <h4 class="text-base font-bold dark:text-white">{{ $step['name'] }}</h4>
                     <div class="flex items-center gap-2">
-                        <span class="rounded bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                            ⏱️ Day {{ $step['day_offset'] }} Delay
+                        <span class="rounded bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1">
+                            <i class="fa-solid fa-clock text-[10px]"></i> Day {{ $step['day_offset'] }} Delay
                         </span>
                         <a href="{{ route('admin.settings.drip_sequences', ['edit' => $id]) }}" class="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300" title="Edit step">
-                            ✎
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </a>
                         <form
                             method="POST"
@@ -39,7 +39,7 @@
                         >
                             @csrf
                             <button type="submit" class="rounded bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 hover:bg-red-200 dark:bg-red-950 dark:text-red-300" title="Delete step">
-                                ✕
+                                <i class="fa-solid fa-xmark"></i>
                             </button>
                         </form>
                     </div>
@@ -53,8 +53,12 @@
 
     <!-- Add / Edit Step -->
     <div class="mt-6 max-w-3xl rounded-lg border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <h3 class="mb-4 text-base font-bold dark:text-white">
-            {{ $editing ? '✏️ Edit Follow-up Step' : '➕ Add a Follow-up Step' }}
+        <h3 class="mb-4 text-base font-bold dark:text-white flex items-center gap-2">
+            @if($editing)
+                <i class="fa-solid fa-pen-to-square text-blue-600"></i> Edit Follow-up Step
+            @else
+                <i class="fa-solid fa-plus text-emerald-600"></i> Add a Follow-up Step
+            @endif
         </h3>
         <form method="POST" action="{{ $editing ? route('admin.settings.drip_sequences.update', ['id' => $editing->id]) : route('admin.settings.drip_sequences.store') }}">
             @csrf

@@ -12,12 +12,12 @@
     <div class="scroll-reactive-sticky sticky top-[60px] z-[100] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 mb-4">
         <div class="flex flex-col gap-1">
             <x-admin::breadcrumbs name="settings" />
-            <div class="text-xl font-bold dark:text-white">
-                🎯 Lead Assignment Rules
+            <div class="text-xl font-bold dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-bullseye text-blue-600"></i> Lead Assignment Rules
             </div>
         </div>
-        <a href="{{ route('admin.settings.index') }}" class="secondary-button">
-            ← Back to Settings
+        <a href="{{ route('admin.settings.index') }}" class="secondary-button flex items-center gap-1">
+            <i class="fa-solid fa-arrow-left text-xs"></i> Back to Settings
         </a>
     </div>
 
@@ -52,10 +52,14 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right whitespace-nowrap">
-                            <a href="{{ route('admin.settings.lead_routing', ['edit' => $rule->id]) }}" class="rounded bg-blue-100 px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300">Edit</a>
+                            <a href="{{ route('admin.settings.lead_routing', ['edit' => $rule->id]) }}" class="rounded bg-blue-100 px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 flex-inline items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </a>
                             <form method="POST" action="{{ route('admin.settings.lead_routing.destroy', ['id' => $rule->id]) }}" class="inline" onsubmit="return confirm('Delete this rule?')">
                                 @csrf
-                                <button type="submit" class="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200 dark:bg-red-950 dark:text-red-300">Delete</button>
+                                <button type="submit" class="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200 dark:bg-red-950 dark:text-red-300 flex-inline items-center gap-1">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -72,8 +76,12 @@
 
     <!-- Add / Edit Rule -->
     <div class="mt-6 max-w-4xl rounded-lg border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <h3 class="mb-4 text-base font-bold dark:text-white">
-            {{ $editing ? '✏️ Edit Rule' : '➕ Add a Routing Rule' }}
+        <h3 class="mb-4 text-base font-bold dark:text-white flex items-center gap-2">
+            @if($editing)
+                <i class="fa-solid fa-pen-to-square text-blue-600"></i> Edit Rule
+            @else
+                <i class="fa-solid fa-plus text-emerald-600"></i> Add a Routing Rule
+            @endif
         </h3>
         <form method="POST" action="{{ $editing ? route('admin.settings.lead_routing.update', ['id' => $editing->id]) : route('admin.settings.lead_routing.store') }}">
             @csrf
