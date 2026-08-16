@@ -66,43 +66,43 @@
             @endphp
 
             <!-- Workspace Selector Card -->
-            <div class="rounded-xl border border-slate-200/90 bg-white p-3 flex items-center justify-between shadow-2xs">
+            <div class="rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 p-3.5 flex items-center justify-between shadow-xs">
                 <div class="flex items-center gap-3">
-                    <div class="h-8 w-8 rounded-lg bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center border border-slate-200">
+                    <div class="h-9 w-9 rounded-xl bg-slate-900 text-white font-black text-sm flex items-center justify-center shadow-xs">
                         {{ $wsInitials }}
                     </div>
                     <div class="overflow-hidden">
-                        <div class="text-xs font-bold text-slate-900 truncate" title="{{ $wsTitle }}">{{ $wsTitle }}</div>
-                        <div class="text-[10px] text-slate-400 font-medium">Enterprise CRM Studio</div>
+                        <div class="text-sm font-bold text-slate-900 truncate" title="{{ $wsTitle }}">{{ $wsTitle }}</div>
+                        <div class="text-xs text-slate-500 font-medium">Enterprise CRM Studio</div>
                     </div>
                 </div>
             </div>
 
                 <!-- Navigation Links -->
-                <nav class="space-y-1 custom-scrollbar max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
-                    <div class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 mt-2">MAIN MENU</div>
+                <nav class="space-y-1.5 custom-scrollbar max-h-[calc(100vh-210px)] overflow-y-auto pr-1">
+                    <div class="px-3 text-xs font-black uppercase tracking-widest text-slate-400 mb-2 mt-3">MAIN MENU</div>
                     
                     @foreach (menu()->getItems('admin') as $menuItem)
                         @if(!in_array($menuItem->getKey(), ['settings', 'configuration']))
-                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition {{ request()->url() == $menuItem->getUrl() ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                                <span class="{{ $menuItem->getIcon() }} text-lg {{ request()->url() == $menuItem->getUrl() ? 'text-white' : 'text-slate-500' }}"></span>
+                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->url() == $menuItem->getUrl() ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="{{ $menuItem->getIcon() }} text-xl {{ request()->url() == $menuItem->getUrl() ? 'text-white' : 'text-slate-500' }}"></span>
                                 <span>{{ $menuItem->getName() }}</span>
                             </a>
                         @endif
                     @endforeach
 
-                    <div class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 mt-6">SETTINGS</div>
+                    <div class="px-3 text-xs font-black uppercase tracking-widest text-slate-400 mb-2 mt-6">SETTINGS</div>
                     
                     @foreach (menu()->getItems('admin') as $menuItem)
                         @if(in_array($menuItem->getKey(), ['settings', 'configuration']))
-                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition {{ request()->url() == $menuItem->getUrl() ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                                <span class="{{ $menuItem->getIcon() }} text-lg {{ request()->url() == $menuItem->getUrl() ? 'text-white' : 'text-slate-500' }}"></span>
+                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->url() == $menuItem->getUrl() ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="{{ $menuItem->getIcon() }} text-xl {{ request()->url() == $menuItem->getUrl() ? 'text-white' : 'text-slate-500' }}"></span>
                                 <span>{{ $menuItem->getName() }}</span>
                             </a>
                         @endif
                     @endforeach
 
-                    <a href="/admin/moldable/builder" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition {{ request()->is('admin/moldable*') ? 'bg-slate-900 text-white shadow-md' : '' }}">
+                    <a href="/admin/moldable/builder" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition {{ request()->is('admin/moldable*') ? 'bg-slate-900 text-white shadow-sm font-bold' : '' }}">
                         <svg class="w-5 h-5 {{ request()->is('admin/moldable*') ? 'text-white' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span>Moldable Studio</span>
                     </a>
@@ -110,14 +110,14 @@
             </div>
 
             <!-- Sidebar User Footer -->
-            <div class="p-4 border-t border-slate-200/80 bg-white flex items-center justify-between">
+            <div class="p-4 border-t border-slate-200/80 bg-slate-50/50 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="h-9 w-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                    <div class="h-10 w-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm shadow-xs">
                         {{ substr(auth()->guard('user')->user()->name ?? 'A', 0, 1) }}
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-slate-900">{{ auth()->guard('user')->user()->name ?? 'Admin' }}</div>
-                        <a href="{{ route('admin.session.destroy') }}" class="text-[10px] font-bold text-red-500 hover:underline">Logout</a>
+                        <div class="text-sm font-bold text-slate-900">{{ auth()->guard('user')->user()->name ?? 'Admin' }}</div>
+                        <a href="{{ route('admin.session.destroy') }}" class="text-xs font-bold text-red-600 hover:underline">Logout</a>
                     </div>
                 </div>
             </div>
@@ -128,25 +128,25 @@
     <div class="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
         
         <!-- Top App Sticky Header -->
-        <header class="bg-white border-b border-slate-200/80 px-8 py-3.5 sticky top-0 z-20 flex items-center justify-between">
+        <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-8 py-4 sticky top-0 z-20 flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <button type="button" onclick="toggleSidebarCollapse()" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition md:hidden">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
-                    <span>Settings</span>
-                    <span>></span>
-                    <span>Attributes</span>
-                    <span>></span>
+                <div class="flex items-center gap-2.5 text-sm font-medium text-slate-400">
+                    <span class="hover:text-slate-700 transition">Settings</span>
+                    <span class="text-slate-300">/</span>
+                    <span class="hover:text-slate-700 transition">Attributes</span>
+                    <span class="text-slate-300">/</span>
                     <span class="text-slate-900 font-bold">Field Builder</span>
                 </div>
             </div>
 
             <div class="flex items-center gap-4">
-                <button type="button" class="relative text-slate-500 hover:text-slate-900 transition">
+                <button type="button" class="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 </button>
-                <div class="h-8 w-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
+                <div class="h-9 w-9 rounded-full bg-slate-900 text-white font-black text-xs flex items-center justify-center shadow-xs">
                     {{ $userInitials }}
                 </div>
             </div>
