@@ -2,7 +2,7 @@
 
 test('moldable field builder screen features a 2-column studio layout with group navigation and summary stats', function () {
     $indexPath = base_path('packages/Webkul/Moldable/src/Resources/views/builder/index.blade.php');
-    $content   = file_get_contents($indexPath);
+    $content = file_get_contents($indexPath);
 
     expect(str_contains($content, 'lg:grid-cols-12'))->toBeTrue();
     expect(str_contains($content, 'id="field-groups-nav"'))->toBeTrue();

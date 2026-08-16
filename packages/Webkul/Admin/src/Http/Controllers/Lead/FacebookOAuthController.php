@@ -34,10 +34,10 @@ class FacebookOAuthController extends Controller
         session(['fb_oauth_state' => $state, 'fb_oauth_connector_id' => $connector->id]);
 
         $query = http_build_query([
-            'client_id'     => $clientId,
-            'redirect_uri'  => route('admin.settings.lead_connectors.facebook.callback'),
-            'state'         => $state,
-            'scope'         => self::SCOPES,
+            'client_id' => $clientId,
+            'redirect_uri' => route('admin.settings.lead_connectors.facebook.callback'),
+            'state' => $state,
+            'scope' => self::SCOPES,
             'response_type' => 'code',
         ]);
 
@@ -77,17 +77,17 @@ class FacebookOAuthController extends Controller
         try {
             // 1. Exchange the code for a short-lived user token.
             $short = Http::get(self::GRAPH.'/oauth/access_token', [
-                'client_id'     => config('services.facebook.client_id'),
+                'client_id' => config('services.facebook.client_id'),
                 'client_secret' => config('services.facebook.client_secret'),
-                'redirect_uri'  => route('admin.settings.lead_connectors.facebook.callback'),
-                'code'          => $request->get('code'),
+                'redirect_uri' => route('admin.settings.lead_connectors.facebook.callback'),
+                'code' => $request->get('code'),
             ])->throw()->json('access_token');
 
             // 2. Upgrade to a long-lived user token.
             $long = Http::get(self::GRAPH.'/oauth/access_token', [
-                'grant_type'        => 'fb_exchange_token',
-                'client_id'         => config('services.facebook.client_id'),
-                'client_secret'     => config('services.facebook.client_secret'),
+                'grant_type' => 'fb_exchange_token',
+                'client_id' => config('services.facebook.client_id'),
+                'client_secret' => config('services.facebook.client_secret'),
                 'fb_exchange_token' => $short,
             ])->throw()->json('access_token');
 
@@ -106,15 +106,15 @@ class FacebookOAuthController extends Controller
             // 4. Subscribe the Page to the leadgen webhook field.
             Http::asForm()->post(self::GRAPH."/{$page['id']}/subscribed_apps", [
                 'subscribed_fields' => 'leadgen',
-                'access_token'      => $page['access_token'],
+                'access_token' => $page['access_token'],
             ])->throw();
 
             // 5. Persist the Page token on the connector.
             $connector->update([
-                'meta_page_id'           => $page['id'],
-                'meta_page_name'         => $page['name'] ?? null,
+                'meta_page_id' => $page['id'],
+                'meta_page_name' => $page['name'] ?? null,
                 'meta_page_access_token' => $page['access_token'],
-                'is_active'              => true,
+                'is_active' => true,
             ]);
 
             $extra = count($pages) > 1 ? ' ('.(count($pages) - 1).' other Page(s) available — reconnect to switch.)' : '';

@@ -10,17 +10,17 @@ class MetaConversionsApiService
     /**
      * Send Meta Conversions API (CAPI) conversion event when lead reaches Won stage.
      *
-     * @param object $lead
-     * @param string $eventName ('Lead', 'Purchase', 'CompleteRegistration')
-     * @return bool
+     * @param  object  $lead
+     * @param  string  $eventName  ('Lead', 'Purchase', 'CompleteRegistration')
      */
     public function sendConversionEvent($lead, string $eventName = 'Lead'): bool
     {
         $pixelId = config('services.facebook.pixel_id');
         $accessToken = config('services.facebook.access_token');
 
-        if (!$pixelId || !$accessToken) {
-            Log::warning("Meta CAPI skipped: FACEBOOK_PIXEL_ID or FACEBOOK_PAGE_ACCESS_TOKEN is missing.");
+        if (! $pixelId || ! $accessToken) {
+            Log::warning('Meta CAPI skipped: FACEBOOK_PIXEL_ID or FACEBOOK_PAGE_ACCESS_TOKEN is missing.');
+
             return false;
         }
 
@@ -51,8 +51,8 @@ class MetaConversionsApiService
                         'value' => (float) ($lead->lead_value ?? 0),
                         'lead_title' => $lead->title ?? '',
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
 
         $response = Http::post("https://graph.facebook.com/v18.0/{$pixelId}/events", array_merge($eventData, [
@@ -61,10 +61,12 @@ class MetaConversionsApiService
 
         if ($response->successful()) {
             Log::info("Meta CAPI conversion event '{$eventName}' sent for Lead #{$lead->id}");
+
             return true;
         }
 
-        Log::error("Meta CAPI error for Lead #{$lead->id}: " . $response->body());
+        Log::error("Meta CAPI error for Lead #{$lead->id}: ".$response->body());
+
         return false;
     }
 
@@ -98,7 +100,7 @@ class MetaConversionsApiService
     public function getEventQualityMetrics(): array
     {
         $pixelId = config('services.facebook.pixel_id');
-        $hasKeys = !empty($pixelId) && !empty(config('services.facebook.access_token'));
+        $hasKeys = ! empty($pixelId) && ! empty(config('services.facebook.access_token'));
 
         return [
             'score' => $hasKeys ? '8.8 / 10' : '7.5 / 10 (Demo)',

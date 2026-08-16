@@ -30,8 +30,9 @@ class PollMetaLeadInsights extends Command
         $adAccountId = config('services.facebook.ad_account_id');
         $accessToken = config('services.facebook.access_token');
 
-        if (!$adAccountId || !$accessToken) {
-            $this->warn("Skipped: FACEBOOK_AD_ACCOUNT_ID or FACEBOOK_PAGE_ACCESS_TOKEN is missing in .env.");
+        if (! $adAccountId || ! $accessToken) {
+            $this->warn('Skipped: FACEBOOK_AD_ACCOUNT_ID or FACEBOOK_PAGE_ACCESS_TOKEN is missing in .env.');
+
             return 0;
         }
 
@@ -45,12 +46,14 @@ class PollMetaLeadInsights extends Command
 
         if ($response->successful()) {
             $data = $response->json()['data'] ?? [];
-            $this->info("Successfully fetched " . count($data) . " campaign insight records.");
-            Log::info("Meta Lead Insights polled successfully:", $data);
+            $this->info('Successfully fetched '.count($data).' campaign insight records.');
+            Log::info('Meta Lead Insights polled successfully:', $data);
+
             return 0;
         }
 
-        $this->error("Meta Graph API error: " . $response->body());
+        $this->error('Meta Graph API error: '.$response->body());
+
         return 1;
     }
 }

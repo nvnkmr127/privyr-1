@@ -3,7 +3,6 @@
 namespace Webkul\Admin\Exceptions;
 
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;

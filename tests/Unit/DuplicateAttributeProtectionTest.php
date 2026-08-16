@@ -1,7 +1,5 @@
 <?php
 
-use Webkul\Attribute\Models\Attribute;
-
 test('rejects duplicate code per entity type', function () {
     $existingCode = 'budget';
     $existingEntity = 'leads';

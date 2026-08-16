@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Webkul\Activity\Models\ActivityProxy;
 use Webkul\Activity\Traits\LogsActivity;
 use Webkul\Attribute\Traits\CustomAttribute;
@@ -282,7 +283,7 @@ class Lead extends Model implements LeadContract
     /**
      * Retrieve all lead events formatted for chronological activity timeline.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getChronologicalTimeline()
     {

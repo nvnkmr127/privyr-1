@@ -9,9 +9,6 @@ class GeoIpService
 {
     /**
      * Resolve IP address to latitude, longitude, city, and country.
-     *
-     * @param string $ip
-     * @return array
      */
     public function resolve(string $ip): array
     {
@@ -38,7 +35,7 @@ class GeoIpService
                 ];
             }
         } catch (\Throwable $e) {
-            Log::error('GeoIpService lookup error: ' . $e->getMessage());
+            Log::error('GeoIpService lookup error: '.$e->getMessage());
         }
 
         return [

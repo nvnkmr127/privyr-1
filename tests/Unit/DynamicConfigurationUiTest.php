@@ -2,7 +2,7 @@
 
 test('drawer configuration section contains dynamic configuration blocks for select, lookup, text, and file field types', function () {
     $viewPath = base_path('packages/Webkul/Moldable/src/Resources/views/builder/drawer.blade.php');
-    $content  = file_get_contents($viewPath);
+    $content = file_get_contents($viewPath);
 
     $requiredConfigBlocks = [
         'options-config-container',

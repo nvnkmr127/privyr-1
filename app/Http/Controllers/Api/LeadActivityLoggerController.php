@@ -26,7 +26,7 @@ class LeadActivityLoggerController extends Controller
 
         $leadRecord = is_object($lead) ? $lead : DB::table('leads')->where('id', $lead)->first();
 
-        if (!$leadRecord) {
+        if (! $leadRecord) {
             return response()->json(['status' => 'error', 'message' => 'Lead not found.'], 404);
         }
 
@@ -34,7 +34,7 @@ class LeadActivityLoggerController extends Controller
 
         $activity = $this->activityRepository->create([
             'type' => 'note',
-            'comment' => $modeTag . $request->input('comment'),
+            'comment' => $modeTag.$request->input('comment'),
             'user_id' => $leadRecord->user_id ?? 1,
             'is_done' => 1,
         ]);

@@ -2,8 +2,10 @@
 
 namespace Webkul\Lead\Repositories;
 
+use App\Services\MetaConversionsApiService;
 use Carbon\Carbon;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -211,7 +213,7 @@ class LeadRepository extends Repository
         $lead = parent::update($data, $id);
 
         if (isset($stage) && $stage->code === 'won') {
-            app(\App\Services\MetaConversionsApiService::class)->sendConversionEvent($lead, 'Purchase');
+            app(MetaConversionsApiService::class)->sendConversionEvent($lead, 'Purchase');
         }
 
         /**
@@ -275,11 +277,7 @@ class LeadRepository extends Repository
     /**
      * Get paginated leads for Unified Lead Inbox.
      *
-     * @param  string  $preset
-     * @param  string|null  $search
-     * @param  array  $filters
-     * @param  int  $perPage
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      */
     public function getInboxLeads(string $preset = 'all', ?string $search = null, array $filters = [], int $perPage = 15)
     {

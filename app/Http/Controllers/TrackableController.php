@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -21,11 +22,11 @@ class TrackableController extends Controller
         $leadId = is_object($lead) ? $lead->id : (int) $lead;
         $leadRecord = is_object($lead) ? $lead : DB::table('leads')->where('id', $leadId)->first();
 
-        if (!$leadRecord) {
+        if (! $leadRecord) {
             abort(404);
         }
 
-        $expected = md5($leadId . config('app.key'));
+        $expected = md5($leadId.config('app.key'));
         if ($hash !== 'demo' && ! hash_equals($expected, (string) $hash)) {
             abort(404);
         }
@@ -54,12 +55,12 @@ class TrackableController extends Controller
 
         Log::info("🔥 Engagement alert triggered for Lead #{$leadId} opened by {$prospectName}");
 
-        if ($user && !empty($user->phone)) {
+        if ($user && ! empty($user->phone)) {
             $alert = "🔥 ENGAGEMENT ALERT!\n"
-                . "{$prospectName} just opened your brochure!\n"
-                . "Lead: {$leadRecord->title}\n"
-                . "Tap to Call: tel:{$phone}";
-            app(\App\Services\WhatsAppService::class)->send($user->phone, $alert);
+                ."{$prospectName} just opened your brochure!\n"
+                ."Lead: {$leadRecord->title}\n"
+                ."Tap to Call: tel:{$phone}";
+            app(WhatsAppService::class)->send($user->phone, $alert);
         }
 
         $agentName = $user->name ?? 'Sales Representative';

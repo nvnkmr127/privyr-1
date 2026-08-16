@@ -183,6 +183,7 @@ class BuilderController
                         'sort_order' => $sortOrder,
                     ]);
                     $existingOptionIds[] = $option->id;
+
                     continue;
                 }
             }

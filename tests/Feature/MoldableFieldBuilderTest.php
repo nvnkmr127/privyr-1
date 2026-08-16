@@ -16,16 +16,16 @@ it('creates a user-defined field through the builder API', function () {
 
     $response = $this->postJson('/v1/moldable/fields', [
         'entity_type' => 'leads',
-        'name'        => $name,
-        'type'        => 'text',
-        'quick_add'   => true,
+        'name' => $name,
+        'type' => 'text',
+        'quick_add' => true,
     ]);
 
     $response->assertStatus(201);
 
     $this->assertDatabaseHas('attributes', [
-        'name'            => $name,
-        'entity_type'     => 'leads',
+        'name' => $name,
+        'entity_type' => 'leads',
         'is_user_defined' => 1,
     ]);
 
@@ -39,14 +39,14 @@ it('rejects a duplicate display name for the same entity', function () {
 
     $this->postJson('/v1/moldable/fields', [
         'entity_type' => 'leads',
-        'name'        => $name,
-        'type'        => 'text',
+        'name' => $name,
+        'type' => 'text',
     ])->assertStatus(201);
 
     $this->postJson('/v1/moldable/fields', [
         'entity_type' => 'leads',
-        'name'        => $name,
-        'type'        => 'text',
+        'name' => $name,
+        'type' => 'text',
     ])->assertStatus(422);
 
     Attribute::where('name', $name)->delete();
@@ -59,8 +59,8 @@ it('lists and deletes a user-defined field', function () {
 
     $created = $this->postJson('/v1/moldable/fields', [
         'entity_type' => 'leads',
-        'name'        => $name,
-        'type'        => 'text',
+        'name' => $name,
+        'type' => 'text',
     ])->assertStatus(201)->json();
 
     $this->getJson('/v1/moldable/fields?entity_type=leads')

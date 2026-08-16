@@ -35,8 +35,8 @@ test('appends incrementing numerical suffix when code exists for entity', functi
 
 test('code is preserved and never regenerated when editing name', function () {
     $attributeData = [
-        'code'        => 'original_code',
-        'name'        => 'Original Name',
+        'code' => 'original_code',
+        'name' => 'Original Name',
         'entity_type' => 'leads',
     ];
 

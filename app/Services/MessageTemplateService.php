@@ -7,9 +7,7 @@ class MessageTemplateService
     /**
      * Parse and replace placeholder variables in message text.
      *
-     * @param string $template
-     * @param object $lead
-     * @return string
+     * @param  object  $lead
      */
     public function parse(string $template, $lead): string
     {

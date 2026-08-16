@@ -18,6 +18,7 @@ class WhatsAppService
 
         if (! $endpoint || ! $token) {
             Log::info("Watxio not configured; WhatsApp send skipped for {$phone}.");
+
             return false;
         }
 
@@ -31,7 +32,8 @@ class WhatsAppService
         ]);
 
         if (! $response->successful()) {
-            Log::error('Watxio WhatsApp send failed: ' . $response->body());
+            Log::error('Watxio WhatsApp send failed: '.$response->body());
+
             return false;
         }
 

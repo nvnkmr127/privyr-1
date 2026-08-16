@@ -32,10 +32,10 @@ class Attribute extends Model implements AttributeContract
      * @var array
      */
     protected $casts = [
-        'sort_order'      => 'integer',
-        'is_required'     => 'boolean',
-        'is_unique'       => 'boolean',
-        'quick_add'       => 'boolean',
+        'sort_order' => 'integer',
+        'is_required' => 'boolean',
+        'is_unique' => 'boolean',
+        'quick_add' => 'boolean',
         'is_user_defined' => 'boolean',
     ];
 

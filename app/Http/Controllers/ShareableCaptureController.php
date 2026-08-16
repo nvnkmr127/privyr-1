@@ -49,8 +49,8 @@ class ShareableCaptureController extends Controller
                 <div class="card">
                     <h2>Get In Touch</h2>
                     <p>Fill in your details below and our team will respond to you instantly on WhatsApp.</p>
-                    <form action="' . route('shareable.capture.submit', ['token' => $token]) . '" method="POST">
-                        ' . csrf_field() . '
+                    <form action="'.route('shareable.capture.submit', ['token' => $token]).'" method="POST">
+                        '.csrf_field().'
                         <div class="form-group">
                             <label>Full Name *</label>
                             <input type="text" name="name" required placeholder="e.g. John Doe">
@@ -99,7 +99,7 @@ class ShareableCaptureController extends Controller
 
         $assignedUserId = $this->distributionService->getNextAssignedUserId();
 
-        if (!$person) {
+        if (! $person) {
             $person = $this->personRepository->create([
                 'entity_type' => 'persons',
                 'name' => $request->input('name'),
@@ -110,7 +110,7 @@ class ShareableCaptureController extends Controller
         }
 
         $source = $this->sourceRepository->findOneByField('name', 'QR / Capture Link');
-        if (!$source) {
+        if (! $source) {
             $source = $this->sourceRepository->create(['name' => 'QR / Capture Link']);
         }
 
@@ -119,7 +119,7 @@ class ShareableCaptureController extends Controller
 
         $this->leadRepository->create([
             'entity_type' => 'leads',
-            'title' => 'Web Form Inquiry - ' . $request->input('name'),
+            'title' => 'Web Form Inquiry - '.$request->input('name'),
             'description' => $request->input('description'),
             'lead_value' => 0,
             'user_id' => $assignedUserId,

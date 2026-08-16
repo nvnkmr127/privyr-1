@@ -12,7 +12,7 @@ test('admin UI theme layout app.blade.php exists and features glassmorphism side
 
 test('field builder view wraps inside x-moldable::layouts.app layout component', function () {
     $indexPath = base_path('packages/Webkul/Moldable/src/Resources/views/builder/index.blade.php');
-    $content   = file_get_contents($indexPath);
+    $content = file_get_contents($indexPath);
 
     expect(str_contains($content, '<x-moldable::layouts.app>'))->toBeTrue();
 });

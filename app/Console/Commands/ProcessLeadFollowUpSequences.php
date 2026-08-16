@@ -26,9 +26,10 @@ class ProcessLeadFollowUpSequences extends Command
      */
     public function handle(LeadFollowUpSequenceService $sequenceService)
     {
-        $this->info("Processing multi-step lead follow-up sequences...");
+        $this->info('Processing multi-step lead follow-up sequences...');
         $processed = $sequenceService->processPendingSteps();
         $this->info("Completed processing: {$processed} sequence steps dispatched.");
+
         return 0;
     }
 }

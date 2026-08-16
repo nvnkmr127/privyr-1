@@ -2,7 +2,7 @@
 
 test('2-color theme layout app.blade.php uses black slate-900 accents and white background', function () {
     $layoutPath = base_path('packages/Webkul/Moldable/src/Resources/views/layouts/app.blade.php');
-    $content    = file_get_contents($layoutPath);
+    $content = file_get_contents($layoutPath);
 
     expect(str_contains($content, 'bg-slate-900'))->toBeTrue();
     expect(str_contains($content, 'bg-white'))->toBeTrue();

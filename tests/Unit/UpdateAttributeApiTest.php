@@ -4,10 +4,10 @@ use Webkul\Attribute\Models\Attribute;
 
 test('system attributes cannot be deleted', function () {
     $systemAttribute = new Attribute([
-        'code'            => 'title',
-        'name'            => 'Lead Title',
-        'type'            => 'text',
-        'entity_type'     => 'leads',
+        'code' => 'title',
+        'name' => 'Lead Title',
+        'type' => 'text',
+        'entity_type' => 'leads',
         'is_user_defined' => false,
     ]);
 
@@ -16,7 +16,7 @@ test('system attributes cannot be deleted', function () {
 
 test('system attributes cannot be modified', function () {
     $systemAttribute = new Attribute([
-        'code'            => 'title',
+        'code' => 'title',
         'is_user_defined' => false,
     ]);
 
@@ -25,8 +25,8 @@ test('system attributes cannot be modified', function () {
 
 test('entity_type and code remain immutable during field update', function () {
     $updateData = [
-        'name'        => 'Updated Field Name',
-        'code'        => 'hacked_code',
+        'name' => 'Updated Field Name',
+        'code' => 'hacked_code',
         'entity_type' => 'hacked_entity',
     ];
 
