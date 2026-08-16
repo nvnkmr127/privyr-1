@@ -5,6 +5,8 @@ This changelog consists of the bug & security fixes and new features being inclu
 ## **v2.2.6 (Upcoming)**
 
 * [enhancement] Centralized Moldable custom-field system (`/admin/moldable/builder`) across the workspace with full support for Leads, Contacts, Organizations, Products, Quotes, Lead Capture mapping, dynamic Web Forms, DataGrid exports, cascade deletion, and multi-tenant isolation.
+* [enhancement] Overhauled Moldable Field Builder UI/UX with high-density compact field rows, multi-axis sticky filter toolbar, interactive presentation group manager with field previews, 6-step drawer with categorized field types and sticky footer, and accessible custom confirmation dialogs.
+* [enhancement] Redesigned Moldable Create/Edit Field drawer into a clear enterprise 6-step workflow with completed/active/upcoming step states, micro-progress indicator, clean entity context badges, immutable field-code lock indicator, dynamic per-type configuration, inline validation, and unsaved changes protection.
 
 
 * [feature] Added instant new-lead push notifications to assigned agents' devices via the Firebase Cloud Messaging HTTP v1 API (service-account OAuth), with device-token registration APIs, automatic pruning of dead tokens, and a WhatsApp fallback when no device is registered.
