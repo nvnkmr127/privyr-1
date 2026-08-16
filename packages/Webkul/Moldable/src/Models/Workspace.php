@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Workspace extends Model
 {
+    protected $table = 'moldable_workspaces';
+
     protected $fillable = ['name', 'slug', 'settings', 'is_active'];
 
     protected $casts = ['settings' => 'array', 'is_active' => 'boolean'];

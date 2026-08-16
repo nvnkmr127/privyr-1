@@ -11,6 +11,7 @@ class LeadCaptureLog extends Model
 
     protected $fillable = [
         'connector_id',
+        'workspace_id',
         'raw_payload',
         'status',
         'lead_id',

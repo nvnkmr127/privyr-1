@@ -22,9 +22,9 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->string('duplicate_action')->default('update'); // skip, update, create_new_tag, attach_contact
             $table->json('field_mappings')->nullable();
-            $table->unsignedBigInteger('default_lead_pipeline_id')->nullable();
-            $table->unsignedBigInteger('default_lead_pipeline_stage_id')->nullable();
-            $table->unsignedBigInteger('default_user_id')->nullable();
+            $table->unsignedInteger('default_lead_pipeline_id')->nullable();
+            $table->unsignedInteger('default_lead_pipeline_stage_id')->nullable();
+            $table->unsignedInteger('default_user_id')->nullable();
             $table->unsignedInteger('captured_count')->default(0);
             $table->timestamp('last_received_at')->nullable();
             $table->timestamps();

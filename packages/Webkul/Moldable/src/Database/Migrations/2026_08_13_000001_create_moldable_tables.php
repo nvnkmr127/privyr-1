@@ -81,7 +81,8 @@ return new class extends Migration
             $table->string('resource_type', 80);
             $table->unsignedBigInteger('resource_id');
             $table->timestamps();
-            $table->unique(['workspace_id', 'resource_type', 'resource_id']);
+            // Explicit short name: the default would exceed MySQL's 64-char identifier limit.
+            $table->unique(['workspace_id', 'resource_type', 'resource_id'], 'mwr_workspace_resource_unique');
             $table->index(['resource_type', 'resource_id']);
         });
 

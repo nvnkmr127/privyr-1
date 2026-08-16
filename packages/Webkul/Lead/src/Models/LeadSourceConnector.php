@@ -12,6 +12,7 @@ class LeadSourceConnector extends Model
     protected $table = 'lead_source_connectors';
 
     protected $fillable = [
+        'workspace_id',
         'name',
         'source_type',
         'webhook_token',
@@ -22,6 +23,7 @@ class LeadSourceConnector extends Model
         'is_active',
         'duplicate_action',
         'field_mappings',
+        'embed_config',
         'default_lead_pipeline_id',
         'default_lead_pipeline_stage_id',
         'default_user_id',
@@ -32,6 +34,7 @@ class LeadSourceConnector extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'field_mappings' => 'array',
+        'embed_config' => 'array',
         'last_received_at' => 'datetime',
         'meta_page_access_token' => 'encrypted',
     ];
@@ -40,6 +43,16 @@ class LeadSourceConnector extends Model
         'meta_page_access_token',
         'api_key',
     ];
+
+    /**
+     * Tenant scope: restrict a query to a single workspace. Callers must pass an
+     * explicit workspace id resolved from the authenticated context — never from
+     * raw browser input.
+     */
+    public function scopeForWorkspace($query, $workspaceId)
+    {
+        return $query->where('workspace_id', $workspaceId);
+    }
 
     public function pipeline(): BelongsTo
     {
