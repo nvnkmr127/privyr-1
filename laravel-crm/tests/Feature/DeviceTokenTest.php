@@ -7,6 +7,38 @@ use Illuminate\Support\Str;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Services\LeadCaptureService;
 
+/**
+ * Write a throwaway Firebase service-account JSON (with a real RSA key so JWT
+ * signing succeeds) and point push config at it.
+ */
+function fakeFcmCredentials(): string
+{
+    $key = openssl_pkey_new([
+        'private_key_bits' => 2048,
+        'private_key_type' => OPENSSL_KEYTYPE_RSA,
+    ]);
+
+    openssl_pkey_export($key, $privateKeyPem);
+
+    $path = tempnam(sys_get_temp_dir(), 'fcm').'.json';
+
+    file_put_contents($path, json_encode([
+        'type' => 'service_account',
+        'project_id' => 'test-project',
+        'client_email' => 'fcm@test-project.iam.gserviceaccount.com',
+        'private_key' => $privateKeyPem,
+        'token_uri' => 'https://oauth2.googleapis.com/token',
+    ]));
+
+    config([
+        'services.push.credentials' => $path,
+        'services.push.project_id' => 'test-project',
+        'services.push.endpoint' => 'https://fcm.googleapis.com/v1/projects/{project}/messages:send',
+    ]);
+
+    return $path;
+}
+
 it('registers a device token for the authenticated agent', function () {
     $admin = actingAsSanctumAuthenticatedAdmin();
 
@@ -62,7 +94,7 @@ it('rejects device-token endpoints without authentication', function () {
 });
 
 it('is a no-op when push is not configured', function () {
-    config(['services.push.key' => null]);
+    config(['services.push.credentials' => null, 'services.push.project_id' => null]);
     Http::fake();
 
     $result = app(PushNotificationService::class)->send(['some-token'], 'Title', 'Body');
@@ -73,27 +105,20 @@ it('is a no-op when push is not configured', function () {
     Http::assertNothingSent();
 });
 
-it('treats an HTTP 200 with zero deliveries as not sent and prunes the dead tokens', function () {
+it('treats zero successful deliveries as not sent and prunes the dead tokens', function () {
     $admin = getDefaultAdmin();
 
-    config([
-        'services.push.key' => 'test-server-key',
-        'services.push.endpoint' => 'https://fcm.googleapis.com/fcm/send',
-    ]);
+    fakeFcmCredentials();
 
     DeviceToken::create(['user_id' => $admin->id, 'token' => 'gone-1', 'platform' => 'android']);
     DeviceToken::create(['user_id' => $admin->id, 'token' => 'gone-2', 'platform' => 'android']);
 
-    // Accepted by FCM, but every token is unregistered — nothing was delivered.
+    // Token exchange succeeds, but FCM v1 reports every device as unregistered.
     Http::fake([
+        'oauth2.googleapis.com/token' => Http::response(['access_token' => 'ya29.fake', 'expires_in' => 3599], 200),
         'fcm.googleapis.com/*' => Http::response([
-            'success' => 0,
-            'failure' => 2,
-            'results' => [
-                ['error' => 'NotRegistered'],
-                ['error' => 'InvalidRegistration'],
-            ],
-        ], 200),
+            'error' => ['code' => 404, 'status' => 'NOT_FOUND', 'details' => [['errorCode' => 'UNREGISTERED']]],
+        ], 404),
     ]);
 
     $sent = app(PushNotificationService::class)->sendToUser($admin, 'New Lead', 'Body');
@@ -108,32 +133,25 @@ it('treats an HTTP 200 with zero deliveries as not sent and prunes the dead toke
 it('dispatches a push to the agent devices and prunes dead tokens', function () {
     $admin = getDefaultAdmin();
 
-    config([
-        'services.push.key' => 'test-server-key',
-        'services.push.endpoint' => 'https://fcm.googleapis.com/fcm/send',
-    ]);
+    fakeFcmCredentials();
 
     DeviceToken::create(['user_id' => $admin->id, 'token' => 'live-token', 'platform' => 'android']);
     DeviceToken::create(['user_id' => $admin->id, 'token' => 'dead-token', 'platform' => 'android']);
 
-    // FCM reports per-token results positionally: first ok, second unregistered.
+    // v1 sends one request per token: first delivers, second is unregistered.
     Http::fake([
-        'fcm.googleapis.com/*' => Http::response([
-            'success' => 1,
-            'failure' => 1,
-            'results' => [
-                ['message_id' => '0:123'],
-                ['error' => 'NotRegistered'],
-            ],
-        ], 200),
+        'oauth2.googleapis.com/token' => Http::response(['access_token' => 'ya29.fake', 'expires_in' => 3599], 200),
+        'fcm.googleapis.com/*' => Http::sequence()
+            ->push(['name' => 'projects/test-project/messages/1'], 200)
+            ->push(['error' => ['code' => 404, 'status' => 'NOT_FOUND', 'details' => [['errorCode' => 'UNREGISTERED']]]], 404),
     ]);
 
     $sent = app(PushNotificationService::class)->sendToUser($admin, 'New Lead', 'Body');
 
     expect($sent)->toBeTrue();
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'fcm.googleapis.com')
-        && $request['registration_ids'] === ['live-token', 'dead-token']);
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send')
+        && data_get($request->data(), 'message.token') === 'live-token');
 
     // Dead token pruned, live token kept and stamped as used.
     $this->assertDatabaseMissing('device_tokens', ['token' => 'dead-token']);
@@ -144,13 +162,11 @@ it('dispatches a push to the agent devices and prunes dead tokens', function () 
 it('pushes to the assigned agent when a lead is captured', function () {
     $admin = getDefaultAdmin();
 
-    config([
-        'services.push.key' => 'test-server-key',
-        'services.push.endpoint' => 'https://fcm.googleapis.com/fcm/send',
-    ]);
+    fakeFcmCredentials();
 
     Http::fake([
-        'fcm.googleapis.com/*' => Http::response(['success' => 1, 'results' => [['message_id' => '0:1']]], 200),
+        'oauth2.googleapis.com/token' => Http::response(['access_token' => 'ya29.fake', 'expires_in' => 3599], 200),
+        'fcm.googleapis.com/*' => Http::response(['name' => 'projects/test-project/messages/1'], 200),
     ]);
 
     DeviceToken::create(['user_id' => $admin->id, 'token' => 'agent-device', 'platform' => 'android']);
@@ -170,6 +186,6 @@ it('pushes to the assigned agent when a lead is captured', function () {
         'phone' => '+91 9000000001',
     ]);
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), 'fcm.googleapis.com')
-        && $request['registration_ids'] === ['agent-device']);
+    Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send')
+        && data_get($request->data(), 'message.token') === 'agent-device');
 });

@@ -52,11 +52,15 @@ return [
     ],
 
     'push' => [
-        // Firebase Cloud Messaging (or compatible) for instant new-lead alerts.
-        // Unset key = push is logged, not dispatched, so the CRM works ungated.
+        // Firebase Cloud Messaging HTTP v1 for instant new-lead alerts.
+        // Unset credentials = push is logged, not dispatched, so the CRM works ungated.
         'driver' => env('PUSH_DRIVER', 'fcm'),
-        'key' => env('FCM_SERVER_KEY'),
-        'endpoint' => env('FCM_ENDPOINT', 'https://fcm.googleapis.com/fcm/send'),
+        // Absolute path to a Firebase service-account JSON key file.
+        'credentials' => env('FCM_CREDENTIALS'),
+        // Optional; falls back to the project_id inside the service-account file.
+        'project_id' => env('FCM_PROJECT_ID'),
+        // v1 send endpoint. {project} is substituted at runtime.
+        'endpoint' => env('FCM_ENDPOINT', 'https://fcm.googleapis.com/v1/projects/{project}/messages:send'),
     ],
 
     'lead_capture' => [
