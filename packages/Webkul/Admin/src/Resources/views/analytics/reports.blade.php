@@ -7,8 +7,8 @@
     <div class="scroll-reactive-sticky sticky top-[60px] z-[100] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 mb-4">
         <div class="flex flex-col gap-1">
             <x-admin::breadcrumbs name="leads" />
-            <div class="text-xl font-bold dark:text-white">
-                📊 Lead Analytics & Team Activity Reports
+            <div class="text-xl font-bold dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-slate-700 dark:text-slate-200"></i> Lead Analytics & Team Activity Reports
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -16,8 +16,8 @@
                 <span class="h-2 w-2 rounded-full bg-green-500 animate-ping"></span>
                 LIVE UPDATING
             </span>
-            <a href="{{ route('admin.leads.index') }}" class="secondary-button">
-                ← Pipeline
+            <a href="{{ route('admin.leads.index') }}" class="secondary-button flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left text-xs"></i> Pipeline
             </a>
         </div>
     </div>
@@ -45,7 +45,9 @@
     <!-- GeoIP Map -->
     <div class="rounded-lg border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 mb-4">
         <div class="mb-3 flex items-center justify-between">
-            <h3 class="text-base font-bold dark:text-white">🗺️ Geographic Lead IP Location Map</h3>
+            <h3 class="text-base font-bold dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-map-location-dot text-blue-600"></i> Geographic Lead IP Location Map
+            </h3>
             <span class="rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-300">Leaflet.js Overlay</span>
         </div>
         <div id="geoMap" class="h-80 w-full rounded-lg border border-gray-200 dark:border-gray-700"></div>
@@ -54,18 +56,24 @@
     <!-- Charts Grid -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-4">
         <div class="lg:col-span-2 rounded-lg border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <h3 class="mb-3 text-base font-bold dark:text-white">📈 Lead Acquisition Channels</h3>
+            <h3 class="mb-3 text-base font-bold dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-indigo-600"></i> Lead Acquisition Channels
+            </h3>
             <canvas id="sourceChart" class="max-h-64"></canvas>
         </div>
         <div class="rounded-lg border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <h3 class="mb-3 text-base font-bold dark:text-white">🎯 Pipeline Health</h3>
+            <h3 class="mb-3 text-base font-bold dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-bullseye text-emerald-600"></i> Pipeline Health
+            </h3>
             <canvas id="stageChart" class="max-h-64"></canvas>
         </div>
     </div>
 
     <!-- Agent Reporting Table -->
     <div class="rounded-lg border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <h3 class="mb-3 text-base font-bold dark:text-white">👤 Per-Agent Activity Reporting</h3>
+        <h3 class="mb-3 text-base font-bold dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-user-tie text-slate-700 dark:text-slate-300"></i> Per-Agent Activity Reporting
+        </h3>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -85,7 +93,7 @@
                             <td class="px-4 py-3 font-bold text-green-600 dark:text-green-400">{{ $agent['won_count'] }} won</td>
                             <td class="px-4 py-3 dark:text-gray-300">{{ $agent['activity_count'] }} activities</td>
                             <td class="px-4 py-3">
-                                <span class="rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-300">🔥 Active</span>
+                                <span class="rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-300"><i class="fa-solid fa-bolt mr-1"></i> Active</span>
                             </td>
                         </tr>
                     @endforeach

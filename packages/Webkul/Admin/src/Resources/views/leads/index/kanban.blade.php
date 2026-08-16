@@ -231,7 +231,7 @@
                                                 class="flex items-center gap-1 rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-emerald-700 transition"
                                                 @click.stop
                                             >
-                                                💬 WhatsApp
+                                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
                                             </a>
 
                                             <a
@@ -239,7 +239,7 @@
                                                 class="flex items-center gap-1 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-blue-700 transition"
                                                 @click.stop
                                             >
-                                                📞 Call
+                                                <i class="fa-solid fa-phone"></i> Call
                                             </a>
                                         </div>
 
@@ -247,7 +247,7 @@
                                             v-if="element.rotten_days > 0"
                                             class="text-[10px] font-bold text-rose-600 dark:text-rose-400"
                                         >
-                                            🔥 Rotten
+                                            <i class="fa-solid fa-fire mr-0.5"></i> Rotten
                                         </span>
                                     </div>
                                 </a>

@@ -133,7 +133,7 @@
                 },
                 body: JSON.stringify({
                     type: 'note',
-                    comment: '📞 Call Outcome logged: ' + outcome,
+                    comment: 'Call Outcome logged: ' + outcome,
                     lead_id: {{ $lead->id }}
                 })
             }).then(() => window.location.reload());
