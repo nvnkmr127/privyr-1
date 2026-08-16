@@ -2,6 +2,7 @@
 
 namespace Webkul\Contact\Models;
 
+use App\Support\Concerns\BelongsToWorkspace;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,7 +19,7 @@ use Webkul\User\Models\UserProxy;
 
 class Person extends Model implements PersonContract
 {
-    use \App\Support\Concerns\BelongsToWorkspace, CustomAttribute, HasFactory, LogsActivity;
+    use BelongsToWorkspace, CustomAttribute, HasFactory, LogsActivity;
 
     /**
      * Table name.

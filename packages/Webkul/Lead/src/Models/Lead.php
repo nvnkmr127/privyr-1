@@ -2,6 +2,7 @@
 
 namespace Webkul\Lead\Models;
 
+use App\Support\Concerns\BelongsToWorkspace;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +21,7 @@ use Webkul\User\Models\UserProxy;
 
 class Lead extends Model implements LeadContract
 {
-    use \App\Support\Concerns\BelongsToWorkspace, CustomAttribute, LogsActivity;
+    use BelongsToWorkspace, CustomAttribute, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
