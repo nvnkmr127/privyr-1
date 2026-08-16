@@ -4,6 +4,8 @@ This changelog consists of the bug & security fixes and new features being inclu
 
 ## **v2.2.6 (Upcoming)**
 
+* [feature] Added instant new-lead push notifications to assigned agents' devices via Firebase Cloud Messaging, with device-token registration APIs, automatic pruning of dead tokens, and a WhatsApp fallback when no device is registered.
+
 * #2612[feature] Redesigned Lead Profile mobile experience with 1-tap quick actions and unified chronological activity timeline.
 
 * [enhancement] Removed non-English translation packages (ar, es, fa, ko, pt_BR, tr, vi, zh_CN), keeping English (en) as the sole application locale.

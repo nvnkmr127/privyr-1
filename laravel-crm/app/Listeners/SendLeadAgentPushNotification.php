@@ -50,18 +50,26 @@ class SendLeadAgentPushNotification
                 ]
             );
 
-            // Fallback: if the agent has a phone but no registered device, buzz
-            // them over WhatsApp so the alert still lands.
+            // Fallback: if push didn't land and the agent has a phone, buzz them
+            // over WhatsApp so the alert still reaches them.
+            $whatsappSent = false;
             if (! $pushed && ! empty($user?->phone)) {
-                $this->whatsAppService->send($user->phone, $alertMessage);
+                $whatsappSent = $this->whatsAppService->send($user->phone, $alertMessage);
+            }
+
+            // Reflect the real outcome of the fallback chain in the timeline.
+            if ($pushed) {
+                $comment = "🔔 Instant push notification delivered to {$agentName}'s device(s)";
+            } elseif ($whatsappSent) {
+                $comment = "🔔 Push unavailable — new-lead alert sent to {$agentName} via WhatsApp";
+            } else {
+                $comment = "🔔 New-lead alert not delivered to {$agentName} (no registered device or WhatsApp channel)";
             }
 
             // Record Push Notification log in Activity timeline
             $activity = app(\Webkul\Activity\Repositories\ActivityRepository::class)->create([
                 'type' => 'note',
-                'comment' => $pushed
-                    ? "🔔 Instant push notification delivered to {$agentName}'s device(s)"
-                    : "🔔 New-lead alert dispatched to assigned agent: {$agentName}",
+                'comment' => $comment,
                 'user_id' => $lead->user_id ?? 1,
                 'is_done' => 1,
             ]);

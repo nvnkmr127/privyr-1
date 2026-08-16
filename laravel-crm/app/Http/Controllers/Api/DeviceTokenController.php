@@ -16,6 +16,7 @@ class DeviceTokenController extends Controller
     {
         $tokens = DeviceToken::where('user_id', $request->user()->id)
             ->orderByDesc('last_used_at')
+            ->orderByDesc('created_at')
             ->get(['id', 'platform', 'device_name', 'last_used_at', 'created_at']);
 
         return response()->json([
@@ -38,13 +39,14 @@ class DeviceTokenController extends Controller
             'device_name' => 'nullable|string|max:255',
         ]);
 
+        // last_used_at intentionally left untouched here — it tracks successful
+        // push delivery (stamped in PushNotificationService), not registration.
         $deviceToken = DeviceToken::updateOrCreate(
             ['token' => $data['token']],
             [
                 'user_id' => $request->user()->id,
                 'platform' => $data['platform'] ?? 'android',
                 'device_name' => $data['device_name'] ?? null,
-                'last_used_at' => now(),
             ]
         );
 
