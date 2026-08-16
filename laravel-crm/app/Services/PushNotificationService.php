@@ -3,17 +3,28 @@
 namespace App\Services;
 
 use App\Models\DeviceToken;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class PushNotificationService
 {
     /**
-     * Send a push notification to a set of device tokens via Firebase Cloud
-     * Messaging (or a compatible endpoint).
+     * Loaded service-account credentials (false once we've looked and found none).
      *
-     * Mirrors WhatsAppService: it is a safe no-op (logs only) when push isn't
-     * configured, so the CRM works ungated out of the box.
+     * @var array<string, mixed>|null|false
+     */
+    protected $loadedCredentials = false;
+
+    /**
+     * Send a push notification to a set of device tokens via the Firebase Cloud
+     * Messaging HTTP v1 API.
+     *
+     * Mirrors WhatsAppService: a safe no-op (logs only) when push isn't
+     * configured, so the CRM works ungated out of the box. FCM v1 sends to one
+     * token per request, so delivery is tracked per token and dead tokens are
+     * surfaced for pruning.
      *
      * @param  array<int, string>  $tokens
      * @param  array<string, mixed>  $data
@@ -27,61 +38,53 @@ class PushNotificationService
             return ['sent' => false, 'invalid_tokens' => [], 'reason' => 'no_tokens'];
         }
 
-        $key = config('services.push.key');
+        $accessToken = $this->accessToken();
+        $projectId = $this->projectId();
 
-        if (! $key) {
+        if (! $accessToken || ! $projectId) {
             Log::info('Push not configured; new-lead push skipped for '.count($tokens).' device(s).');
 
             return ['sent' => false, 'invalid_tokens' => [], 'reason' => 'not_configured'];
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'key='.$key,
-            'Content-Type' => 'application/json',
-        ])->post(config('services.push.endpoint'), [
-            'registration_ids' => $tokens,
-            'notification' => [
-                'title' => $title,
-                'body' => $body,
-            ],
-            'data' => $data,
-            'priority' => 'high',
-        ]);
+        $endpoint = str_replace('{project}', $projectId, (string) config('services.push.endpoint'));
 
-        if (! $response->successful()) {
-            Log::error('FCM push failed: '.$response->body());
-
-            return ['sent' => false, 'invalid_tokens' => [], 'reason' => 'http_error'];
-        }
-
-        // FCM reports per-token results positionally; surface dead tokens so the
-        // caller can prune them, and count real deliveries so an HTTP 200 with
-        // zero successes isn't mistaken for a delivered push.
-        $results = (array) $response->json('results', []);
-        $invalid = [];
         $successCount = 0;
+        $invalid = [];
 
-        foreach ($results as $index => $result) {
-            $error = $result['error'] ?? null;
+        foreach ($tokens as $token) {
+            $response = Http::withToken($accessToken)->post($endpoint, [
+                'message' => [
+                    'token' => $token,
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body,
+                    ],
+                    // FCM v1 data values must be strings.
+                    'data' => array_map(fn ($value) => (string) $value, $data),
+                    'android' => ['priority' => 'high'],
+                ],
+            ]);
 
-            if ($error === null && ! empty($result['message_id'])) {
+            if ($response->successful()) {
                 $successCount++;
+
+                continue;
             }
 
-            if (in_array($error, ['NotRegistered', 'InvalidRegistration', 'MismatchSenderId'], true)
-                && isset($tokens[$index])
-            ) {
-                $invalid[] = $tokens[$index];
+            if ($this->isTokenUnregistered($response)) {
+                $invalid[] = $token;
+
+                continue;
             }
-        }
 
-        // Fall back to FCM's top-level success counter when per-result data is absent.
-        if ($successCount === 0) {
-            $successCount = (int) $response->json('success', 0);
+            Log::error('FCM v1 push failed for a device: '.$response->status().' '.$response->body());
         }
 
         if ($successCount === 0) {
-            Log::warning('FCM push accepted but delivered to zero devices: '.$response->body());
+            if (! empty($invalid)) {
+                Log::warning('FCM push reached zero devices; all target tokens are unregistered.');
+            }
 
             return ['sent' => false, 'invalid_tokens' => $invalid, 'reason' => 'no_delivery'];
         }
@@ -90,8 +93,8 @@ class PushNotificationService
     }
 
     /**
-     * Push to every device registered to a given agent, pruning any tokens the
-     * provider rejects and stamping the rest as freshly used.
+     * Push to every device registered to a given agent, pruning any tokens FCM
+     * reports as unregistered and stamping the rest as freshly used.
      *
      * @param  \Webkul\User\Contracts\User|object|null  $user
      * @param  array<string, mixed>  $data
@@ -121,5 +124,138 @@ class PushNotificationService
         }
 
         return $result['sent'];
+    }
+
+    /**
+     * Whether FCM rejected this send because the token is no longer valid, so
+     * the caller should prune it.
+     */
+    protected function isTokenUnregistered(Response $response): bool
+    {
+        if ($response->status() === 404) {
+            return true;
+        }
+
+        foreach ((array) $response->json('error.details', []) as $detail) {
+            if (($detail['errorCode'] ?? null) === 'UNREGISTERED') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Mint (and cache) a short-lived OAuth2 access token for the FCM v1 API from
+     * the configured service-account credentials.
+     */
+    protected function accessToken(): ?string
+    {
+        $creds = $this->credentials();
+
+        if (! $creds) {
+            return null;
+        }
+
+        $cacheKey = 'fcm_access_token_'.md5($creds['client_email']);
+
+        // Cache below the 3600s token lifetime so we always hand out a live token.
+        return Cache::remember($cacheKey, 3300, function () use ($creds) {
+            $now = time();
+
+            $jwt = $this->encodeServiceAccountJwt([
+                'iss' => $creds['client_email'],
+                'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+                'aud' => $creds['token_uri'],
+                'iat' => $now,
+                'exp' => $now + 3600,
+            ], $creds['private_key']);
+
+            if (! $jwt) {
+                return null;
+            }
+
+            $response = Http::asForm()->post($creds['token_uri'], [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'assertion' => $jwt,
+            ]);
+
+            if (! $response->successful()) {
+                Log::error('FCM OAuth token exchange failed: '.$response->body());
+
+                return null;
+            }
+
+            return $response->json('access_token');
+        });
+    }
+
+    /**
+     * The Firebase project id, from config or the service-account file.
+     */
+    protected function projectId(): ?string
+    {
+        return config('services.push.project_id') ?: ($this->credentials()['project_id'] ?? null);
+    }
+
+    /**
+     * Load and validate the service-account JSON key file.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function credentials(): ?array
+    {
+        if ($this->loadedCredentials !== false) {
+            return $this->loadedCredentials ?: null;
+        }
+
+        $path = config('services.push.credentials');
+
+        if (! $path || ! is_file($path)) {
+            return $this->loadedCredentials = null;
+        }
+
+        $json = json_decode((string) file_get_contents($path), true);
+
+        if (! is_array($json) || empty($json['client_email']) || empty($json['private_key'])) {
+            Log::error('FCM service-account file is missing client_email/private_key.');
+
+            return $this->loadedCredentials = null;
+        }
+
+        $json['token_uri'] = $json['token_uri'] ?? 'https://oauth2.googleapis.com/token';
+
+        return $this->loadedCredentials = $json;
+    }
+
+    /**
+     * Build a signed RS256 JWT assertion for the service-account token exchange.
+     *
+     * @param  array<string, mixed>  $claims
+     */
+    protected function encodeServiceAccountJwt(array $claims, string $privateKey): ?string
+    {
+        $segments = [
+            $this->base64UrlEncode((string) json_encode(['alg' => 'RS256', 'typ' => 'JWT'])),
+            $this->base64UrlEncode((string) json_encode($claims)),
+        ];
+
+        $signingInput = implode('.', $segments);
+        $signature = '';
+
+        if (! openssl_sign($signingInput, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+            Log::error('FCM JWT signing failed; check the service-account private key.');
+
+            return null;
+        }
+
+        $segments[] = $this->base64UrlEncode($signature);
+
+        return implode('.', $segments);
+    }
+
+    protected function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }
