@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Services\LeadDistributionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
@@ -61,18 +60,19 @@ class LeadCsvImportController extends Controller
 
             if (empty($extracted['phone']) && empty($extracted['email'])) {
                 $skippedCount++;
+
                 continue;
             }
 
             $person = null;
-            if (!empty($extracted['phone'])) {
+            if (! empty($extracted['phone'])) {
                 $cleanPhone = preg_replace('/[^0-9]/', '', $extracted['phone']);
                 $person = DB::table('persons')
                     ->whereRaw("REPLACE(REPLACE(REPLACE(contact_numbers, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$cleanPhone}%"])
                     ->first();
             }
 
-            if (!$person && !empty($extracted['email'])) {
+            if (! $person && ! empty($extracted['email'])) {
                 $person = DB::table('persons')
                     ->where('emails', 'like', "%{$extracted['email']}%")
                     ->first();
@@ -80,19 +80,19 @@ class LeadCsvImportController extends Controller
 
             $assignedUserId = $this->distributionService->getNextAssignedUserId();
 
-            if (!$person) {
+            if (! $person) {
                 $person = $this->personRepository->create([
                     'entity_type' => 'persons',
                     'name' => $extracted['name'] ?? 'CSV Prospect',
-                    'emails' => !empty($extracted['email']) ? [['value' => $extracted['email'], 'label' => 'work']] : [],
-                    'contact_numbers' => !empty($extracted['phone']) ? [['value' => $extracted['phone'], 'label' => 'mobile']] : [],
+                    'emails' => ! empty($extracted['email']) ? [['value' => $extracted['email'], 'label' => 'work']] : [],
+                    'contact_numbers' => ! empty($extracted['phone']) ? [['value' => $extracted['phone'], 'label' => 'mobile']] : [],
                     'user_id' => $assignedUserId,
                 ]);
             }
 
             $this->leadRepository->create([
                 'entity_type' => 'leads',
-                'title' => ($extracted['title'] ?: 'CSV Lead') . ($extracted['name'] ? " - {$extracted['name']}" : ''),
+                'title' => ($extracted['title'] ?: 'CSV Lead').($extracted['name'] ? " - {$extracted['name']}" : ''),
                 'description' => $extracted['description'],
                 'lead_value' => (float) $extracted['value'],
                 'user_id' => $assignedUserId,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\GeoIpService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,14 +18,13 @@ class LeadAnalyticsController extends Controller
     /**
      * Get lead analytics summary (Source conversion, stale leads, agent performance, time-of-day tracking, GeoIP location map).
      *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function index(Request $request)
     {
         // 1. Source Conversion Rates
         $sources = DB::table('lead_sources')
-            ->select('lead_sources.id', 'lead_sources.name', 
+            ->select('lead_sources.id', 'lead_sources.name',
                 DB::raw('COUNT(leads.id) as total_leads'),
                 DB::raw('SUM(CASE WHEN lead_pipeline_stages.code = "won" THEN 1 ELSE 0 END) as won_leads'),
                 DB::raw('SUM(leads.lead_value) as total_value')
@@ -34,9 +34,10 @@ class LeadAnalyticsController extends Controller
             ->groupBy('lead_sources.id', 'lead_sources.name')
             ->get()
             ->map(function ($row) {
-                $row->conversion_rate = $row->total_leads > 0 
-                    ? round(($row->won_leads / $row->total_leads) * 100, 2) . '%' 
+                $row->conversion_rate = $row->total_leads > 0
+                    ? round(($row->won_leads / $row->total_leads) * 100, 2).'%'
                     : '0%';
+
                 return $row;
             });
 
@@ -108,7 +109,7 @@ class LeadAnalyticsController extends Controller
             'data' => [
                 'total_leads' => $totalLeads,
                 'won_leads' => $wonLeads,
-                'conversion_rate' => $totalLeads > 0 ? round(($wonLeads / $totalLeads) * 100, 1) . '%' : '0%',
+                'conversion_rate' => $totalLeads > 0 ? round(($wonLeads / $totalLeads) * 100, 1).'%' : '0%',
                 'stale_leads' => $staleLeadsCount,
                 'sources' => $sources,
                 'agent_performance' => $agents,

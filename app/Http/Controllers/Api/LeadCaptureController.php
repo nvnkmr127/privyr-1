@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\LeadCreatedEvent;
 use App\Http\Controllers\Controller;
 use App\Services\LeadDistributionService;
 use App\Services\OAuthTokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Webkul\Admin\Http\Controllers\Lead\PublicLeadCaptureController;
 use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Services\LeadCaptureService;
 
 /**
  * Legacy global (env-configured) lead ingestion API.
  *
  * The canonical, UI-driven path is the connector system:
- * {@see \Webkul\Admin\Http\Controllers\Lead\PublicLeadCaptureController} +
- * {@see \Webkul\Lead\Services\LeadCaptureService}, exposed per-connector at
+ * {@see PublicLeadCaptureController} +
+ * {@see LeadCaptureService}, exposed per-connector at
  * /api/v1/lead-capture/webhook/{token}. Prefer creating a Lead Connector
  * (Settings → Lead Connectors) over this controller's provider endpoints.
  */
@@ -70,7 +73,7 @@ class LeadCaptureController extends Controller
             $fbSecret = config('services.facebook.client_secret');
             $fbSignature = $request->header('X-Hub-Signature-256');
             if ($fbSecret && $fbSignature) {
-                $expected = 'sha256=' . hash_hmac('sha256', $request->getContent(), $fbSecret);
+                $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $fbSecret);
                 if (! hash_equals($expected, $fbSignature)) {
                     return response()->json(['status' => 'error', 'message' => 'Invalid FB signature.'], 401);
                 }
@@ -96,14 +99,14 @@ class LeadCaptureController extends Controller
 
             // 1. De-duplicate or Create Person Contact
             $person = null;
-            if (!empty($extracted['phone'])) {
+            if (! empty($extracted['phone'])) {
                 $cleanPhone = preg_replace('/[^0-9]/', '', $extracted['phone']);
                 $person = DB::table('persons')
                     ->whereRaw("REPLACE(REPLACE(REPLACE(contact_numbers, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$cleanPhone}%"])
                     ->first();
             }
 
-            if (!$person && !empty($extracted['email'])) {
+            if (! $person && ! empty($extracted['email'])) {
                 $person = DB::table('persons')
                     ->where('emails', 'like', "%{$extracted['email']}%")
                     ->first();
@@ -111,12 +114,12 @@ class LeadCaptureController extends Controller
 
             $assignedUserId = $this->distributionService->resolveAssignedUserId($extracted);
 
-            if (!$person) {
+            if (! $person) {
                 $personData = [
                     'entity_type' => 'persons',
                     'name' => $extracted['name'],
-                    'emails' => !empty($extracted['email']) ? [['value' => $extracted['email'], 'label' => 'work']] : [],
-                    'contact_numbers' => !empty($extracted['phone']) ? [['value' => $extracted['phone'], 'label' => 'mobile']] : [],
+                    'emails' => ! empty($extracted['email']) ? [['value' => $extracted['email'], 'label' => 'work']] : [],
+                    'contact_numbers' => ! empty($extracted['phone']) ? [['value' => $extracted['phone'], 'label' => 'mobile']] : [],
                     'user_id' => $assignedUserId,
                 ];
 
@@ -125,7 +128,7 @@ class LeadCaptureController extends Controller
 
             // 2. Resolve or Create Lead Source
             $source = $this->sourceRepository->findOneByField('name', $extracted['source']);
-            if (!$source) {
+            if (! $source) {
                 $source = $this->sourceRepository->create(['name' => $extracted['source']]);
             }
 
@@ -136,7 +139,7 @@ class LeadCaptureController extends Controller
             // 4. Create Lead
             $leadData = [
                 'entity_type' => 'leads',
-                'title' => $extracted['title'] . ($extracted['name'] ? " - {$extracted['name']}" : ''),
+                'title' => $extracted['title'].($extracted['name'] ? " - {$extracted['name']}" : ''),
                 'description' => $extracted['description'],
                 'lead_value' => $extracted['value'],
                 'user_id' => $assignedUserId,
@@ -149,7 +152,7 @@ class LeadCaptureController extends Controller
 
             $lead = $this->leadRepository->create($leadData);
 
-            event(new \App\Events\LeadCreatedEvent([
+            event(new LeadCreatedEvent([
                 'id' => $lead->id,
                 'title' => $lead->title,
                 'source' => $source->name,
@@ -167,11 +170,11 @@ class LeadCaptureController extends Controller
                 ],
             ], 201);
         } catch (\Throwable $e) {
-            Log::error('Lead capture exception: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('Lead capture exception: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to capture lead: ' . $e->getMessage(),
+                'message' => 'Failed to capture lead: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -191,7 +194,7 @@ class LeadCaptureController extends Controller
 
         // Extract phone from chat text if not provided
         $phone = $request->input('phone');
-        if (!$phone) {
+        if (! $phone) {
             preg_match('/(\+?[0-9]{10,14})/', $chatText, $matches);
             $phone = $matches[1] ?? '9999999999';
         }
@@ -203,7 +206,7 @@ class LeadCaptureController extends Controller
             'name' => $name,
             'phone' => $phone,
             'source' => 'WhatsApp Import',
-            'description' => "Imported Chat History:\n" . substr($chatText, 0, 1000),
+            'description' => "Imported Chat History:\n".substr($chatText, 0, 1000),
         ]), 'whatsapp');
     }
 
@@ -217,6 +220,7 @@ class LeadCaptureController extends Controller
         // TikTok Lead Gen
         if ($provider === 'tiktok' || isset($data['lead_info'])) {
             $info = $data['lead_info'] ?? $data;
+
             return [
                 'title' => 'TikTok Ad Lead',
                 'name' => $info['user_name'] ?? $info['name'] ?? 'TikTok Prospect',
@@ -224,16 +228,17 @@ class LeadCaptureController extends Controller
                 'email' => $info['user_email'] ?? $info['email'] ?? null,
                 'source' => 'TikTok Ads',
                 'value' => 0,
-                'description' => 'TikTok Ad Campaign #' . ($data['ad_id'] ?? ''),
+                'description' => 'TikTok Ad Campaign #'.($data['ad_id'] ?? ''),
             ];
         }
 
         // LinkedIn Lead Gen Forms
         if ($provider === 'linkedin' || isset($data['formResponse'])) {
             $resp = $data['formResponse'] ?? $data;
+
             return [
                 'title' => $resp['headline'] ?? 'LinkedIn Lead Form',
-                'name' => trim(($resp['firstName'] ?? '') . ' ' . ($resp['lastName'] ?? '')) ?: 'LinkedIn Prospect',
+                'name' => trim(($resp['firstName'] ?? '').' '.($resp['lastName'] ?? '')) ?: 'LinkedIn Prospect',
                 'phone' => $resp['phoneNumber'] ?? null,
                 'email' => $resp['emailAddress'] ?? null,
                 'source' => 'LinkedIn Ads',
@@ -246,12 +251,12 @@ class LeadCaptureController extends Controller
         if ($provider === 'call_tracking' || isset($data['caller_number'])) {
             return [
                 'title' => 'Inbound Phone Call Inquiry',
-                'name' => $data['caller_name'] ?? 'Caller ' . ($data['caller_number'] ?? ''),
+                'name' => $data['caller_name'] ?? 'Caller '.($data['caller_number'] ?? ''),
                 'phone' => $data['caller_number'] ?? null,
                 'email' => null,
                 'source' => 'Inbound Call',
                 'value' => 0,
-                'description' => "Duration: " . ($data['call_duration'] ?? '0') . "s. Recording: " . ($data['recording_url'] ?? 'N/A'),
+                'description' => 'Duration: '.($data['call_duration'] ?? '0').'s. Recording: '.($data['recording_url'] ?? 'N/A'),
             ];
         }
 
@@ -262,7 +267,7 @@ class LeadCaptureController extends Controller
                 'name' => $data['your-name'] ?? $data['name'] ?? $data['first_name'] ?? 'Web Prospect',
                 'phone' => $data['your-phone'] ?? $data['phone'] ?? $data['mobile'] ?? null,
                 'email' => $data['your-email'] ?? $data['email'] ?? null,
-                'source' => ucfirst($provider) . ' Form',
+                'source' => ucfirst($provider).' Form',
                 'value' => $data['value'] ?? 0,
                 'description' => $data['your-message'] ?? $data['message'] ?? $data['notes'] ?? '',
             ];
@@ -302,12 +307,12 @@ class LeadCaptureController extends Controller
 
             return [
                 'title' => $data['form_name'] ?? 'FB Lead Ad Inquiry',
-                'name' => $fields['full_name'] ?? trim(($fields['first_name'] ?? '') . ' ' . ($fields['last_name'] ?? '')) ?: 'FB Prospect',
+                'name' => $fields['full_name'] ?? trim(($fields['first_name'] ?? '').' '.($fields['last_name'] ?? '')) ?: 'FB Prospect',
                 'phone' => $fields['phone_number'] ?? $fields['phone'] ?? null,
                 'email' => $fields['email'] ?? null,
                 'source' => 'Facebook Ads',
                 'value' => 0,
-                'description' => 'Captured via FB Lead Ads form #' . ($data['form_id'] ?? ''),
+                'description' => 'Captured via FB Lead Ads form #'.($data['form_id'] ?? ''),
             ];
         }
 
@@ -324,7 +329,7 @@ class LeadCaptureController extends Controller
                 'email' => $fields['EMAIL'] ?? null,
                 'source' => 'Google Ads',
                 'value' => 0,
-                'description' => 'Google Ad Campaign: ' . ($data['campaign_id'] ?? ''),
+                'description' => 'Google Ad Campaign: '.($data['campaign_id'] ?? ''),
             ];
         }
 

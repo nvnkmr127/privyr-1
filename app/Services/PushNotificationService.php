@@ -7,6 +7,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Webkul\User\Contracts\User;
 
 class PushNotificationService
 {
@@ -96,7 +97,7 @@ class PushNotificationService
      * Push to every device registered to a given agent, pruning any tokens FCM
      * reports as unregistered and stamping the rest as freshly used.
      *
-     * @param  \Webkul\User\Contracts\User|object|null  $user
+     * @param  User|object|null  $user
      * @param  array<string, mixed>  $data
      * @return array{sent: bool, reason: string|null}
      */

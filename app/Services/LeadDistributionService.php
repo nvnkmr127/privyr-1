@@ -11,8 +11,6 @@ class LeadDistributionService
 {
     /**
      * Check if current time is within active team working hours (09:00 AM - 07:00 PM).
-     *
-     * @return bool
      */
     public function isWithinWorkingHours(): bool
     {
@@ -25,9 +23,6 @@ class LeadDistributionService
 
     /**
      * Get assigned user ID based on shift schedule, working hours, rule evaluation, or round-robin.
-     *
-     * @param array $extractedData
-     * @return int
      */
     public function resolveAssignedUserId(array $extractedData = []): int
     {
@@ -35,8 +30,9 @@ class LeadDistributionService
         $source = strtolower($extractedData['source'] ?? '');
 
         // Shift Schedule Check: Out-of-Office / After-Hours Auto-Reassignment
-        if (!$this->isWithinWorkingHours()) {
-            Log::info("Lead captured after working hours (Outside 09:00-19:00 IST) -> Assigned to Night Duty Lead #1");
+        if (! $this->isWithinWorkingHours()) {
+            Log::info('Lead captured after working hours (Outside 09:00-19:00 IST) -> Assigned to Night Duty Lead #1');
+
             return 1;
         }
 
@@ -45,11 +41,13 @@ class LeadDistributionService
         foreach ($dbRules as $rule) {
             if ($rule->condition_type === 'value_gte' && $value >= (float) $rule->condition_value) {
                 Log::info("DB Rule Matched [{$rule->name}]: Value >= {$rule->condition_value} -> User #{$rule->user_id}");
+
                 return $rule->user_id ?? 1;
             }
 
             if ($rule->condition_type === 'source_is' && str_contains($source, strtolower($rule->condition_value))) {
                 Log::info("DB Rule Matched [{$rule->name}]: Source contains '{$rule->condition_value}' -> User #{$rule->user_id}");
+
                 return $rule->user_id ?? 1;
             }
         }
@@ -68,8 +66,6 @@ class LeadDistributionService
 
     /**
      * Get next user ID using round-robin distribution among active users.
-     *
-     * @return int
      */
     public function getNextAssignedUserId(): int
     {
@@ -93,9 +89,6 @@ class LeadDistributionService
 
     /**
      * Get multi-number phone routing details for a given user ID.
-     *
-     * @param int $userId
-     * @return array
      */
     public function getAgentRoutingDetails(int $userId): array
     {
@@ -106,7 +99,7 @@ class LeadDistributionService
             'agent_name' => $user->name ?? 'Agent',
             'agent_email' => $user->email ?? '',
             'agent_phone' => $user->phone ?? null,
-            'whatsapp_direct_url' => $user?->phone ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $user->phone) : null,
+            'whatsapp_direct_url' => $user?->phone ? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $user->phone) : null,
         ];
     }
 }

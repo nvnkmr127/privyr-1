@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Listeners\SendLeadAgentPushNotification;
+use App\Listeners\SendLeadWhatsAppNotification;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Event::listen('lead.create.after', \App\Listeners\SendLeadWhatsAppNotification::class);
-        \Illuminate\Support\Facades\Event::listen('lead.create.after', \App\Listeners\SendLeadAgentPushNotification::class);
+        Event::listen('lead.create.after', SendLeadWhatsAppNotification::class);
+        Event::listen('lead.create.after', SendLeadAgentPushNotification::class);
     }
 }

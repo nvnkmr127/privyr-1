@@ -69,18 +69,18 @@ class ResolveWorkspace
         $name = trim((string) ($user->name ?? 'My')).' Workspace';
 
         $workspace = Workspace::create([
-            'name'      => $name,
-            'slug'      => Str::slug($name).'-'.Str::lower(Str::random(5)),
-            'settings'  => [],
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.Str::lower(Str::random(5)),
+            'settings' => [],
             'is_active' => true,
         ]);
 
         WorkspaceMember::create([
             'workspace_id' => $workspace->id,
-            'user_id'      => $userId,
-            'role'         => 'owner',
-            'permissions'  => ['*'],
-            'is_active'    => true,
+            'user_id' => $userId,
+            'role' => 'owner',
+            'permissions' => ['*'],
+            'is_active' => true,
         ]);
 
         return $workspace;

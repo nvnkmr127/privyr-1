@@ -17,16 +17,14 @@ class OAuthTokenService
 
     /**
      * Fetch Facebook Lead details using Graph API.
-     *
-     * @param string $leadGenId
-     * @return array|null
      */
     public function fetchFacebookLead(string $leadGenId): ?array
     {
         $token = $this->getFacebookAccessToken();
 
-        if (!$token) {
-            Log::warning("Facebook Graph API call skipped: FACEBOOK_PAGE_ACCESS_TOKEN is not configured.");
+        if (! $token) {
+            Log::warning('Facebook Graph API call skipped: FACEBOOK_PAGE_ACCESS_TOKEN is not configured.');
+
             return null;
         }
 
@@ -38,7 +36,8 @@ class OAuthTokenService
             return $response->json();
         }
 
-        Log::error("Facebook Graph API fetch error: " . $response->body());
+        Log::error('Facebook Graph API fetch error: '.$response->body());
+
         return null;
     }
 }

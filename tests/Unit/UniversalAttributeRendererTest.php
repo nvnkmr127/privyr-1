@@ -1,16 +1,15 @@
 <?php
 
 use Webkul\Attribute\Models\Attribute;
-use Webkul\Attribute\Models\AttributeOption;
 use Webkul\Moldable\Services\AttributeRenderer;
 
 test('MOLD-028 & MOLD-029: Text & Textarea attribute renderer output correct HTML components', function () {
     $attrText = new Attribute([
-        'code'        => 'user_bio',
-        'name'        => 'User Bio',
-        'type'        => 'text',
+        'code' => 'user_bio',
+        'name' => 'User Bio',
+        'type' => 'text',
         'is_required' => 1,
-        'is_unique'   => 1,
+        'is_unique' => 1,
     ]);
 
     $htmlText = AttributeRenderer::render($attrText, 'Hello World');
@@ -85,9 +84,9 @@ test('MOLD-032: Date & Datetime attribute renderer outputs calendar date compone
 
 test('MOLD-033: Relationship attribute renderer outputs lookup component', function () {
     $attrLookup = new Attribute([
-        'code'        => 'assigned_user_id',
-        'name'        => 'Assigned User',
-        'type'        => 'lookup',
+        'code' => 'assigned_user_id',
+        'name' => 'Assigned User',
+        'type' => 'lookup',
         'lookup_type' => 'users',
     ]);
 

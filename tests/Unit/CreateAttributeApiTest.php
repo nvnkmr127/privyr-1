@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Str;
-use Webkul\Attribute\Models\Attribute;
-use Webkul\Moldable\Services\FieldTypeRegistry;
 
 test('auto-generates snake_case code when code is omitted', function () {
     $name = 'Project Budget Estimate';
@@ -14,10 +12,10 @@ test('auto-generates snake_case code when code is omitted', function () {
 
 test('enforces user_defined flag automatically on attribute creation', function () {
     $data = [
-        'code'            => 'client_priority',
-        'name'            => 'Client Priority',
-        'type'            => 'select',
-        'entity_type'     => 'leads',
+        'code' => 'client_priority',
+        'name' => 'Client Priority',
+        'type' => 'select',
+        'entity_type' => 'leads',
         'is_user_defined' => true,
     ];
 

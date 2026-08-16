@@ -6,6 +6,7 @@ use App\Services\MessageTemplateService;
 use App\Services\WhatsAppService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Webkul\Activity\Repositories\ActivityRepository;
 
 class SendLeadWhatsAppNotification
 {
@@ -17,7 +18,7 @@ class SendLeadWhatsAppNotification
     /**
      * Handle the event.
      *
-     * @param object $lead
+     * @param  object  $lead
      * @return void
      */
     public function handle($lead)
@@ -38,7 +39,7 @@ class SendLeadWhatsAppNotification
 
             $sent = $this->whatsAppService->send($phone, $message);
 
-            $activity = app(\Webkul\Activity\Repositories\ActivityRepository::class)->create([
+            $activity = app(ActivityRepository::class)->create([
                 'type' => 'note',
                 'comment' => $sent
                     ? "⚡ Automated WhatsApp auto-responder sent to {$phone}"
@@ -52,7 +53,7 @@ class SendLeadWhatsAppNotification
                 'activity_id' => $activity->id,
             ]);
         } catch (\Throwable $e) {
-            Log::error('SendLeadWhatsAppNotification error: ' . $e->getMessage());
+            Log::error('SendLeadWhatsAppNotification error: '.$e->getMessage());
         }
     }
 }

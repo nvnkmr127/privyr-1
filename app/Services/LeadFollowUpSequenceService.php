@@ -6,6 +6,7 @@ use App\Models\DripSequenceStep;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Webkul\Activity\Repositories\ActivityRepository;
 
 class LeadFollowUpSequenceService
 {
@@ -51,7 +52,7 @@ class LeadFollowUpSequenceService
                         ->where('activities.comment', 'like', "%[Sequence Step #{$stepId}]%")
                         ->exists();
 
-                    if (!$alreadyProcessed) {
+                    if (! $alreadyProcessed) {
                         $this->dispatchStep($lead, $stepId, $step);
                         $processedCount++;
                     }
@@ -67,7 +68,7 @@ class LeadFollowUpSequenceService
      */
     protected function dispatchStep($lead, int $stepId, array $step): void
     {
-        $hash = md5($lead->id . config('app.key'));
+        $hash = md5($lead->id.config('app.key'));
         $brochureLink = route('trackable.document', ['lead' => $lead->id, 'hash' => $hash]);
 
         $message = $this->templateService->parse($step['template'], $lead);
@@ -82,7 +83,7 @@ class LeadFollowUpSequenceService
             $this->whatsAppService->send($phone, $message);
         }
 
-        $activity = app(\Webkul\Activity\Repositories\ActivityRepository::class)->create([
+        $activity = app(ActivityRepository::class)->create([
             'type' => 'note',
             'comment' => "🤖 [Sequence Step #{$stepId}] Sent: {$step['name']}\nMessage: {$message}",
             'user_id' => $lead->user_id ?? 1,

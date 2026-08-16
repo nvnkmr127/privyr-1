@@ -84,11 +84,11 @@ class ContentTemplateController extends Controller
     {
         $leadRecord = is_object($lead) ? $lead : DB::table('leads')->where('id', $lead)->first();
 
-        if (!$leadRecord) {
+        if (! $leadRecord) {
             return response()->json(['status' => 'error', 'message' => 'Lead not found.'], 404);
         }
 
-        $templateText = $request->input('template', "Hi {name}, thanks for reaching out regarding {title}!");
+        $templateText = $request->input('template', 'Hi {name}, thanks for reaching out regarding {title}!');
         $personalized = $this->templateService->parse($templateText, $leadRecord);
 
         return response()->json([

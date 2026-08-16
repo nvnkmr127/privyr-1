@@ -6,6 +6,7 @@ use App\Services\PushNotificationService;
 use App\Services\WhatsAppService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Webkul\Activity\Repositories\ActivityRepository;
 
 class SendLeadAgentPushNotification
 {
@@ -17,7 +18,7 @@ class SendLeadAgentPushNotification
     /**
      * Send instant push notification to assigned agent when lead is created.
      *
-     * @param object $lead
+     * @param  object  $lead
      * @return void
      */
     public function handle($lead)
@@ -31,10 +32,10 @@ class SendLeadAgentPushNotification
             $leadUrl = route('admin.leads.view', $lead->id);
 
             $alertMessage = "⚡ NEW LEAD ASSIGNED!\n"
-                . "Prospect: {$prospectName}\n"
-                . "Phone: {$phone}\n"
-                . "Title: {$lead->title}\n"
-                . "View Lead: " . $leadUrl;
+                ."Prospect: {$prospectName}\n"
+                ."Phone: {$phone}\n"
+                ."Title: {$lead->title}\n"
+                .'View Lead: '.$leadUrl;
 
             Log::info("Instant New Lead Push Alert for Agent #{$user?->id} ({$agentName}): {$lead->title}");
 
@@ -73,7 +74,7 @@ class SendLeadAgentPushNotification
             }
 
             // Record Push Notification log in Activity timeline
-            $activity = app(\Webkul\Activity\Repositories\ActivityRepository::class)->create([
+            $activity = app(ActivityRepository::class)->create([
                 'type' => 'note',
                 'comment' => $comment,
                 'user_id' => $lead->user_id ?? 1,
@@ -85,7 +86,7 @@ class SendLeadAgentPushNotification
                 'activity_id' => $activity->id,
             ]);
         } catch (\Throwable $e) {
-            Log::error('SendLeadAgentPushNotification error: ' . $e->getMessage());
+            Log::error('SendLeadAgentPushNotification error: '.$e->getMessage());
         }
     }
 }

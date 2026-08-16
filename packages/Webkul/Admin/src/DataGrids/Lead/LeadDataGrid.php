@@ -278,7 +278,7 @@ class LeadDataGrid extends DataGrid
                     return '--';
                 }
                 $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-                $waUrl = "https://wa.me/{$cleanPhone}?text=" . rawurlencode("Hi! Regarding your inquiry: {$row->title}");
+                $waUrl = "https://wa.me/{$cleanPhone}?text=".rawurlencode("Hi! Regarding your inquiry: {$row->title}");
 
                 return "<div class=\"flex items-center gap-1.5\">
                     <a href=\"{$waUrl}\" target=\"_blank\" class=\"inline-flex items-center justify-center w-7 h-7 rounded bg-emerald-600 text-white hover:bg-emerald-700 text-xs shadow-sm\" title=\"WhatsApp\">💬</a>

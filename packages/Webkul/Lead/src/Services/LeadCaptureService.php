@@ -6,7 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Webkul\Contact\Contracts\Person;
 use Webkul\Contact\Repositories\PersonRepository;
+use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -23,9 +25,7 @@ class LeadCaptureService
     /**
      * Process incoming payload from any connected source (Meta, Google, IndiaMART, JustDial, Webhook, API, Zapier, QR).
      *
-     * @param  LeadSourceConnector  $connector
-     * @param  array  $payload
-     * @return \Webkul\Lead\Contracts\Lead|null
+     * @return Lead|null
      */
     public function processIncomingPayload(LeadSourceConnector $connector, array $payload, ?string $rawBody = null, ?string $signature = null)
     {
@@ -121,10 +121,6 @@ class LeadCaptureService
 
     /**
      * Map payload keys to CRM attributes using configured mappings or smart heuristics.
-     *
-     * @param  array  $payload
-     * @param  array  $fieldMappings
-     * @return array
      */
     public function mapPayloadToFields(array $payload, array $fieldMappings = []): array
     {
@@ -152,7 +148,9 @@ class LeadCaptureService
         // 2. Smart Heuristic Auto-Mapper for unmapped keys
         $flatPayload = Arr::dot($payload);
         foreach ($flatPayload as $key => $val) {
-            if (empty($val) || is_array($val)) continue;
+            if (empty($val) || is_array($val)) {
+                continue;
+            }
 
             $lowerKey = Str::lower($key);
 
@@ -244,9 +242,7 @@ class LeadCaptureService
     /**
      * Detect duplicate person by email or phone number.
      *
-     * @param  string|null  $email
-     * @param  string|null  $phone
-     * @return \Webkul\Contact\Contracts\Person|null
+     * @return Person|null
      */
     public function detectDuplicateContact(?string $email, ?string $phone)
     {

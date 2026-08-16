@@ -18,6 +18,7 @@ use Webkul\GoogleContact\Providers\GoogleContactServiceProvider;
 use Webkul\Installer\Providers\InstallerServiceProvider;
 use Webkul\Lead\Providers\LeadServiceProvider;
 use Webkul\Marketing\Providers\MarketingServiceProvider;
+use Webkul\Moldable\Providers\MoldableServiceProvider;
 use Webkul\Product\Providers\ProductServiceProvider;
 use Webkul\Quote\Providers\QuoteServiceProvider;
 use Webkul\Tag\Providers\TagServiceProvider;
@@ -61,5 +62,5 @@ return [
     UserServiceProvider::class,
     WarehouseServiceProvider::class,
     WebFormServiceProvider::class,
-    Webkul\Moldable\Providers\MoldableServiceProvider::class,
+    MoldableServiceProvider::class,
 ];
