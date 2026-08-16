@@ -328,6 +328,45 @@ class LeadCaptureController extends Controller
             ];
         }
 
+        // JustDial
+        if ($provider === 'justdial' || isset($data['lead_id'], $data['category'])) {
+            return [
+                'title' => $data['category'] ?? 'JustDial Enquiry',
+                'name' => $data['name'] ?? 'JustDial Prospect',
+                'phone' => $data['mobile'] ?? $data['phone'] ?? null,
+                'email' => $data['email'] ?? null,
+                'source' => 'JustDial',
+                'value' => 0,
+                'description' => $data['area'] ?? $data['city'] ?? '',
+            ];
+        }
+
+        // Housing.com
+        if ($provider === 'housing' || isset($data['project_id'], $data['lead_type'])) {
+            return [
+                'title' => $data['project_name'] ?? 'Housing.com Lead',
+                'name' => $data['user_name'] ?? $data['name'] ?? 'Housing Prospect',
+                'phone' => $data['user_phone'] ?? $data['phone'] ?? null,
+                'email' => $data['user_email'] ?? $data['email'] ?? null,
+                'source' => 'Housing.com',
+                'value' => 0,
+                'description' => $data['message'] ?? '',
+            ];
+        }
+
+        // Sulekha
+        if ($provider === 'sulekha' || isset($data['Service'], $data['City'])) {
+            return [
+                'title' => $data['Service'] ?? 'Sulekha Enquiry',
+                'name' => $data['Name'] ?? $data['name'] ?? 'Sulekha Prospect',
+                'phone' => $data['Mobile'] ?? $data['phone'] ?? null,
+                'email' => $data['Email'] ?? null,
+                'source' => 'Sulekha',
+                'value' => 0,
+                'description' => $data['City'] ?? $data['Need'] ?? '',
+            ];
+        }
+
         // Default Generic Webhook / Zapier / Telegram / IndiaMART / JustDial
         return [
             'title' => $data['title'] ?? $data['subject'] ?? $data['SUBJECT'] ?? $data['product_name'] ?? 'New Webhook Lead',
