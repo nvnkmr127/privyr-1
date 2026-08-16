@@ -38,7 +38,7 @@ class LeadSourceCatalog
                 'icon' => '<i class="fa-brands fa-google"></i>',
                 'kind' => 'webhook',
                 'description' => 'Google Search & YouTube Lead Form extensions.',
-                'instructions' => 'In Google Ads → your Lead Form asset → Delivery options, set the Webhook URL to the URL below and the Key to any value. Leads POST here as they come in.',
+                'instructions' => 'In Google Ads > your Lead Form asset > Delivery options, set the Webhook URL to the URL below and the Key to any value. Leads POST here as they come in.',
             ],
             [
                 'source_type' => 'tiktok',
@@ -46,7 +46,7 @@ class LeadSourceCatalog
                 'icon' => '<i class="fa-brands fa-tiktok"></i>',
                 'kind' => 'webhook',
                 'description' => 'TikTok Lead Forms.',
-                'instructions' => 'In TikTok Ads Manager → Instant Forms → Integrations, add a webhook pointing at the URL below.',
+                'instructions' => 'In TikTok Ads Manager > Instant Forms > Integrations, add a webhook pointing at the URL below.',
             ],
             [
                 'source_type' => 'linkedin',
@@ -78,7 +78,7 @@ class LeadSourceCatalog
                 'icon' => '<i class="fa-solid fa-bolt"></i>',
                 'kind' => 'webhook',
                 'description' => 'Universal Zapier / Make webhook bridge.',
-                'instructions' => 'In Zapier or Make, add a "Webhook → POST" action to the URL below and send your lead fields as JSON.',
+                'instructions' => 'In Zapier or Make, add a "Webhook > POST" action to the URL below and send your lead fields as JSON.',
             ],
             [
                 'source_type' => 'indiamart',
@@ -86,7 +86,7 @@ class LeadSourceCatalog
                 'icon' => '<i class="fa-solid fa-store"></i>',
                 'kind' => 'webhook',
                 'description' => 'Leads from the IndiaMART seller portal.',
-                'instructions' => 'In IndiaMART Seller Panel → Lead Manager → Push API / CRM Integration, set the Push URL to the URL below.',
+                'instructions' => 'In IndiaMART Seller Panel > Lead Manager > Push API / CRM Integration, set the Push URL to the URL below.',
             ],
             [
                 'source_type' => 'justdial',

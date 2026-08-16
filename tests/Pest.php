@@ -15,7 +15,7 @@ use Webkul\User\Models\User;
 |
  */
 
-uses(TestCase::class)->in('Feature');
+uses(TestCase::class)->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------

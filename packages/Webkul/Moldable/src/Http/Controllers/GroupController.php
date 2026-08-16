@@ -35,10 +35,10 @@ class GroupController
         ]);
 
         $entityType = $data['entity_type'] ?? 'leads';
-        $slug = Str::slug($data['name']);
+        $slug = Str::slug($data['name']) ?: ('group-'.Str::lower(Str::random(6)));
 
         if (FieldGroup::where('workspace_id', $workspace->id)->where('entity_type', $entityType)->where('slug', $slug)->exists()) {
-            return response()->json(['message' => 'A field group with this name already exists.'], 422);
+            return response()->json(['message' => 'A field group with this name already exists for this entity.'], 422);
         }
 
         $group = FieldGroup::create([
@@ -49,13 +49,32 @@ class GroupController
             'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
-        return response()->json($group, 201);
+        return response()->json($group->load(['groupAttributes.attribute']), 201);
     }
 
-    public function update(Request $request, FieldGroup $group): JsonResponse
+    public function reorder(Request $request): JsonResponse
     {
         $workspace = $request->attributes->get('moldable_workspace');
-        abort_unless($group->workspace_id === $workspace->id, 404);
+        $data = $request->validate([
+            'orders' => ['required', 'array'],
+            'orders.*.id' => ['required', 'integer', 'exists:moldable_field_groups,id'],
+            'orders.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($data['orders'] as $item) {
+            FieldGroup::where('workspace_id', $workspace->id)
+                ->whereKey($item['id'])
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return response()->json(['message' => 'Groups reordered successfully.']);
+    }
+
+    public function update(Request $request, FieldGroup|int|string $group): JsonResponse
+    {
+        $group = $group instanceof FieldGroup ? $group : FieldGroup::findOrFail($group);
+        $workspace = $request->attributes->get('moldable_workspace');
+        abort_unless((int) $group->workspace_id === (int) $workspace->id, 404);
 
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:120'],
@@ -63,7 +82,7 @@ class GroupController
         ]);
 
         if (isset($data['name'])) {
-            $data['slug'] = Str::slug($data['name']);
+            $data['slug'] = Str::slug($data['name']) ?: ('group-'.Str::lower(Str::random(6)));
         }
 
         $group->update($data);
@@ -71,10 +90,11 @@ class GroupController
         return response()->json($group->fresh());
     }
 
-    public function destroy(Request $request, FieldGroup $group): JsonResponse
+    public function destroy(Request $request, FieldGroup|int|string $group): JsonResponse
     {
+        $group = $group instanceof FieldGroup ? $group : FieldGroup::findOrFail($group);
         $workspace = $request->attributes->get('moldable_workspace');
-        abort_unless($group->workspace_id === $workspace->id, 404);
+        abort_unless((int) $group->workspace_id === (int) $workspace->id, 404);
 
         // Delete group presentation wrapper without deleting the core Attribute records
         $group->delete();
@@ -82,10 +102,11 @@ class GroupController
         return response()->json(['message' => 'Field group removed without deleting attributes.']);
     }
 
-    public function assignAttributes(Request $request, FieldGroup $group): JsonResponse
+    public function assignAttributes(Request $request, FieldGroup|int|string $group): JsonResponse
     {
+        $group = $group instanceof FieldGroup ? $group : FieldGroup::findOrFail($group);
         $workspace = $request->attributes->get('moldable_workspace');
-        abort_unless($group->workspace_id === $workspace->id, 404);
+        abort_unless((int) $group->workspace_id === (int) $workspace->id, 404);
 
         $data = $request->validate([
             'attribute_ids' => ['required', 'array'],

@@ -19,6 +19,7 @@ class FieldGroup extends Model
     ];
 
     protected $casts = [
+        'workspace_id' => 'integer',
         'sort_order' => 'integer',
     ];
 

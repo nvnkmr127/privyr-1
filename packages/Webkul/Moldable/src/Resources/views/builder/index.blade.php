@@ -17,7 +17,7 @@
                     </span>
                 </div>
                 <p class="text-xs font-medium text-slate-400">
-                    Create and manage custom fields and presentation groups for your entities.
+                    Create and manage custom fields and presentation groups for your CRM entities.
                 </p>
             </div>
 
@@ -64,15 +64,15 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                         <div>
                             <h2 class="text-sm font-bold text-slate-900">Presentation Groups</h2>
-                            <p class="text-xs text-slate-400 mt-0.5">Organize fields into meaningful sections</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Organize custom fields into structured visual sections</p>
                         </div>
-                        <button type="button" onclick="openNewGroupModal()" class="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1">
+                        <button type="button" onclick="openNewGroupModal()" class="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
                             <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             Add Group
                         </button>
                     </div>
 
-                    <!-- Groups are loaded from /v1/moldable/groups for the active entity. -->
+                    <!-- Groups Container -->
                     <div id="field-groups-nav" class="space-y-3">
                         <div class="py-6 text-center text-xs text-slate-400">Loading groups…</div>
                     </div>
@@ -108,7 +108,7 @@
                             <div>
                                 <div class="text-2xl font-black text-slate-900" id="stat-quick-add">0</div>
                                 <div class="text-xs font-bold text-slate-800">Quick Add Fields</div>
-                                <div class="text-[10px] text-slate-400">Added for faster entry</div>
+                                <div class="text-[10px] text-slate-400">Faster entry forms</div>
                             </div>
                         </div>
                     </div>
@@ -118,7 +118,7 @@
                 <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-4">
                     <div>
                         <h2 class="text-sm font-bold text-slate-900">Quick Field Types</h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Add commonly used field types</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Click to add commonly used field types</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -164,8 +164,17 @@
                         id="field-search-input"
                         placeholder="Search attributes by title or code..."
                         oninput="filterFields(this.value)"
-                        class="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-2.5 pl-10 pr-4 text-xs text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white placeholder-slate-400"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-2.5 pl-10 pr-10 text-xs text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white placeholder-slate-400"
                     />
+                    <button
+                        type="button"
+                        id="clear-search-btn"
+                        onclick="clearSearch()"
+                        class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
+                        aria-label="Clear search"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -178,10 +187,15 @@
 
             <!-- Group Header Section -->
             <div class="flex items-center justify-between">
-                <h2 id="active-group-header-title" class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    <span>All Fields ( Leads )</span>
-                </h2>
+                <div class="flex items-center gap-3">
+                    <h2 id="active-group-header-title" class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <span>All Fields ( Leads )</span>
+                    </h2>
+                    <button type="button" id="reset-group-filter-btn" onclick="MoldableBuilder.clearGroupFilter()" class="hidden rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2 py-0.5 transition">
+                        Show All Fields
+                    </button>
+                </div>
                 <span id="field-count-badge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">0 fields</span>
             </div>
 
@@ -212,19 +226,44 @@
 
     </div>
 
+    <!-- Assign Fields to Group Modal -->
+    <div id="assign-group-modal" class="hidden fixed inset-0 z-[10001] overflow-y-auto bg-slate-900/60 backdrop-blur-sm">
+        <div class="flex min-h-screen items-center justify-center p-4" onclick="if(event.target === this) closeAssignGroupModal()">
+            <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <div>
+                        <h3 id="assign-modal-title" class="text-sm font-bold text-slate-900">Manage Group Fields</h3>
+                        <p class="text-xs text-slate-400">Select fields to assign to this presentation group</p>
+                    </div>
+                    <button type="button" onclick="closeAssignGroupModal()" class="text-slate-400 hover:text-slate-700 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4 max-h-80 overflow-y-auto" id="assign-fields-checklist">
+                    <!-- Checkboxes populated via JS -->
+                </div>
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+                    <button type="button" onclick="closeAssignGroupModal()" class="rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 px-4 py-2 text-xs font-bold transition">Cancel</button>
+                    <button type="button" id="save-group-assign-btn" onclick="saveGroupAssignment()" class="rounded-xl bg-slate-900 hover:bg-black text-white px-5 py-2 text-xs font-bold transition">Save Assignment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const MoldableBuilder = (function () {
             const API = '/v1/moldable';
             const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-            // Seed group names used when an entity has no saved presentation groups yet:
-            // Property Details, Customer Details, Project Details, Financial Details, Follow-up Details.
             const DEFAULT_GROUPS = ['Property Details', 'Customer Details', 'Project Details', 'Financial Details', 'Follow-up Details'];
 
             const TYPE_ICON = { text: 'T', textarea: '¶', price: '$', boolean: '◉', select: '≡', multiselect: '≣', checkbox: '☑', date: '📅', datetime: '🕑', lookup: '🔍', email: '@', phone: '☎', address: '⌂', file: '📎', image: '🖼' };
 
             let currentEntity = 'leads';
             let allFields = [];
+            let currentGroups = [];
+            let activeFilterGroupId = null;
+            let activeAssignGroupId = null;
 
             function api(path, opts = {}) {
                 return fetch(API + path, {
@@ -252,8 +291,18 @@
             }
 
             function entityFields() {
-                return allFields.filter((f) => f.entity_type === currentEntity)
+                let fields = allFields.filter((f) => f.entity_type === currentEntity)
                     .sort((a, b) => (a.sort_order - b.sort_order) || (a.id - b.id));
+
+                if (activeFilterGroupId) {
+                    const grp = currentGroups.find(g => String(g.id) === String(activeFilterGroupId));
+                    if (grp) {
+                        const assignedIds = (grp.group_attributes || grp.groupAttributes || []).map(ga => ga.attribute_id || (ga.attribute && ga.attribute.id));
+                        fields = fields.filter(f => assignedIds.includes(f.id));
+                    }
+                }
+
+                return fields;
             }
 
             async function refresh() {
@@ -266,7 +315,7 @@
                 }
                 updatePillCounts();
                 renderFields();
-                loadGroups();
+                await loadGroups();
             }
 
             function updatePillCounts() {
@@ -285,9 +334,9 @@
                     (field.quick_add ? '<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Quick Add</span>' : '');
 
                 return `
-                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" data-id="${field.id}" data-name="${esc(field.name)}" data-type="${esc(typeLabel)}">
+                <div class="field-item flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-400 hover:shadow-2xs cursor-grab active:cursor-grabbing" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" data-id="${field.id}" data-name="${esc(field.name)}" data-type="${esc(typeLabel)}">
                     <div class="flex items-center gap-4">
-                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500">⋮⋮</span>
+                        <span class="text-slate-300 select-none text-xs font-bold hover:text-slate-500 cursor-grab">⋮⋮</span>
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">${esc(icon)}</div>
                         <div>
                             <div class="flex items-center gap-2">
@@ -299,12 +348,12 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">${esc(typeLabel)}</span>
-                        <div class="flex items-center gap-2 border-l border-slate-100 pl-3">
-                            <button type="button" onclick="MoldableBuilder.edit(${field.id})" title="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
-                                <svg class="w-4 h-4 text-slate-600 icon-edit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        <div class="flex items-center gap-1.5 border-l border-slate-100 pl-3">
+                            <button type="button" onclick="MoldableBuilder.edit(${field.id})" title="Edit Field" aria-label="Edit Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
-                            <button type="button" onclick="MoldableBuilder.remove(${field.id})" title="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
-                                <svg class="w-4 h-4 text-slate-600 icon-delete" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <button type="button" onclick="MoldableBuilder.remove(${field.id})" title="Delete Field" aria-label="Delete Field" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                     </div>
@@ -314,15 +363,18 @@
             function renderFields() {
                 const container = document.getElementById('fields-list-container');
                 const fields = entityFields();
+                const totalEntityFields = allFields.filter((f) => f.entity_type === currentEntity);
 
-                document.getElementById('stat-total-fields').textContent = fields.length;
-                document.getElementById('stat-quick-add').textContent = fields.filter((f) => f.quick_add).length;
+                document.getElementById('stat-total-fields').textContent = totalEntityFields.length;
+                document.getElementById('stat-quick-add').textContent = totalEntityFields.filter((f) => f.quick_add).length;
                 document.getElementById('field-count-badge').textContent = fields.length + ' field' + (fields.length === 1 ? '' : 's');
 
                 const emptyYet = document.getElementById('no-fields-yet');
                 if (fields.length === 0) {
                     container.innerHTML = '';
-                    emptyYet.classList.remove('hidden');
+                    if (!document.getElementById('field-search-input')?.value.trim()) {
+                        emptyYet.classList.remove('hidden');
+                    }
                     return;
                 }
                 emptyYet.classList.add('hidden');
@@ -331,19 +383,38 @@
             }
 
             function groupCard(group, count) {
+                const isSelected = activeFilterGroupId && String(activeFilterGroupId) === String(group.id);
+                const hasId = !!group.id;
                 return `
-                <div onclick="selectGroupTab(this, '${esc(group.name)}')" class="group-tab-btn flex items-center justify-between rounded-xl border border-slate-200/80 p-4 hover:border-slate-400 bg-white transition cursor-pointer shadow-2xs" data-group-id="${group.id || ''}">
-                    <div class="flex items-center gap-4">
+                <div class="group-tab-btn flex items-center justify-between rounded-xl border ${isSelected ? 'border-slate-900 ring-1 ring-slate-900 bg-slate-50' : 'border-slate-200/80 bg-white hover:border-slate-400'} p-3.5 transition shadow-2xs cursor-pointer" data-group-id="${group.id || ''}">
+                    <div class="flex items-center gap-3.5 flex-1" onclick="MoldableBuilder.filterByGroup('${group.id || ''}', '${esc(group.name)}')">
                         <span class="text-slate-300 select-none text-xs font-bold">⋮⋮</span>
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
-                            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
+                            <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         </div>
                         <div>
                             <h3 class="text-xs font-bold text-slate-900">${esc(group.name)}</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">${group.id ? 'Presentation group' : 'Suggested group (not saved yet)'}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${hasId ? count + ' fields assigned' : 'Suggested group (click to save)'}</p>
                         </div>
                     </div>
-                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">${count}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">${count}</span>
+                        ${hasId ? `
+                            <button type="button" onclick="event.stopPropagation(); MoldableBuilder.openAssignModal(${group.id})" title="Assign Fields" aria-label="Assign Fields" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </button>
+                            <button type="button" onclick="event.stopPropagation(); MoldableBuilder.renameGroup(${group.id}, '${esc(group.name)}')" title="Rename Group" aria-label="Rename Group" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button type="button" onclick="event.stopPropagation(); MoldableBuilder.deleteGroup(${group.id})" title="Delete Group" aria-label="Delete Group" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        ` : `
+                            <button type="button" onclick="event.stopPropagation(); MoldableBuilder.createGroup('${esc(group.name)}')" class="text-[11px] font-bold text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg transition">
+                                Save
+                            </button>
+                        `}
+                    </div>
                 </div>`;
             }
 
@@ -353,14 +424,15 @@
                 try {
                     groups = await api('/groups?entity_type=' + encodeURIComponent(currentEntity));
                 } catch (err) {
-                    // Groups need a workspace; if that fails, fall back to suggested defaults.
                     groups = [];
                 }
-                if (!Array.isArray(groups) || groups.length === 0) {
+                currentGroups = Array.isArray(groups) ? groups : [];
+
+                if (currentGroups.length === 0) {
                     nav.innerHTML = DEFAULT_GROUPS.map((name) => groupCard({ name, id: null }, 0)).join('');
                     return;
                 }
-                nav.innerHTML = groups.map((g) => groupCard(g, (g.group_attributes || g.groupAttributes || []).length)).join('');
+                nav.innerHTML = currentGroups.map((g) => groupCard(g, (g.group_attributes || g.groupAttributes || []).length)).join('');
             }
 
             async function createGroup(name) {
@@ -372,8 +444,116 @@
                 }
             }
 
+            async function renameGroup(id, currentName) {
+                const newName = prompt('Enter new group name:', currentName);
+                if (!newName || !newName.trim() || newName.trim() === currentName) return;
+                try {
+                    await api('/groups/' + id, { method: 'PUT', body: JSON.stringify({ name: newName.trim() }) });
+                    await loadGroups();
+                } catch (err) {
+                    alert(err.message || 'Could not rename group.');
+                }
+            }
+
+            async function deleteGroup(id) {
+                if (!confirm('Remove this presentation group? (The assigned attributes will NOT be deleted).')) return;
+                try {
+                    await api('/groups/' + id, { method: 'DELETE' });
+                    if (activeFilterGroupId === id) clearGroupFilter();
+                    await loadGroups();
+                } catch (err) {
+                    alert(err.message || 'Could not delete group.');
+                }
+            }
+
+            function filterByGroup(groupId, groupName) {
+                if (!groupId) {
+                    createGroup(groupName);
+                    return;
+                }
+                activeFilterGroupId = groupId;
+                const header = document.getElementById('active-group-header-title');
+                const selector = document.getElementById('entity-selector');
+                const entityText = selector ? selector.options[selector.selectedIndex].text : currentEntity;
+                if (header) {
+                    header.innerHTML = `<svg class="w-3.5 h-3.5 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>${esc(groupName)} ( ${esc(entityText)} )</span>`;
+                }
+                document.getElementById('reset-group-filter-btn')?.classList.remove('hidden');
+                renderFields();
+                loadGroups();
+            }
+
+            function clearGroupFilter() {
+                activeFilterGroupId = null;
+                const header = document.getElementById('active-group-header-title');
+                const selector = document.getElementById('entity-selector');
+                const entityText = selector ? selector.options[selector.selectedIndex].text : currentEntity;
+                if (header) {
+                    header.innerHTML = `<svg class="w-3.5 h-3.5 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>All Fields ( ${esc(entityText)} )</span>`;
+                }
+                document.getElementById('reset-group-filter-btn')?.classList.add('hidden');
+                renderFields();
+                loadGroups();
+            }
+
+            function openAssignModal(groupId) {
+                activeAssignGroupId = groupId;
+                const group = currentGroups.find(g => g.id === groupId);
+                if (!group) return;
+
+                document.getElementById('assign-modal-title').textContent = 'Manage Fields: ' + group.name;
+                const assignedIds = (group.group_attributes || group.groupAttributes || []).map(ga => ga.attribute_id || (ga.attribute && ga.attribute.id));
+
+                const container = document.getElementById('assign-fields-checklist');
+                const availableFields = allFields.filter(f => f.entity_type === currentEntity);
+
+                if (availableFields.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">No fields available for this entity. Create fields first.</p>';
+                } else {
+                    container.innerHTML = availableFields.map(f => `
+                        <label class="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">${esc(TYPE_ICON[f.type] || '•')}</span>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-900">${esc(f.name)}</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">${esc(f.code)}</div>
+                                </div>
+                            </div>
+                            <input type="checkbox" class="assign-field-checkbox w-4 h-4 rounded text-slate-900 focus:ring-0 cursor-pointer" value="${f.id}" ${assignedIds.includes(f.id) ? 'checked' : ''} />
+                        </label>
+                    `).join('');
+                }
+
+                document.getElementById('assign-group-modal').classList.remove('hidden');
+            }
+
+            function closeAssignGroupModal() {
+                document.getElementById('assign-group-modal').classList.add('hidden');
+                activeAssignGroupId = null;
+            }
+
+            async function saveGroupAssignment() {
+                if (!activeAssignGroupId) return;
+                const checked = Array.from(document.querySelectorAll('.assign-field-checkbox:checked')).map(cb => parseInt(cb.value, 10));
+                const btn = document.getElementById('save-group-assign-btn');
+                if (btn) btn.disabled = true;
+                try {
+                    await api('/groups/' + activeAssignGroupId + '/assign', {
+                        method: 'POST',
+                        body: JSON.stringify({ attribute_ids: checked })
+                    });
+                    closeAssignGroupModal();
+                    await loadGroups();
+                    renderFields();
+                } catch (err) {
+                    alert(err.message || 'Could not save group assignment.');
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            }
+
             async function remove(id) {
-                if (!confirm('Delete this field? Existing values for it will no longer be shown.')) return;
+                if (!confirm('Delete this custom field? Existing values for it will no longer be shown.')) return;
                 try {
                     await api('/fields/' + id, { method: 'DELETE' });
                     await refresh();
@@ -389,39 +569,53 @@
 
             function setEntity(entity) {
                 currentEntity = entity;
+                activeFilterGroupId = null;
                 const badge = document.getElementById('selected-entity-badge');
                 const selector = document.getElementById('entity-selector');
                 const label = selector ? selector.options[selector.selectedIndex].text : entity;
                 if (badge) badge.textContent = label;
                 if (selector && selector.value !== entity) selector.value = entity;
-                const header = document.getElementById('active-group-header-title');
-                if (header) header.querySelector('span').textContent = 'All Fields ( ' + label + ' )';
-                renderFields();
-                loadGroups();
+
+                // Sync entity pills
+                document.querySelectorAll('.entity-pill-btn').forEach((b) => {
+                    const isCurrent = b.getAttribute('data-entity-pill') === entity;
+                    b.className = isCurrent
+                        ? 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-900 bg-white px-4 py-2 text-xs font-bold text-slate-900 transition shadow-2xs'
+                        : 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition';
+                });
+
+                clearGroupFilter();
             }
 
-            return { api, refresh, remove, edit, createGroup, setEntity, get entity() { return currentEntity; } };
+            return {
+                api,
+                refresh,
+                remove,
+                edit,
+                createGroup,
+                renameGroup,
+                deleteGroup,
+                filterByGroup,
+                clearGroupFilter,
+                openAssignModal,
+                closeAssignGroupModal,
+                saveGroupAssignment,
+                setEntity,
+                get entity() { return currentEntity; }
+            };
         })();
 
         function switchEntityPill(btn, entityCode) {
-            document.querySelectorAll('.entity-pill-btn').forEach((b) => {
-                b.className = 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition';
-            });
-            btn.className = 'entity-pill-btn flex items-center gap-2 rounded-xl border border-slate-900 bg-white px-4 py-2 text-xs font-bold text-slate-900 transition shadow-2xs';
             MoldableBuilder.setEntity(entityCode);
         }
 
         function selectGroupTab(element, groupName) {
-            const header = document.getElementById('active-group-header-title');
-            const selector = document.getElementById('entity-selector');
-            const entityText = selector ? selector.options[selector.selectedIndex].text : 'Leads';
-            if (header) {
-                header.innerHTML = `<svg class="w-3.5 h-3.5 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>${groupName} ( ${entityText} )</span>`;
-            }
+            const groupId = element ? element.getAttribute('data-group-id') : null;
+            MoldableBuilder.filterByGroup(groupId, groupName);
         }
 
         function openNewGroupModal() {
-            const groupName = prompt('Enter New Field Group Name:');
+            const groupName = prompt('Enter New Presentation Group Name:');
             if (groupName && groupName.trim()) {
                 MoldableBuilder.createGroup(groupName.trim());
             }
@@ -430,6 +624,9 @@
         function filterFields(query) {
             const q = query.toLowerCase().trim();
             const items = document.querySelectorAll('.field-item');
+            const clearBtn = document.getElementById('clear-search-btn');
+            if (clearBtn) clearBtn.classList.toggle('hidden', !q);
+
             let visibleCount = 0;
             items.forEach((item) => {
                 const name = (item.getAttribute('data-name') || '').toLowerCase();
@@ -447,13 +644,30 @@
             if (countBadge) countBadge.textContent = visibleCount + ' field' + (visibleCount === 1 ? '' : 's');
         }
 
+        function clearSearch() {
+            const input = document.getElementById('field-search-input');
+            if (input) {
+                input.value = '';
+                filterFields('');
+                input.focus();
+            }
+        }
+
+        function closeAssignGroupModal() {
+            MoldableBuilder.closeAssignGroupModal();
+        }
+
+        function saveGroupAssignment() {
+            MoldableBuilder.saveGroupAssignment();
+        }
+
         let draggedItem = null;
         let previousDOMState = null;
 
         function handleDragStart(e) {
             draggedItem = e.currentTarget;
             e.dataTransfer.effectAllowed = 'move';
-            e.currentTarget.classList.add('opacity-50');
+            e.currentTarget.classList.add('opacity-50', 'ring-2', 'ring-slate-900');
             const container = document.getElementById('fields-list-container');
             previousDOMState = Array.from(container.children).map((node) => node.cloneNode(true));
         }
@@ -475,10 +689,16 @@
             }
         }
 
+        function handleDragEnd(e) {
+            if (draggedItem) {
+                draggedItem.classList.remove('opacity-50', 'ring-2', 'ring-slate-900');
+            }
+        }
+
         function handleDrop(e) {
             e.preventDefault();
             if (!draggedItem) return;
-            draggedItem.classList.remove('opacity-50');
+            draggedItem.classList.remove('opacity-50', 'ring-2', 'ring-slate-900');
             const container = document.getElementById('fields-list-container');
             const orders = Array.from(container.children)
                 .map((item, index) => ({ id: parseInt(item.getAttribute('data-id') || 0, 10), sort_order: index }))
@@ -497,7 +717,10 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && typeof closeAddFieldDrawer === 'function') closeAddFieldDrawer();
+                if (e.key === 'Escape') {
+                    if (typeof closeAddFieldDrawer === 'function') closeAddFieldDrawer();
+                    if (typeof closeAssignGroupModal === 'function') closeAssignGroupModal();
+                }
             });
             MoldableBuilder.refresh();
         });
