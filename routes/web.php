@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\LeadRoutingRuleController;
 use App\Http\Controllers\ShareableCaptureController;
 use App\Http\Controllers\TrackableController;
 use Illuminate\Support\Facades\Route;
+use Webkul\Admin\Http\Middleware\Bouncer;
+use Webkul\Admin\Http\Middleware\Locale;
 
 Route::get('/t/{lead}/{hash}', [TrackableController::class, 'viewDocument'])->name('trackable.document');
 Route::post('/t/{lead}/ping', [TrackableController::class, 'ping'])->name('trackable.ping');
@@ -15,7 +17,7 @@ Route::get('/c/{token?}', [ShareableCaptureController::class, 'show'])->name('sh
 Route::post('/c/{token?}', [ShareableCaptureController::class, 'store'])->name('shareable.capture.submit');
 // All custom admin panels. Guarded by the admin `user` guard (Bouncer) so
 // every action requires an authenticated admin — matching the Krayin panel.
-Route::middleware([\Webkul\Admin\Http\Middleware\Locale::class, \Webkul\Admin\Http\Middleware\Bouncer::class])
+Route::middleware([Locale::class, Bouncer::class])
     ->prefix('admin')
     ->group(function () {
         // Lead-capture integrations are tenant-scoped: moldable.workspace resolves

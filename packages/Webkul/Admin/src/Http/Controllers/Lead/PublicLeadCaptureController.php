@@ -211,7 +211,7 @@ class PublicLeadCaptureController extends Controller
         ];
 
         if (! $connector) {
-            return response("/* lead-capture: unknown or inactive token */", 200, $headers);
+            return response('/* lead-capture: unknown or inactive token */', 200, $headers);
         }
 
         $src = route('public.lead_capture.qr_form', ['token' => $token]).'?embed=1';
