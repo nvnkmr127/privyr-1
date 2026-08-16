@@ -27,6 +27,7 @@ Route::middleware([Locale::class, Bouncer::class])
             Route::post('', [LeadCaptureIntegrationController::class, 'store'])->name('admin.lead_capture.integrations.store');
             Route::post('{id}/test', [LeadCaptureIntegrationController::class, 'test'])->name('admin.lead_capture.integrations.test');
             Route::post('{id}/disconnect', [LeadCaptureIntegrationController::class, 'disconnect'])->name('admin.lead_capture.integrations.disconnect');
+            Route::post('{id}/reconnect', [LeadCaptureIntegrationController::class, 'reconnect'])->name('admin.lead_capture.integrations.reconnect');
             Route::post('switch-workspace', [LeadCaptureIntegrationController::class, 'switchWorkspace'])->name('admin.lead_capture.integrations.switch_workspace');
         });
 
