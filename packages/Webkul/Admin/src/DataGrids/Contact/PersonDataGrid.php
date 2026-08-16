@@ -2,6 +2,7 @@
 
 namespace Webkul\Admin\DataGrids\Contact;
 
+use App\Support\WorkspaceContext;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +69,7 @@ class PersonDataGrid extends DataGrid
 
         // Tenant isolation (raw query builder — the Person model global scope
         // does not apply here). Null = no current tenant / super-admin = see all.
-        if (($workspaceId = app(\App\Support\WorkspaceContext::class)->currentWorkspaceId()) !== null) {
+        if (($workspaceId = app(WorkspaceContext::class)->currentWorkspaceId()) !== null) {
             $queryBuilder->where('persons.workspace_id', $workspaceId);
         }
 

@@ -2,6 +2,7 @@
 
 namespace Webkul\Admin\DataGrids\Lead;
 
+use App\Support\WorkspaceContext;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -112,7 +113,7 @@ class LeadDataGrid extends DataGrid
 
         // Tenant isolation (raw query builder — the Lead model global scope does
         // not apply here). Null = no current tenant / super-admin = see all.
-        if (($workspaceId = app(\App\Support\WorkspaceContext::class)->currentWorkspaceId()) !== null) {
+        if (($workspaceId = app(WorkspaceContext::class)->currentWorkspaceId()) !== null) {
             $queryBuilder->where('leads.workspace_id', $workspaceId);
         }
 
