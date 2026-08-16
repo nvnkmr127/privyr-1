@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeOption;
+use Webkul\Moldable\Models\FieldGroupAttribute;
+use Webkul\Moldable\Models\WorkspaceResource;
 use Webkul\Moldable\Services\FieldTypeRegistry;
 
 class BuilderController
@@ -83,6 +85,13 @@ class BuilderController
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
+        if (in_array($data['type'], ['select', 'multiselect', 'checkbox'], true)) {
+            $validOptions = collect($data['options'] ?? [])->filter(fn ($o) => ! empty(is_array($o) ? trim($o['name'] ?? '') : trim($o)));
+            if ($validOptions->isEmpty()) {
+                return response()->json(['message' => 'At least one option is required for '.ucfirst($data['type']).' fields.'], 422);
+            }
+        }
+
         if (Attribute::where('entity_type', $data['entity_type'])->whereRaw('LOWER(name) = ?', [mb_strtolower($data['name'])])->exists()) {
             return response()->json(['message' => 'An attribute with this display name already exists for this entity.'], 422);
         }
@@ -104,6 +113,14 @@ class BuilderController
         ]);
 
         $this->syncOptions($attribute, $data['options'] ?? []);
+
+        if ($workspace = $request->attributes->get('moldable_workspace')) {
+            WorkspaceResource::firstOrCreate([
+                'workspace_id' => $workspace->id,
+                'resource_type' => 'attributes',
+                'resource_id' => $attribute->id,
+            ]);
+        }
 
         return response()->json($attribute->load('options'), 201);
     }
@@ -128,6 +145,14 @@ class BuilderController
             'options.*.name' => ['required_with:options', 'string', 'max:160'],
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        $type = $data['type'] ?? $field->type;
+        if (in_array($type, ['select', 'multiselect', 'checkbox'], true) && array_key_exists('options', $data)) {
+            $validOptions = collect($data['options'] ?? [])->filter(fn ($o) => ! empty(is_array($o) ? trim($o['name'] ?? '') : trim($o)));
+            if ($validOptions->isEmpty()) {
+                return response()->json(['message' => 'At least one option is required for '.ucfirst($type).' fields.'], 422);
+            }
+        }
 
         if (isset($data['name'])) {
             $duplicateNameExists = Attribute::where('entity_type', $field->entity_type)
@@ -157,6 +182,16 @@ class BuilderController
             return response()->json(['message' => 'System attributes cannot be deleted.'], 403);
         }
 
+        if ($workspace = $request->attributes->get('moldable_workspace')) {
+            WorkspaceResource::where('workspace_id', $workspace->id)
+                ->where('resource_type', 'attributes')
+                ->where('resource_id', $field->id)
+                ->delete();
+        }
+
+        // Clean up group bindings and options
+        FieldGroupAttribute::where('attribute_id', $field->id)->delete();
+        $field->options()->delete();
         $field->delete();
 
         return response()->json(['message' => 'Attribute deleted.']);

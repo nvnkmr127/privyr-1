@@ -31,6 +31,7 @@ Route::middleware(['web', 'user'])->prefix('v1/moldable')->group(function () {
 
         Route::get('/groups', [GroupController::class, 'index']);
         Route::post('/groups', [GroupController::class, 'store']);
+        Route::post('/groups/reorder', [GroupController::class, 'reorder']);
         Route::put('/groups/{group}', [GroupController::class, 'update']);
         Route::delete('/groups/{group}', [GroupController::class, 'destroy']);
         Route::post('/groups/{group}/assign', [GroupController::class, 'assignAttributes']);
