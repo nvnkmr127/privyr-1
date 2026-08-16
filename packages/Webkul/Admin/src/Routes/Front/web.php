@@ -25,4 +25,8 @@ Route::controller(PublicLeadCaptureController::class)->prefix('api/v1/lead-captu
 Route::controller(PublicLeadCaptureController::class)->prefix('lead-capture')->group(function () {
     Route::get('qr/{token}', 'qrForm')->name('public.lead_capture.qr_form');
     Route::post('qr/{token}', 'qrStore')->name('public.lead_capture.qr_store');
+
+    // Embeddable loader script: external sites include this and it injects the
+    // hosted form as an iframe into [data-lead-capture="<token>"].
+    Route::get('embed/{token}.js', 'embedJs')->name('public.lead_capture.embed_js');
 });

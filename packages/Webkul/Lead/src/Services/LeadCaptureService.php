@@ -27,7 +27,7 @@ class LeadCaptureService
      *
      * @return Lead|null
      */
-    public function processIncomingPayload(LeadSourceConnector $connector, array $payload, ?string $rawBody = null, ?string $signature = null)
+    public function processIncomingPayload(LeadSourceConnector $connector, array $payload, ?string $rawBody = null, ?string $signature = null, bool $dryRun = false)
     {
         try {
             // Meta connectors: verify the payload signature, then resolve the full
@@ -46,12 +46,36 @@ class LeadCaptureService
             $email = $mappedData['person']['emails'] ?? null;
             $phone = $mappedData['person']['contact_numbers'] ?? null;
 
-            // Duplicate Detection
-            $existingPerson = $this->detectDuplicateContact($email, $phone);
+            // Tenant: every captured record is owned by the connector's workspace.
+            $workspaceId = $connector->workspace_id;
+
+            // Duplicate Detection — scoped to the tenant so one tenant's contacts
+            // never dedupe against another tenant's.
+            $existingPerson = $this->detectDuplicateContact($email, $phone, $workspaceId);
+
+            // Dry run: exercise the real mapping / dedup / routing path and report
+            // what WOULD happen, without persisting a Person, Lead, or log. Used by
+            // the admin "Test integration" action so tests never create prod data.
+            if ($dryRun) {
+                $pipelineId = $connector->default_lead_pipeline_id ?? $this->pipelineRepository->getDefaultPipeline()?->id;
+
+                return [
+                    'dry_run' => true,
+                    'name' => $mappedData['person']['name'] ?? null,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'title' => $mappedData['title'] ?? ($connector->name.' - '.($mappedData['person']['name'] ?? 'New Lead')),
+                    'pipeline' => $this->pipelineRepository->find($pipelineId)?->name,
+                    'duplicate' => (bool) $existingPerson,
+                    'duplicate_action' => $connector->duplicate_action,
+                    'would_create_lead' => ! ($existingPerson && $connector->duplicate_action === 'skip'),
+                ];
+            }
 
             if ($existingPerson && $connector->duplicate_action === 'skip') {
                 LeadCaptureLog::create([
                     'connector_id' => $connector->id,
+                    'workspace_id' => $workspaceId,
                     'raw_payload' => $payload,
                     'status' => 'duplicate_flagged',
                     'error_message' => 'Duplicate contact found. Ingestion skipped as per connector configuration.',
@@ -60,8 +84,10 @@ class LeadCaptureService
                 return null;
             }
 
-            // Create or update Person
+            // Create or update Person. entity_type is required by Krayin's
+            // attribute-value layer (PersonRepository::create -> attributeValue save).
             $personData = [
+                'entity_type' => 'persons',
                 'name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
                 'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
                 'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
@@ -71,6 +97,11 @@ class LeadCaptureService
                 $person = $existingPerson;
             } else {
                 $person = $this->personRepository->create($personData);
+
+                // Stamp tenant ownership on the newly captured contact.
+                if ($workspaceId) {
+                    $person->forceFill(['workspace_id' => $workspaceId])->save();
+                }
             }
 
             // Pipeline & Stage Fallbacks
@@ -81,6 +112,7 @@ class LeadCaptureService
             // Create Lead
             $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($person->name ?? 'New Lead'));
             $leadData = [
+                'entity_type' => 'leads',
                 'title' => $leadTitle,
                 'description' => $mappedData['description'] ?? 'Captured automatically via '.$connector->name,
                 'lead_value' => $mappedData['lead_value'] ?? 0,
@@ -94,6 +126,11 @@ class LeadCaptureService
 
             $lead = $this->leadRepository->create($leadData);
 
+            // Stamp tenant ownership on the captured lead.
+            if ($workspaceId) {
+                $lead->forceFill(['workspace_id' => $workspaceId])->save();
+            }
+
             // Update Connector Statistics
             $connector->increment('captured_count');
             $connector->update(['last_received_at' => Carbon::now()]);
@@ -101,6 +138,7 @@ class LeadCaptureService
             // Create Log Entry
             LeadCaptureLog::create([
                 'connector_id' => $connector->id,
+                'workspace_id' => $workspaceId,
                 'raw_payload' => $payload,
                 'status' => 'success',
                 'lead_id' => $lead->id,
@@ -108,12 +146,15 @@ class LeadCaptureService
 
             return $lead;
         } catch (\Throwable $e) {
-            LeadCaptureLog::create([
-                'connector_id' => $connector->id,
-                'raw_payload' => $payload,
-                'status' => 'error',
-                'error_message' => $e->getMessage(),
-            ]);
+            if (! $dryRun) {
+                LeadCaptureLog::create([
+                    'connector_id' => $connector->id,
+                    'workspace_id' => $connector->workspace_id,
+                    'raw_payload' => $payload,
+                    'status' => 'error',
+                    'error_message' => $e->getMessage(),
+                ]);
+            }
 
             throw $e;
         }
@@ -244,7 +285,7 @@ class LeadCaptureService
      *
      * @return Person|null
      */
-    public function detectDuplicateContact(?string $email, ?string $phone)
+    public function detectDuplicateContact(?string $email, ?string $phone, $workspaceId = null)
     {
         if (empty($email) && empty($phone)) {
             return null;
@@ -252,13 +293,20 @@ class LeadCaptureService
 
         $query = $this->personRepository->getModel()->newQuery();
 
-        if ($email) {
-            $query->where('emails', 'like', "%{$email}%");
+        // Tenant isolation: only match contacts owned by the same workspace.
+        if ($workspaceId !== null) {
+            $query->where('workspace_id', $workspaceId);
         }
 
-        if ($phone) {
-            $query->orWhere('contact_numbers', 'like', "%{$phone}%");
-        }
+        $query->where(function ($q) use ($email, $phone) {
+            if ($email) {
+                $q->where('emails', 'like', "%{$email}%");
+            }
+
+            if ($phone) {
+                $q->orWhere('contact_numbers', 'like', "%{$phone}%");
+            }
+        });
 
         return $query->first();
     }

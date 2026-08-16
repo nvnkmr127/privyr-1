@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
+    protected $table = 'moldable_teams';
+
     protected $fillable = ['workspace_id', 'name', 'slug', 'description', 'settings', 'is_active'];
 
     protected $casts = ['settings' => 'array', 'is_active' => 'boolean'];

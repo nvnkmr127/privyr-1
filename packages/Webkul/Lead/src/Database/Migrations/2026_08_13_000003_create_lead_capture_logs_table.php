@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('connector_id')->nullable();
             $table->json('raw_payload')->nullable();
             $table->string('status')->default('success'); // success, duplicate_flagged, error
-            $table->unsignedBigInteger('lead_id')->nullable();
+            $table->unsignedInteger('lead_id')->nullable();
             $table->text('error_message')->nullable();
             $table->timestamps();
 

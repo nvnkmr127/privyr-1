@@ -19,33 +19,62 @@ class ResolveWorkspace
             return response()->json(['message' => 'Authentication required.'], 401);
         }
 
-        $workspaceId = $request->header('X-Workspace-Id') ?: $request->route('workspace');
+        // Precedence: an explicit header/route id (a deliberate request) is
+        // strictly enforced; a session selection (the tenant switcher) is used
+        // when present but falls back silently if it has gone stale.
+        $explicitId = $request->header('X-Workspace-Id') ?: $request->route('workspace');
+        $sessionId = $request->session()->get('current_workspace_id');
 
-        if ($workspaceId) {
-            $workspace = Workspace::query()
-                ->whereKey($workspaceId)
-                ->where('is_active', true)
-                ->first();
+        $workspace = null;
 
-            $isMember = $workspace && WorkspaceMember::query()
-                ->where('workspace_id', $workspace->id)
-                ->where('user_id', $user->getAuthIdentifier())
-                ->where('is_active', true)
-                ->exists();
+        if ($explicitId) {
+            $workspace = $this->resolveMemberWorkspace($explicitId, $user);
 
-            if (! $isMember) {
+            if (! $workspace) {
                 return response()->json(['message' => 'You do not have access to this workspace.'], 403);
             }
-        } else {
-            // No workspace supplied: fall back to the user's default workspace,
-            // creating a personal one on first use so the builder works without
-            // a separate workspace-provisioning step.
+        } elseif ($sessionId) {
+            // Stale/invalid session selection must not hard-fail the request.
+            $workspace = $this->resolveMemberWorkspace($sessionId, $user);
+        }
+
+        if (! $workspace) {
+            // Fall back to the user's default workspace, creating a personal one
+            // on first use so workspace-aware pages work without provisioning.
             $workspace = $this->resolveDefaultWorkspace($user);
         }
+
+        // Persist the resolved tenant so plain page GETs (which cannot send the
+        // header) stay scoped to the selected workspace across requests.
+        $request->session()->put('current_workspace_id', $workspace->id);
 
         $request->attributes->set('moldable_workspace', $workspace);
 
         return $next($request);
+    }
+
+    /**
+     * Return the workspace only if it is active and the user is an active member,
+     * else null. Never trust the id without this membership check.
+     */
+    private function resolveMemberWorkspace($workspaceId, $user): ?Workspace
+    {
+        $workspace = Workspace::query()
+            ->whereKey($workspaceId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $workspace) {
+            return null;
+        }
+
+        $isMember = WorkspaceMember::query()
+            ->where('workspace_id', $workspace->id)
+            ->where('user_id', $user->getAuthIdentifier())
+            ->where('is_active', true)
+            ->exists();
+
+        return $isMember ? $workspace : null;
     }
 
     private function resolveDefaultWorkspace($user): Workspace

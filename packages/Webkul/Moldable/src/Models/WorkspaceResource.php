@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkspaceResource extends Model
 {
+    protected $table = 'moldable_workspace_resources';
+
     protected $fillable = ['workspace_id', 'resource_type', 'resource_id'];
 
     public function workspace(): BelongsTo

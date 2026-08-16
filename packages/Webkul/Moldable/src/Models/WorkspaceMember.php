@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkspaceMember extends Model
 {
+    protected $table = 'moldable_workspace_members';
+
     protected $fillable = ['workspace_id', 'user_id', 'team_id', 'role', 'permissions', 'is_active'];
 
     protected $casts = ['permissions' => 'array', 'is_active' => 'boolean'];

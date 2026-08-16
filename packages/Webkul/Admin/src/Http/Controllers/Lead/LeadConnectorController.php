@@ -107,7 +107,11 @@ class LeadConnectorController extends Controller
         $email = $request->input('email');
         $phone = $request->input('phone');
 
-        $duplicate = $this->leadCaptureService->detectDuplicateContact($email, $phone);
+        // Tenant-scope the check to the current workspace so it never reveals
+        // whether a contact exists in another tenant.
+        $workspaceId = $request->session()->get('current_workspace_id');
+
+        $duplicate = $this->leadCaptureService->detectDuplicateContact($email, $phone, $workspaceId);
 
         return response()->json([
             'is_duplicate' => (bool) $duplicate,
