@@ -39,7 +39,7 @@ class SendLeadAgentPushNotification
             Log::info("Instant New Lead Push Alert for Agent #{$user?->id} ({$agentName}): {$lead->title}");
 
             // Real push straight to the agent's registered phones — the headline promise.
-            $pushed = $this->pushService->sendToUser(
+            $pushResult = $this->pushService->sendToUser(
                 $user,
                 '⚡ New Lead Assigned',
                 "{$prospectName} · {$phone} · {$lead->title}",
@@ -49,6 +49,8 @@ class SendLeadAgentPushNotification
                     'url' => $leadUrl,
                 ]
             );
+            $pushed = $pushResult['sent'] ?? false;
+            $pushReason = $pushResult['reason'] ?? null;
 
             // Fallback: if push didn't land and the agent has a phone, buzz them
             // over WhatsApp so the alert still reaches them.
@@ -61,7 +63,11 @@ class SendLeadAgentPushNotification
             if ($pushed) {
                 $comment = "🔔 Instant push notification delivered to {$agentName}'s device(s)";
             } elseif ($whatsappSent) {
-                $comment = "🔔 Push unavailable — new-lead alert sent to {$agentName} via WhatsApp";
+                if ($pushReason === 'no_tokens') {
+                    $comment = "🔔 Push skipped (no registered devices) — new-lead alert sent to {$agentName} via WhatsApp";
+                } else {
+                    $comment = "🔔 Push failed ({$pushReason}) — new-lead alert sent to {$agentName} via WhatsApp";
+                }
             } else {
                 $comment = "🔔 New-lead alert not delivered to {$agentName} (no registered device or WhatsApp channel)";
             }

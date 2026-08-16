@@ -98,17 +98,18 @@ class PushNotificationService
      *
      * @param  \Webkul\User\Contracts\User|object|null  $user
      * @param  array<string, mixed>  $data
+     * @return array{sent: bool, reason: string|null}
      */
-    public function sendToUser($user, string $title, string $body, array $data = []): bool
+    public function sendToUser($user, string $title, string $body, array $data = []): array
     {
         if (! $user) {
-            return false;
+            return ['sent' => false, 'reason' => 'no_user'];
         }
 
         $tokens = DeviceToken::where('user_id', $user->id)->pluck('token')->all();
 
         if (empty($tokens)) {
-            return false;
+            return ['sent' => false, 'reason' => 'no_tokens'];
         }
 
         $result = $this->send($tokens, $title, $body, $data);
@@ -123,7 +124,7 @@ class PushNotificationService
             DeviceToken::where('user_id', $user->id)->update(['last_used_at' => now()]);
         }
 
-        return $result['sent'];
+        return $result;
     }
 
     /**
