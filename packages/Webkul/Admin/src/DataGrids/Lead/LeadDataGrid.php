@@ -110,6 +110,12 @@ class LeadDataGrid extends DataGrid
             $queryBuilder->whereIn('leads.user_id', $userIds);
         }
 
+        // Tenant isolation (raw query builder — the Lead model global scope does
+        // not apply here). Null = no current tenant / super-admin = see all.
+        if (($workspaceId = app(\App\Support\WorkspaceContext::class)->currentWorkspaceId()) !== null) {
+            $queryBuilder->where('leads.workspace_id', $workspaceId);
+        }
+
         if (! is_null(request()->input('rotten_lead.in'))) {
             $queryBuilder->havingRaw($tablePrefix.'rotten_lead = ?', [
                 (int) request()->input('rotten_lead.in'),

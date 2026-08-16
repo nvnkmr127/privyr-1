@@ -14,7 +14,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Memoize the resolved tenant for the whole request.
+        $this->app->singleton(\App\Support\WorkspaceContext::class);
     }
 
     /**
