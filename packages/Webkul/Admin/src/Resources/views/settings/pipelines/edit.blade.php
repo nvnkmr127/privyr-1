@@ -181,6 +181,42 @@
 
                                         {!! view_render_event('admin.settings.pipelines.edit.form.stages.name.before', ['pipeline' => $pipeline]) !!}
 
+                                        <!-- Color -->
+                                        <x-admin::form.control-group>
+                                            <x-admin::form.control-group.label>
+                                                Color
+                                            </x-admin::form.control-group.label>
+                                            
+                                            <x-admin::form.control-group.control
+                                                type="color"
+                                                ::name="'stages[' + element.id + '][color]'"
+                                                v-model="element['color']"
+                                                label="Color"
+                                                class="h-[40px] !p-1 cursor-pointer w-full"
+                                            />
+                                        </x-admin::form.control-group>
+
+                                        <!-- Automations -->
+                                        <div class="mt-4 mb-2">
+                                            <label class="text-xs font-semibold text-gray-800 dark:text-white">Automations</label>
+                                            <div class="flex flex-col gap-2 mt-2">
+                                                <div v-for="(action, aIndex) in element.actions" :key="aIndex" class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
+                                                    <select v-model="action.type" ::name="'stages[' + element.id + '][actions][' + aIndex + '][type]'" class="custom-select w-full flex-1">
+                                                        <option value="assign_user">Assign to Next Available User</option>
+                                                        <option value="notify_owner">Notify Owner</option>
+                                                        <option value="send_email">Send Email Template</option>
+                                                        <option value="create_activity">Create Follow-up Activity</option>
+                                                    </select>
+                                                    <button type="button" @click="element.actions.splice(aIndex, 1)" class="text-red-500 hover:text-red-700">
+                                                        <i class="icon-delete text-xl"></i>
+                                                    </button>
+                                                </div>
+                                                <button type="button" @click="if(!element.actions) element.actions = []; element.actions.push({type: 'assign_user', payload: {}})" class="text-sm text-blue-600 hover:underline self-start">
+                                                    + Add Automation Action
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <!-- Name -->
                                         <x-admin::form.control-group>
                                             <x-admin::form.control-group.label class="required">
@@ -297,6 +333,7 @@
                             'code': '',
                             'name': '',
                             'probability': 100,
+                            'color': '#ffffff',
                         });
                     },
 
