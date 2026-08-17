@@ -2,8 +2,10 @@
 
 namespace Webkul\Lead\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Lead\Contracts\Pipeline as PipelineContract;
+use Webkul\User\Models\UserProxy;
 
 class Pipeline extends Model implements PipelineContract
 {
@@ -11,15 +13,15 @@ class Pipeline extends Model implements PipelineContract
 
     protected static function booted()
     {
-        static::addGlobalScope('user_pipelines', function (\Illuminate\Database\Eloquent\Builder $builder) {
+        static::addGlobalScope('user_pipelines', function (Builder $builder) {
             if (app()->bound('auth') && auth()->guard('user')->check()) {
                 $user = auth()->guard('user')->user();
-                
+
                 // If user is not global and has explicitly assigned pipelines, restrict to those.
                 if ($user->view_permission !== 'global') {
                     $pipelineIds = $user->pipelines()->pluck('lead_pipelines.id')->toArray();
-                    
-                    if (!empty($pipelineIds)) {
+
+                    if (! empty($pipelineIds)) {
                         $builder->whereIn('lead_pipelines.id', $pipelineIds);
                     }
                 }
@@ -59,6 +61,6 @@ class Pipeline extends Model implements PipelineContract
      */
     public function users()
     {
-        return $this->belongsToMany(\Webkul\User\Models\UserProxy::modelClass(), 'lead_pipeline_user');
+        return $this->belongsToMany(UserProxy::modelClass(), 'lead_pipeline_user');
     }
 }

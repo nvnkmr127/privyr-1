@@ -2,7 +2,9 @@
 
 namespace Webkul\Admin\Listeners;
 
+use Illuminate\Support\Facades\Log;
 use Webkul\Email\Repositories\EmailRepository;
+use Webkul\User\Models\User;
 
 class Lead
 {
@@ -45,13 +47,13 @@ class Lead
         foreach ($lead->stage->actions as $action) {
             try {
                 if ($action->type === 'assign_user') {
-                    $user = \Webkul\User\Models\User::where('status', 1)->inRandomOrder()->first();
+                    $user = User::where('status', 1)->inRandomOrder()->first();
                     if ($user) {
                         $lead->updateQuietly(['user_id' => $user->id]);
                     }
                 }
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Stage action failed: ' . $e->getMessage());
+                Log::error('Stage action failed: '.$e->getMessage());
             }
         }
     }

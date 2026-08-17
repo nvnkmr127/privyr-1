@@ -15,6 +15,7 @@ use Webkul\Admin\Http\Requests\MassDestroyRequest;
 use Webkul\Admin\Http\Requests\MassUpdateRequest;
 use Webkul\Admin\Http\Resources\UserResource;
 use Webkul\Admin\Notifications\User\Create as UserCreatedNotification;
+use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\User\Repositories\GroupRepository;
 use Webkul\User\Repositories\RoleRepository;
 use Webkul\User\Repositories\UserRepository;
@@ -43,7 +44,7 @@ class UserController extends Controller
 
         $roles = $this->roleRepository->all();
         $groups = $this->groupRepository->all();
-        $pipelines = app(\Webkul\Lead\Repositories\PipelineRepository::class)->all();
+        $pipelines = app(PipelineRepository::class)->all();
 
         return view('admin::settings.users.index', compact('roles', 'groups', 'pipelines'));
     }
