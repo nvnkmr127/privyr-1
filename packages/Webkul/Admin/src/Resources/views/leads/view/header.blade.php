@@ -45,6 +45,51 @@
         </div>
 
         <div class="flex items-center gap-2">
+            <!-- Qualify / Disqualify Toggle -->
+            <x-admin::form
+                :action="route('admin.leads.attributes.update', $lead->id)"
+                method="PUT"
+                class="inline-flex"
+            >
+                <input type="hidden" name="is_qualified" value="{{ $lead->is_qualified ? 0 : 1 }}" />
+                <button
+                    type="submit"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold transition {{ $lead->is_qualified ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-slate-700 hover:bg-slate-50' }}"
+                >
+                    <span>{{ $lead->is_qualified ? 'Qualified ✓' : 'Qualify Lead' }}</span>
+                </button>
+            </x-admin::form>
+
+            <!-- Duplicate Lead -->
+            <a
+                href="{{ route('admin.leads.duplicate', $lead->id) }}"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                title="Duplicate this Lead"
+            >
+                <span>Duplicate</span>
+            </a>
+
+            <!-- Convert to Quote -->
+            <form action="{{ route('admin.leads.convert_to_quote', $lead->id) }}" method="POST" class="inline-flex">
+                @csrf
+                <button
+                    type="submit"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    title="Convert to Quote"
+                >
+                    <span>Convert to Quote</span>
+                </button>
+            </form>
+
+            <!-- Merge Lead trigger -->
+            <button
+                type="button"
+                onclick="document.getElementById('mergeLeadModal').classList.remove('hidden')"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800"
+            >
+                <span>Merge</span>
+            </button>
+
             @if (bouncer()->hasPermission('leads.edit'))
                 <a
                     href="{{ route('admin.leads.edit', $lead->id) }}"
@@ -75,6 +120,18 @@
                     @if ($leadValue)
                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800 shrink-0">
                             {{ $leadValue }}
+                        </span>
+                    @endif
+
+                    <!-- Score Badge -->
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/60 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800 shrink-0" title="Automatically calculated based on lead details completeness, activities and state.">
+                        Score: {{ $lead->lead_score ?? 0 }}
+                    </span>
+
+                    <!-- Qualification Badge -->
+                    @if ($lead->is_qualified)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800 shrink-0">
+                            Qualified
                         </span>
                     @endif
                 </div>
@@ -315,3 +372,40 @@
         }
     }
 </script>
+
+<!-- Merge Lead Modal -->
+<div id="mergeLeadModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/50">
+    <div class="bg-white dark:bg-gray-900 rounded-xl max-w-md w-full p-6 shadow-xl border dark:border-gray-800">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Merge Lead</h3>
+        <p class="text-xs text-slate-500 mb-4">Select another lead to merge into this one. Activities, tags, quotes, and products will be merged, and the chosen target lead will be permanently deleted.</p>
+        
+        <form action="{{ route('admin.leads.merge.store', $lead->id) }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Target Lead to Merge</label>
+                @php
+                    $workspaceId = session()->get('current_workspace_id');
+                    $otherLeads = app(\Webkul\Lead\Repositories\LeadRepository::class)
+                        ->scopeQuery(function($q) use ($lead, $workspaceId) {
+                            $q = $q->where('id', '!=', $lead->id);
+                            if ($workspaceId) {
+                                $q->where('workspace_id', $workspaceId);
+                            }
+                            return $q;
+                        })->all();
+                @endphp
+                <select name="target_lead_id" required class="w-full rounded border border-gray-300 px-3 py-2 text-xs font-medium dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                    <option value="">-- Select Target Lead --</option>
+                    @foreach ($otherLeads as $oLead)
+                        <option value="{{ $oLead->id }}">{{ $oLead->title }} ({{ $oLead->person?->name ?? 'No Contact' }})</option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="flex justify-end gap-2.5">
+                <button type="button" onclick="document.getElementById('mergeLeadModal').classList.add('hidden')" class="px-3 py-1.5 rounded border text-xs font-medium bg-gray-50 text-gray-700 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-3 py-1.5 rounded text-xs font-bold bg-brandColor text-white shadow-sm hover:opacity-90">Confirm Merge</button>
+            </div>
+        </form>
+    </div>
+</div>

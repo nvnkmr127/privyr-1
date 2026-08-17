@@ -12,6 +12,7 @@
         'activity_whatsapp' => 'whatsapp',
         'follow_up_scheduled' => 'followup',
         'system' => 'lifecycle',
+        'activity_system' => 'lifecycle',
     ];
 
     $badgeStyles = [
@@ -68,6 +69,12 @@
             'marker' => 'bg-orange-500 text-white ring-orange-100 dark:ring-orange-950',
             'icon' => 'icon-calendar',
             'label' => 'Follow-up',
+        ],
+        'activity_system' => [
+            'badge' => 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-gray-800 dark:text-slate-300 dark:border-gray-700',
+            'marker' => 'bg-slate-600 text-white ring-slate-100 dark:ring-gray-800',
+            'icon' => 'icon-activity',
+            'label' => 'System Log',
         ],
         'default' => [
             'badge' => 'bg-slate-100 text-slate-700 border-slate-200/70 dark:bg-gray-800 dark:text-slate-300 dark:border-gray-700',
@@ -141,7 +148,33 @@
             @php
                 $category = $typeCategoryMap[$event['type']] ?? 'other';
                 $style = $badgeStyles[$event['type']] ?? $badgeStyles['default'];
-                $descLength = strlen(trim($event['description'] ?? ''));
+                $description = $event['description'] ?? '';
+                if ($event['type'] === 'activity_system') {
+                    $decoded = json_decode($description, true);
+                    if ($decoded) {
+                        $oldVal = $decoded['old']['label'] ?? $decoded['old']['value'] ?? $decoded['old']['old'] ?? '';
+                        $newVal = $decoded['new']['label'] ?? $decoded['new']['value'] ?? '';
+                        $attribute = $decoded['attribute'] ?? 'attribute';
+                        if (is_array($oldVal)) { $oldVal = implode(', ', array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $oldVal)); }
+                        if (is_array($newVal)) { $newVal = implode(', ', array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $newVal)); }
+                        
+                        $attrName = ucfirst(str_replace('_', ' ', $attribute));
+                        if ($attribute === 'lead_pipeline_stage_id') {
+                            $attrName = 'Stage';
+                        } elseif ($attribute === 'user_id') {
+                            $attrName = 'Owner';
+                        }
+                        
+                        if (empty($oldVal) && !empty($newVal)) {
+                            $description = "Set <strong>" . e($attrName) . "</strong> to <strong>" . e($newVal) . "</strong>";
+                        } elseif (!empty($oldVal) && empty($newVal)) {
+                            $description = "Cleared <strong>" . e($attrName) . "</strong> (was <strong>" . e($oldVal) . "</strong>)";
+                        } else {
+                            $description = "Changed <strong>" . e($attrName) . "</strong> from <strong>" . e($oldVal) . "</strong> to <strong>" . e($newVal) . "</strong>";
+                        }
+                    }
+                }
+                $descLength = strlen(trim(strip_tags($description)));
             @endphp
 
             <div
@@ -178,11 +211,13 @@
                     </div>
 
                     <!-- Description Body -->
-                    @if (! empty($event['description']))
+                    @if (! empty($description))
                         <div class="mt-3 pt-3 border-t border-slate-100 dark:border-gray-800/80 text-xs sm:text-[13px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed break-words whitespace-pre-wrap">
-                            @if ($descLength > 280)
+                            @if ($event['type'] === 'activity_system')
+                                {!! nl2br($description) !!}
+                            @elseif ($descLength > 280)
                                 <div class="timeline-desc-clamped max-h-20 overflow-hidden relative transition-all duration-200">
-                                    {!! nl2br(e($event['description'])) !!}
+                                    {!! nl2br(e($description)) !!}
                                     <div class="timeline-desc-fade absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-white dark:from-gray-900 to-transparent pointer-events-none"></div>
                                 </div>
                                 <button
@@ -194,7 +229,7 @@
                                     <svg class="w-3 h-3 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
                             @else
-                                {!! nl2br(e($event['description'])) !!}
+                                {!! nl2br(e($description)) !!}
                             @endif
                         </div>
                     @endif

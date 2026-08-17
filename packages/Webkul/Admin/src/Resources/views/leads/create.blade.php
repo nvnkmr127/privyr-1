@@ -86,9 +86,6 @@
             <div class="max-w-3xl mx-auto flex flex-col gap-6 items-start w-full">
                 {!! view_render_event('admin.leads.edit.form_controls.before') !!}
 
-                <!-- Auto-generated Title to bypass Krayin requirement -->
-                <input type="hidden" name="title" value="New Lead" id="hidden_lead_title" />
-
                 <!-- Contact Person -->
                 <div class="w-full space-y-6">
                     {!! view_render_event('admin.leads.create.contact_person.before') !!}
@@ -111,6 +108,127 @@
                     </div>
 
                     {!! view_render_event('admin.leads.create.contact_person.after') !!}
+                </div>
+
+                <!-- Lead Details -->
+                <div class="w-full space-y-6 mt-6">
+                    <div class="flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white shadow-2xs p-8" id="lead-details">
+                        <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
+                            <h2 class="text-base font-semibold text-gray-800 dark:text-white">
+                                Lead Details
+                            </h2>
+                            <p class="text-sm font-medium text-slate-500">
+                                Enter the lead value, pipeline, priority, source, and other parameters.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 w-full">
+                            <!-- Lead Title -->
+                            <x-admin::form.control-group class="col-span-2">
+                                <x-admin::form.control-group.label class="required">
+                                    Lead Title
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="text"
+                                    name="title"
+                                    rules="required"
+                                    value="New Lead"
+                                />
+                                <x-admin::form.control-group.error control-name="title" />
+                            </x-admin::form.control-group>
+
+                            <!-- Lead Value -->
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Lead Value ($)
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="text"
+                                    name="lead_value"
+                                    placeholder="e.g. 500"
+                                />
+                            </x-admin::form.control-group>
+
+                            <!-- Priority -->
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Priority
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="select"
+                                    name="priority"
+                                    value="medium"
+                                >
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </x-admin::form.control-group.control>
+                            </x-admin::form.control-group>
+
+                            <!-- Location -->
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Location
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="text"
+                                    name="location"
+                                    placeholder="City, Country"
+                                />
+                            </x-admin::form.control-group>
+
+                            <!-- Source -->
+                            @php
+                                $sources = app(\Webkul\Lead\Repositories\SourceRepository::class)->all();
+                            @endphp
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label class="required">
+                                    Source
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="select"
+                                    name="lead_source_id"
+                                    rules="required"
+                                >
+                                    @foreach ($sources as $source)
+                                        <option value="{{ $source->id }}">{{ $source->name }}</option>
+                                    @endforeach
+                                </x-admin::form.control-group.control>
+                            </x-admin::form.control-group>
+
+                            <!-- Type -->
+                            @php
+                                $types = app(\Webkul\Lead\Repositories\TypeRepository::class)->all();
+                            @endphp
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label class="required">
+                                    Type
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="select"
+                                    name="lead_type_id"
+                                    rules="required"
+                                >
+                                    @foreach ($types as $type)
+                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                    @endforeach
+                                </x-admin::form.control-group.control>
+                            </x-admin::form.control-group>
+
+                            <!-- Description -->
+                            <x-admin::form.control-group class="col-span-2">
+                                <x-admin::form.control-group.label>
+                                    Description
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="textarea"
+                                    name="description"
+                                    placeholder="Enter lead details or notes..."
+                                />
+                            </x-admin::form.control-group>
+                        </div>
+                    </div>
                 </div>
 
                 {!! view_render_event('admin.leads.form_controls.after') !!}

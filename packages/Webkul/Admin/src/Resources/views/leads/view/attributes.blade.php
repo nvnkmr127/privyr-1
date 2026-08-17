@@ -182,6 +182,113 @@
                                             </div>
                                         @endif
                                     @endforeach
+
+                                    <!-- Injected Metadata Fields -->
+                                    @if ($groupData['name'] === 'Key Details')
+                                        <!-- Priority -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Priority
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" onchange="this.submit()">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <select name="priority" class="bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer">
+                                                        <option value="low" {{ $lead->priority === 'low' ? 'selected' : '' }}>Low</option>
+                                                        <option value="medium" {{ $lead->priority === 'medium' ? 'selected' : '' }}>Medium</option>
+                                                        <option value="high" {{ $lead->priority === 'high' ? 'selected' : '' }}>High</option>
+                                                        <option value="urgent" {{ $lead->priority === 'urgent' ? 'selected' : '' }}>Urgent</option>
+                                                    </select>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- Location -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Location
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="text" name="location" value="{{ $lead->location }}" onblur="this.form.submit()" onkeydown="if(event.key==='Enter') this.form.submit()" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0" placeholder="Set location..." />
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- Lead Score -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Lead Score
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-bold">{{ $lead->lead_score ?? 0 }} / 100</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Qualification Status -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Qualification
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" onchange="this.submit()">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <select name="is_qualified" class="bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer">
+                                                        <option value="0" {{ !$lead->is_qualified ? 'selected' : '' }}>Unqualified</option>
+                                                        <option value="1" {{ $lead->is_qualified ? 'selected' : '' }}>Qualified</option>
+                                                    </select>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if ($groupData['name'] === 'Sales Information')
+                                        <!-- UTM Source -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                UTM Source
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="text" name="utm_source" value="{{ $lead->utm_source }}" onblur="this.form.submit()" onkeydown="if(event.key==='Enter') this.form.submit()" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0" placeholder="utm_source" />
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- UTM Medium -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                UTM Medium
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="text" name="utm_medium" value="{{ $lead->utm_medium }}" onblur="this.form.submit()" onkeydown="if(event.key==='Enter') this.form.submit()" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0" placeholder="utm_medium" />
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- UTM Campaign -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                UTM Campaign
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="text" name="utm_campaign" value="{{ $lead->utm_campaign }}" onblur="this.form.submit()" onkeydown="if(event.key==='Enter') this.form.submit()" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0" placeholder="utm_campaign" />
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Show More / Show Less for Large Field Sets -->

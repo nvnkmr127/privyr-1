@@ -52,6 +52,7 @@ class Lead extends Model implements LeadContract
         'utm_medium',
         'utm_campaign',
         'location',
+        'is_qualified',
     ];
 
     /**
@@ -64,6 +65,7 @@ class Lead extends Model implements LeadContract
         'expected_close_date' => 'date:D M d, Y',
         'is_unread' => 'boolean',
         'is_archived' => 'boolean',
+        'is_qualified' => 'boolean',
         'last_contacted_at' => 'datetime',
         'next_follow_up_at' => 'datetime',
     ];
@@ -353,5 +355,48 @@ class Lead extends Model implements LeadContract
         }
 
         return $events->sortByDesc('timestamp')->values();
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($lead) {
+            $lead->lead_score = $lead->calculateScore();
+        });
+    }
+
+    public function calculateScore()
+    {
+        $score = 0;
+        if ($this->person) {
+            $score += 20;
+            if ($this->person->emails && count($this->person->emails) > 0) {
+                $score += 10;
+            }
+            if ($this->person->contact_numbers && count($this->person->contact_numbers) > 0) {
+                $score += 10;
+            }
+        }
+        if ($this->lead_value > 0) {
+            $score += 20;
+        }
+        if ($this->priority === 'urgent') {
+            $score += 20;
+        } elseif ($this->priority === 'high') {
+            $score += 15;
+        } elseif ($this->priority === 'medium') {
+            $score += 10;
+        } else {
+            $score += 5;
+        }
+        if ($this->activities()->count() > 0) {
+            $score += 20;
+        }
+        if ($this->is_qualified) {
+            $score += 20;
+        }
+
+        return min($score, 100);
     }
 }

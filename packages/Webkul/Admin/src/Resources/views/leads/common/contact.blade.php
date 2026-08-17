@@ -9,6 +9,12 @@
         type="text/x-template"
         id="v-contact-component-template"
     >
+        <!-- Duplicate Warning Alert -->
+        <div v-if="duplicateWarning" class="p-3 mb-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center gap-2">
+            <span class="text-sm">⚠️</span>
+            <span>Warning: A contact named "@{{ duplicateWarning.name }}" with this email/phone already exists in the workspace.</span>
+        </div>
+
         <!-- Person Search Lookup -->
         <x-admin::form.control-group>
             <x-admin::form.control-group.label class="required">
@@ -111,7 +117,26 @@
                     },
 
                     persons: [],
+
+                    duplicateWarning: null,
                 }
+            },
+
+            watch: {
+                person: {
+                    handler: function (newPerson) {
+                        if (newPerson && ! newPerson.id) {
+                            this.checkDuplicateDebounced();
+                        } else {
+                            this.duplicateWarning = null;
+                        }
+                    },
+                    deep: true
+                }
+            },
+
+            created() {
+                this.checkDuplicateDebounced = this.debounce(this.checkDuplicate, 500);
             },
 
             computed: {
@@ -136,6 +161,38 @@
                 addPerson (person) {
                     this.person = person;
                 },
+
+                debounce(func, delay) {
+                    let timer;
+                    return function(...args) {
+                        clearTimeout(timer);
+                        timer = setTimeout(() => func.apply(this, args), delay);
+                    };
+                },
+
+                checkDuplicate() {
+                    const email = this.person.emails && this.person.emails[0] ? this.person.emails[0].value : '';
+                    const phone = this.person.contact_numbers && this.person.contact_numbers[0] ? this.person.contact_numbers[0].value : '';
+
+                    if (! email && ! phone) {
+                        this.duplicateWarning = null;
+                        return;
+                    }
+
+                    this.$axios.get('{{ route('admin.leads.check_duplicate') }}', {
+                        params: { email, phone }
+                    })
+                    .then(response => {
+                        if (response.data.is_duplicate) {
+                            this.duplicateWarning = response.data.contact;
+                        } else {
+                            this.duplicateWarning = null;
+                        }
+                    })
+                    .catch(() => {
+                        this.duplicateWarning = null;
+                    });
+                }
             }
         });
     </script>

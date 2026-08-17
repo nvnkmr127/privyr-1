@@ -249,8 +249,8 @@
                         <div class="swipe-bg-left absolute inset-y-0 left-0 hidden w-1/2 items-center justify-start bg-emerald-600 pl-4 text-white font-medium text-xs">
                             <span class="icon-phone text-lg mr-1"></span> Call / Contacted
                         </div>
-                        <div class="swipe-bg-right absolute inset-y-0 right-0 hidden w-1/2 items-center justify-end bg-blue-600 pr-4 text-white font-medium text-xs">
-                            <span class="icon-calendar text-lg mr-1"></span> Follow-up
+                        <div class="swipe-bg-right absolute inset-y-0 right-0 hidden w-1/2 items-center justify-end ${activePreset === 'archived' ? 'bg-indigo-600' : 'bg-red-600'} pr-4 text-white font-medium text-xs">
+                            <span class="icon-${activePreset === 'archived' ? 'add' : 'mail'} text-lg mr-1"></span> ${activePreset === 'archived' ? 'Restore' : 'Archive'}
                         </div>
 
                         <!-- Card Content -->
@@ -284,8 +284,8 @@
                                     <button type="button" class="quick-action-btn hover:text-brandColor" data-action="mark_contacted" data-id="${lead.id}" title="Mark Contacted">
                                         <span class="icon-phone text-sm"></span>
                                     </button>
-                                    <button type="button" class="quick-action-btn hover:text-brandColor" data-action="archive" data-id="${lead.id}" title="Archive">
-                                        <span class="icon-mail text-sm"></span>
+                                    <button type="button" class="quick-action-btn hover:text-brandColor" data-action="${activePreset === 'archived' ? 'unarchive' : 'archive'}" data-id="${lead.id}" title="${activePreset === 'archived' ? 'Restore / Unarchive' : 'Archive'}">
+                                        <span class="icon-${activePreset === 'archived' ? 'add' : 'mail'} text-sm"></span>
                                     </button>
                                 </div>
                             </div>
@@ -344,7 +344,7 @@
                     if (diff > 80) {
                         triggerSwipeAction(leadId, 'mark_contacted');
                     } else if (diff < -80) {
-                        triggerSwipeAction(leadId, 'archive');
+                        triggerSwipeAction(leadId, activePreset === 'archived' ? 'unarchive' : 'archive');
                     }
                     startX = 0;
                     currentX = 0;
@@ -438,6 +438,18 @@
                     });
                     this.className = 'preset-tab whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-all bg-brandColor text-white shadow-sm';
                     activePreset = this.dataset.preset;
+
+                    const bulkArchiveBtn = document.querySelector('[data-bulk-action="archive"], [data-bulk-action="unarchive"]');
+                    if (bulkArchiveBtn) {
+                        if (activePreset === 'archived') {
+                            bulkArchiveBtn.dataset.bulkAction = 'unarchive';
+                            bulkArchiveBtn.innerText = 'Restore / Unarchive';
+                        } else {
+                            bulkArchiveBtn.dataset.bulkAction = 'archive';
+                            bulkArchiveBtn.innerText = "@lang('admin::app.leads.inbox.actions.archive')";
+                        }
+                    }
+
                     fetchLeads(1);
                 });
             });
