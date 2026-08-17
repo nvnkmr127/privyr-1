@@ -30,7 +30,13 @@
                 <div class="flex gap-2.5 overflow-x-auto max-h-[calc(100vh-300px)]">
                     <!-- Stage Cards -->
                     <div
-                        class="flex min-w-[280px] max-w-[280px] flex-col gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-2 dark:border-gray-800 dark:bg-gray-900"
+                        class="flex min-w-[280px] max-w-[280px] flex-col gap-2 rounded-2xl border-x border-b border-t-4 bg-slate-50/50 p-2 shadow-sm dark:bg-gray-900"
+                        :style="{ 
+                            borderTopColor: stage.color || '#cbd5e1',
+                            borderLeftColor: 'rgba(203, 213, 225, 0.5)',
+                            borderRightColor: 'rgba(203, 213, 225, 0.5)',
+                            borderBottomColor: 'rgba(203, 213, 225, 0.5)'
+                        }"
                         v-for="(stage, index) in stageLeads"
                     >
                         {!! view_render_event('admin.leads.index.kanban.content.stage.header.before') !!}

@@ -19,10 +19,14 @@ class Stage extends Model implements StageContract
     protected $fillable = [
         'code',
         'name',
+        'is_default',
         'probability',
+        'color',
         'sort_order',
         'lead_pipeline_id',
     ];
+
+    protected $with = ['actions'];
 
     /**
      * Get the pipeline that owns the pipeline stage.
@@ -38,5 +42,13 @@ class Stage extends Model implements StageContract
     public function leads()
     {
         return $this->hasMany(LeadProxy::modelClass(), 'lead_pipeline_stage_id');
+    }
+
+    /**
+     * Get the actions.
+     */
+    public function actions()
+    {
+        return $this->hasMany(StageActionProxy::modelClass(), 'lead_pipeline_stage_id');
     }
 }

@@ -8,6 +8,7 @@ use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Product;
 use Webkul\Lead\Models\Source;
 use Webkul\Lead\Models\Stage;
+use Webkul\Lead\Models\StageAction;
 use Webkul\Lead\Models\Type;
 
 class ModuleServiceProvider extends BaseModuleServiceProvider
@@ -18,6 +19,7 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
         Product::class,
         Source::class,
         Stage::class,
+        StageAction::class,
         Type::class,
     ];
 }
