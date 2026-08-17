@@ -23,7 +23,8 @@ class AttributeController extends Controller
      */
     public function __construct(
         protected AttributeRepository $attributeRepository,
-        protected AttributeValueRepository $attributeValueRepository
+        protected AttributeValueRepository $attributeValueRepository,
+        protected \Webkul\Lead\Repositories\PipelineRepository $pipelineRepository
     ) {}
 
     /**
@@ -43,7 +44,8 @@ class AttributeController extends Controller
      */
     public function create(): View
     {
-        return view('admin::settings.attributes.create');
+        $pipelines = $this->pipelineRepository->all();
+        return view('admin::settings.attributes.create', compact('pipelines'));
     }
 
     /**
@@ -82,8 +84,9 @@ class AttributeController extends Controller
     public function edit(int $id): View
     {
         $attribute = $this->attributeRepository->findOrFail($id);
+        $pipelines = $this->pipelineRepository->all();
 
-        return view('admin::settings.attributes.edit', compact('attribute'));
+        return view('admin::settings.attributes.edit', compact('attribute', 'pipelines'));
     }
 
     /**

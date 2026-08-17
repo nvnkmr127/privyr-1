@@ -430,6 +430,37 @@
 
                             {!! view_render_event('admin.settings.users.index.form.role_id.after') !!}
 
+                            <!-- Allowed Pipelines -->
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Allowed Pipelines (Leave empty for all)
+                                </x-admin::form.control-group.label>
+
+                                <v-field
+                                    name="pipelines[]"
+                                    label="Pipelines"
+                                    multiple
+                                    v-model="user.pipelines"
+                                >
+                                    <select
+                                        name="pipelines[]"
+                                        class="flex min-h-[39px] w-full rounded-md border px-3 py-2 text-sm text-gray-600 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
+                                        :class="[errors['pipelines[]'] ? 'border !border-red-600 hover:border-red-600' : '']"
+                                        multiple
+                                        v-model="user.pipelines"
+                                    >
+                                        <option
+                                            v-for="pipeline in pipelines"
+                                            :value="pipeline.id"
+                                            :text="pipeline.name"
+                                        >
+                                        </option>
+                                    </select>
+                                </v-field>
+
+                                <x-admin::form.control-group.error name="pipelines[]" />
+                            </x-admin::form.control-group>
+
                             {!! view_render_event('admin.settings.users.index.form.status.before') !!}
 
                             <!-- Status -->
@@ -489,6 +520,8 @@
                         roles: @json($roles),
 
                         groups:  @json($groups),
+                        
+                        pipelines: @json($pipelines),
 
                         user: {
                             view_permission: 'global',
@@ -538,6 +571,7 @@
                     openModal() {
                         this.user = {
                             groups: [],
+                            pipelines: [],
                         };
 
                         this.$refs.userUpdateAndCreateModal.toggle();
@@ -580,6 +614,7 @@
                                 this.user = response.data.data;
 
                                 this.user.groups = this.user.groups.map(group => group.id);
+                                this.user.pipelines = this.user.pipelines.map(pipeline => pipeline.id);
 
                                 this.$refs.userUpdateAndCreateModal.toggle();
                             })

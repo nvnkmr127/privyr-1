@@ -406,6 +406,43 @@ class Lead extends AbstractReporting
     }
 
     /**
+     * Retrieves pipeline funnel stats.
+     */
+    public function getPipelineFunnel(): array
+    {
+        $stages = $this->pipeline->stages()->orderBy('sort_order', 'ASC')->get();
+        
+        $funnelData = [];
+
+        foreach ($stages as $stage) {
+            $count = $this->leadRepository
+                ->resetModel()
+                ->where('lead_pipeline_id', $this->pipeline->id)
+                ->where('lead_pipeline_stage_id', $stage->id)
+                ->whereBetween('created_at', [$this->startDate, $this->endDate])
+                ->count();
+
+            $value = $this->leadRepository
+                ->resetModel()
+                ->where('lead_pipeline_id', $this->pipeline->id)
+                ->where('lead_pipeline_stage_id', $stage->id)
+                ->whereBetween('created_at', [$this->startDate, $this->endDate])
+                ->sum('lead_value');
+
+            $funnelData[] = [
+                'stage_id'   => $stage->id,
+                'stage_name' => $stage->name,
+                'color'      => $stage->color ?? '#3b82f6',
+                'count'      => $count,
+                'value'      => core()->formatBasePrice($value),
+                'raw_value'  => (float) $value,
+            ];
+        }
+
+        return $funnelData;
+    }
+
+    /**
      * Generate time intervals based on period
      */
     protected function generateTimeIntervals(Carbon $startDate, Carbon $endDate, string $period): array

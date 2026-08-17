@@ -88,6 +88,14 @@ class User extends Authenticatable implements UserContract
     }
 
     /**
+     * The pipelines that belong to the user.
+     */
+    public function pipelines()
+    {
+        return $this->belongsToMany(\Webkul\Lead\Models\PipelineProxy::modelClass(), 'lead_pipeline_user');
+    }
+
+    /**
      * Checks if user has permission to perform certain action.
      *
      * @param  string  $permission

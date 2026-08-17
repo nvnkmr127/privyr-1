@@ -17,6 +17,7 @@ class Attribute extends Model implements AttributeContract
         'name',
         'type',
         'entity_type',
+        'lead_pipeline_id',
         'lookup_type',
         'sort_order',
         'validation',

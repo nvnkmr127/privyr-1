@@ -2,6 +2,8 @@
 
 namespace Webkul\Lead\Models;
 
-use Webkul\Core\Eloquent\Proxy;
+use Konekt\Concord\Proxies\ModelProxy;
 
-class StageActionProxy extends Proxy {}
+class StageActionProxy extends Proxy
+{
+}

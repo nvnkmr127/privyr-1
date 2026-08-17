@@ -42,10 +42,10 @@ class UserController extends Controller
         }
 
         $roles = $this->roleRepository->all();
-
         $groups = $this->groupRepository->all();
+        $pipelines = app(\Webkul\Lead\Repositories\PipelineRepository::class)->all();
 
-        return view('admin::settings.users.index', compact('roles', 'groups'));
+        return view('admin::settings.users.index', compact('roles', 'groups', 'pipelines'));
     }
 
     /**
@@ -63,6 +63,8 @@ class UserController extends Controller
             'view_permission' => 'string|in:global,group,individual',
             'groups' => 'required_if:view_permission,group|array',
             'groups.*' => 'integer|exists:groups,id',
+            'pipelines' => 'nullable|array',
+            'pipelines.*' => 'integer|exists:lead_pipelines,id',
         ]);
 
         $data = request()->all();
@@ -79,6 +81,7 @@ class UserController extends Controller
         $admin = $this->userRepository->create($data);
 
         $admin->groups()->sync($data['groups'] ?? []);
+        $admin->pipelines()->sync($data['pipelines'] ?? []);
 
         try {
             Mail::queue(new UserCreatedNotification($admin));
@@ -99,7 +102,7 @@ class UserController extends Controller
      */
     public function edit(int $id): View|JsonResponse
     {
-        $admin = $this->userRepository->with(['role', 'groups'])->findOrFail($id);
+        $admin = $this->userRepository->with(['role', 'groups', 'pipelines'])->findOrFail($id);
 
         return new JsonResponse([
             'data' => $admin,
@@ -121,6 +124,8 @@ class UserController extends Controller
             'view_permission' => 'required|string|in:global,group,individual',
             'groups' => 'required_if:view_permission,group|array',
             'groups.*' => 'integer|exists:groups,id',
+            'pipelines' => 'nullable|array',
+            'pipelines.*' => 'integer|exists:lead_pipelines,id',
         ]);
 
         $data = request()->all();
@@ -142,6 +147,7 @@ class UserController extends Controller
         $admin = $this->userRepository->update($data, $id);
 
         $admin->groups()->sync($data['groups'] ?? []);
+        $admin->pipelines()->sync($data['pipelines'] ?? []);
 
         Event::dispatch('settings.user.update.after', $admin);
 
