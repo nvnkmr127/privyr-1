@@ -69,17 +69,6 @@
                 <span>Duplicate</span>
             </a>
 
-            <!-- Convert to Quote -->
-            <form action="{{ route('admin.leads.convert_to_quote', $lead->id) }}" method="POST" class="inline-flex">
-                @csrf
-                <button
-                    type="submit"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                    title="Convert to Quote"
-                >
-                    <span>Convert to Quote</span>
-                </button>
-            </form>
 
             <!-- Merge Lead trigger -->
             <button

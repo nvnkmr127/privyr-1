@@ -1,24 +1,23 @@
 <?php
 
-use Webkul\Lead\Models\Lead;
-use Webkul\User\Models\User;
-use Webkul\Contact\Models\Person;
-use Webkul\Lead\Models\Source;
-use Webkul\Lead\Models\Type;
-use Webkul\Lead\Models\Pipeline;
-use Webkul\Lead\Models\Stage;
-use Webkul\Quote\Models\Quote;
 use Webkul\Activity\Models\Activity;
+use Webkul\Contact\Models\Person;
+use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\Pipeline;
+use Webkul\Lead\Models\Source;
+use Webkul\Lead\Models\Stage;
+use Webkul\Lead\Models\Type;
+use Webkul\User\Models\User;
 
 beforeEach(function () {
     $this->admin = User::first();
     $this->actingAs($this->admin);
-    
+
     $this->pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
     $this->stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $this->pipeline->id]);
     $this->source = Source::first() ?? Source::create(['name' => 'Direct']);
     $this->type = Type::first() ?? Type::create(['name' => 'Demo']);
-    
+
     $this->person = Person::create([
         'name' => 'Test Person',
         'emails' => [['value' => 'test@example.com', 'label' => 'work']],
@@ -45,28 +44,6 @@ test('it duplicates a lead', function () {
         'title' => 'Clone of Original Lead',
         'lead_value' => 500,
     ]);
-});
-
-test('it converts a lead to a quote', function () {
-    $lead = Lead::create([
-        'title' => 'Conversion Lead',
-        'lead_value' => 1500,
-        'user_id' => $this->admin->id,
-        'person_id' => $this->person->id,
-        'lead_source_id' => $this->source->id,
-        'lead_type_id' => $this->type->id,
-        'lead_pipeline_id' => $this->pipeline->id,
-        'lead_pipeline_stage_id' => $this->stage->id,
-    ]);
-
-    $this->post(route('admin.leads.convert_to_quote', $lead->id))
-        ->assertRedirect();
-
-    $quote = Quote::latest()->first();
-    expect($quote->subject)->toBe('Quote for Lead: Conversion Lead');
-    expect((float) $quote->grand_total)->toBe(1500.0);
-
-    expect($lead->quotes()->where('quotes.id', $quote->id)->exists())->toBeTrue();
 });
 
 test('it merges two leads correctly', function () {

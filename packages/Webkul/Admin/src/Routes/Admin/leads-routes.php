@@ -64,8 +64,6 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
     Route::post('merge/{id}', 'mergeStore')->name('admin.leads.merge.store');
 
-    Route::post('convert-to-quote/{id}', 'convertToQuote')->name('admin.leads.convert_to_quote');
-
     Route::get('get/{pipeline_id?}', 'get')->name('admin.leads.get');
 
     Route::delete('product/{lead_id}', 'removeProduct')->name('admin.leads.product.remove');
