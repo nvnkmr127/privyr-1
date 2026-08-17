@@ -1,19 +1,21 @@
 {!! view_render_event('admin.leads.index.view_switcher.before') !!}
 
 <div class="flex items-center gap-4 max-md:w-full max-md:!justify-between">
+    <div class="hidden h-5 w-px bg-gray-300 dark:bg-gray-700 md:block"></div>
+
     <x-admin::dropdown>
         <x-slot:toggle>
             {!! view_render_event('admin.leads.index.view_switcher.pipeline.button.before') !!}
 
             <button
                 type="button"
-                class="flex cursor-pointer appearance-none items-center justify-between gap-x-3 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 focus:border-slate-300"
+                class="flex cursor-pointer appearance-none items-center justify-between gap-x-3 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 shadow-sm transition hover:bg-gray-50 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
                 <span class="whitespace-nowrap">
                     {{ $pipeline->name }}
                 </span>
                 
-                <span class="icon-down-arrow text-lg"></span>
+                <span class="icon-down-arrow text-2xl"></span>
             </button>
 
             {!! view_render_event('admin.leads.index.view_switcher.pipeline.button.after') !!}

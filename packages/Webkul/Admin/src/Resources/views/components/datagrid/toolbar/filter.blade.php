@@ -37,7 +37,7 @@
                     ref="filterDrawer"
                 >
                     <x-slot:toggle>
-                        <div class="relative flex cursor-pointer items-center rounded-md bg-sky-100 px-4 py-[9px] font-semibold text-sky-600 dark:bg-brandColor dark:text-white">
+                        <div class="relative flex cursor-pointer items-center rounded-md border border-sky-200 bg-sky-100 px-4 py-1.5 text-sm font-semibold text-sky-600 shadow-sm transition hover:bg-sky-200 dark:border-brandColor dark:bg-brandColor dark:text-white dark:hover:bg-sky-700">
                             @lang('admin::app.components.datagrid.toolbar.filter.title')
 
                             <span

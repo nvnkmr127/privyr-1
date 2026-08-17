@@ -9,6 +9,8 @@ This changelog consists of the bug & security fixes and new features being inclu
 * [enhancement] Redesigned Moldable Create/Edit Field drawer into a clear enterprise 6-step workflow with completed/active/upcoming step states, micro-progress indicator, clean entity context badges, immutable field-code lock indicator, dynamic per-type configuration, inline validation, and unsaved changes protection.
 * [enhancement] Standardized visual typography hierarchy across CRM admin views (page headings, breadcrumbs, buttons, section headers, badges, and drawers) using `/admin/settings` as the visual reference.
 * [enhancement] Standardized icon system across the CRM with consistent sizing matrix (30px card icons, 24px action/checkbox icons, 18-20px sidebar/nav icons, 16px button/sort icons) and unified container paddings and radii (`rounded-md` / `rounded-lg`).
+* [enhancement] Consolidated repeated UI patterns across CRM modules, replacing ad-hoc button and badge styles with shared primitives (`.primary-button`, `.secondary-button`, `.transparent-button`, `.label-active`, `.label-inactive`).
+* [enhancement] Redesigned Lead Details page with a compact summary header, 2-column property grids with progressive disclosure for large field collections, sticky desktop sidebar, real-time activity timeline filters, and responsive 35%/65% layout.
 
 
 * [feature] Added instant new-lead push notifications to assigned agents' devices via the Firebase Cloud Messaging HTTP v1 API (service-account OAuth), with device-token registration APIs, automatic pruning of dead tokens, and a WhatsApp fallback when no device is registered.

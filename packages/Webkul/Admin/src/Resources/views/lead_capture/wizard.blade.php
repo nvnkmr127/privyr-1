@@ -42,7 +42,7 @@
                     <!-- Header -->
                     <div class="flex items-center justify-between px-8 py-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
                         <div class="flex items-center gap-3">
-                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-black border border-slate-200/60 text-xl shadow-2xs " v-html="activeSource.icon"></div>
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold border border-gray-200/60 dark:border-gray-700 text-xl" v-html="activeSource.icon"></div>
                             <div>
                                 <h2 class="text-lg font-bold text-slate-900 dark:text-white">@{{ activeSource.name }}</h2>
                                 <p class="text-xs text-slate-500">@{{ kindLabel(activeSource.kind) }}</p>
@@ -266,8 +266,8 @@
 
                     <!-- Footer -->
                     <div class="px-8 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between shrink-0">
-                        <button type="button" class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 transition dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" @click="handleBack"><i v-if="currentStep > 1" class="fa-solid fa-arrow-left text-xs mr-1"></i> @{{ getBackText() }}</button>
-                        <button type="button" class="rounded-xl bg-slate-900 hover:bg-black text-white px-6 py-2.5 text-sm font-bold shadow-md shadow-slate-900/10 transition flex items-center gap-2 disabled:opacity-50 dark:bg-slate-700 dark:hover:bg-slate-600" @click="nextStep" :disabled="!canProceed || isSaving">
+                        <button type="button" class="secondary-button" @click="handleBack"><i v-if="currentStep > 1" class="fa-solid fa-arrow-left text-xs mr-1"></i> @{{ getBackText() }}</button>
+                        <button type="button" class="primary-button" @click="nextStep" :disabled="!canProceed || isSaving">
                             <i v-if="isSaving" class="fa-solid fa-spinner animate-spin mr-1"></i>
                             @{{ getContinueText() }} <i v-if="currentStep !== steps.length && !(currentStep === saveAt && !result)" class="fa-solid fa-arrow-right text-xs ml-1"></i>
                         </button>
