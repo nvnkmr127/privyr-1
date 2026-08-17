@@ -33,7 +33,7 @@
 
                         <button
                             type="submit"
-                            class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-black transition shadow-sm"
+                            class="primary-button"
                         >
                             @lang('admin::app.leads.edit.save-btn')
                         </button>

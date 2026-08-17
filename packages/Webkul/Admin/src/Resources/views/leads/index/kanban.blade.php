@@ -39,8 +39,8 @@
                         <div class="flex flex-col px-2 py-3">
                             <!-- Stage Title and Action -->
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-black tracking-wider text-slate-900 uppercase">
-                                    @{{ stage.name }} <span class="text-slate-400 font-semibold ml-1">(@{{ stage.leads.meta.total }})</span>
+                                <span class="text-sm font-semibold tracking-wider text-gray-800 dark:text-white uppercase">
+                                    @{{ stage.name }} <span class="text-gray-400 font-normal ml-1">(@{{ stage.leads.meta.total }})</span>
                                 </span>
 
                                 @if (bouncer()->hasPermission('leads.create'))

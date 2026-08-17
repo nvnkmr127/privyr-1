@@ -9,10 +9,10 @@
         <div class="scroll-reactive-sticky flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white/60 backdrop-blur-sm p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Field Builder
                     </h1>
-                    <span class="rounded-full bg-slate-100 border border-slate-200/80 px-3 py-0.5 text-xs font-bold text-slate-800 shadow-2xs">
+                    <span class="rounded-full bg-slate-100 border border-slate-200/80 px-3 py-0.5 text-xs font-medium text-slate-800 shadow-2xs">
                         Moldable CRM v2.0
                     </span>
                 </div>

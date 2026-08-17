@@ -3,16 +3,16 @@
         {{ menu()->getLabel('leads', 'admin::app.leads.index.title') }}
     </x-slot>
 
-    <div class="max-w-7xl mx-auto space-y-8">
+    <div class="flex w-full flex-col gap-4">
         <!-- Header -->
         {!! view_render_event('admin.leads.index.header.before') !!}
 
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mt-4">
-            {!! view_render_event('admin.leads.index.header.left.before') !!}
+        <div class="scroll-reactive-sticky sticky top-[60px] z-[1000] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+            <div class="flex flex-col gap-2">
+                {!! view_render_event('admin.leads.index.header.left.before') !!}
 
-            <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-3">
-                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">
+                    <h1 class="text-xl font-bold dark:text-white">
                         {{ menu()->getLabel('leads', 'admin::app.leads.index.title') }}
                     </h1>
                     <span class="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">
@@ -21,13 +21,13 @@
                 </div>
                 <!-- Breadcrumb's -->
                 <x-admin::breadcrumbs name="leads" />
+                
+                {!! view_render_event('admin.leads.index.header.left.after') !!}
             </div>
 
-            {!! view_render_event('admin.leads.index.header.left.after') !!}
-
-            {!! view_render_event('admin.leads.index.header.right.before') !!}
-
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-x-2.5">
+                {!! view_render_event('admin.leads.index.header.right.before') !!}
+                
                 <!-- Upload File for Lead Creation -->
                 @if(core()->getConfigData('general.magic_ai.doc_generation.enabled'))
                     @include('admin::leads.index.upload')
@@ -40,15 +40,14 @@
                 @if (bouncer()->hasPermission('leads.create'))
                     <a
                         href="{{ route('admin.leads.create', request()->query()) }}"
-                        class="rounded-xl bg-slate-900 hover:bg-black text-white px-5 py-2.5 text-sm font-semibold shadow-md shadow-slate-900/10 transition flex items-center gap-2"
+                        class="primary-button"
                     >
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         @lang('admin::app.leads.index.create-btn')
                     </a>
                 @endif
-            </div>
 
-            {!! view_render_event('admin.leads.index.header.right.after') !!}
+                {!! view_render_event('admin.leads.index.header.right.after') !!}
+            </div>
         </div>
 
         {!! view_render_event('admin.leads.index.header.after') !!}

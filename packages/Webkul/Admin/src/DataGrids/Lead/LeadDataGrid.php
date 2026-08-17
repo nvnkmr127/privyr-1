@@ -322,7 +322,7 @@ class LeadDataGrid extends DataGrid
                     return '--';
                 }
 
-                return $row->expected_close_date;
+                return core()->formatDate($row->expected_close_date);
             },
         ]);
 
@@ -334,6 +334,7 @@ class LeadDataGrid extends DataGrid
             'sortable' => true,
             'filterable' => true,
             'filterable_type' => 'date_range',
+            'closure' => fn ($row) => core()->formatDate($row->created_at),
         ]);
 
         /**

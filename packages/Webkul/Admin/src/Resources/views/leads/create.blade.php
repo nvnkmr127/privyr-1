@@ -30,7 +30,7 @@
                 {!! view_render_event('admin.leads.create.save_button.before') !!}
 
                 <div class="flex items-center gap-x-3">
-                    <a href="{{ route('admin.leads.index') }}" class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">
+                    <a href="{{ route('admin.leads.index') }}" class="transparent-button">
                         Cancel
                     </a>
                     
@@ -39,9 +39,8 @@
 
                         <button
                             type="submit"
-                            class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-black shadow-md shadow-slate-900/10 transition flex items-center gap-2"
+                            class="primary-button"
                         >
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             @lang('admin::app.leads.create.save-btn')
                         </button>
 

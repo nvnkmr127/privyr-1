@@ -443,13 +443,13 @@
                     selectedType: this.activeType,
 
                     typeClasses: {
-                        email: 'icon-mail bg-slate-100 text-slate-800',
-                        note: 'icon-note bg-slate-100 text-slate-800',
-                        call: 'icon-call bg-slate-100 text-slate-800',
-                        meeting: 'icon-activity bg-slate-100 text-slate-800',
-                        file: 'icon-file bg-slate-100 text-slate-800',
-                        system: 'icon-system-generate bg-slate-100 text-slate-800',
-                        default: 'icon-activity bg-slate-100 text-slate-800',
+                        email: 'icon-mail bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+                        note: 'icon-note bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+                        call: 'icon-call bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+                        meeting: 'icon-activity bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+                        file: 'icon-file bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
+                        system: 'icon-system-generate bg-slate-100 text-slate-700 dark:bg-gray-800 dark:text-slate-300',
+                        default: 'icon-activity bg-slate-100 text-slate-700 dark:bg-gray-800 dark:text-slate-300',
                     },
 
                     typeIllustrations: {
