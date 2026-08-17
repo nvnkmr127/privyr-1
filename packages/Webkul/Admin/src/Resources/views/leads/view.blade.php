@@ -62,7 +62,7 @@
                     <div class="flex items-center gap-4">
                         <x-admin::avatar :name="$lead->person?->name ?? 'Unknown'" class="!w-14 !h-14 text-xl font-bold" />
                         <div class="flex flex-col">
-                            <h1 class="text-2xl font-black tracking-tight text-slate-900 leading-tight">
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">
                                 {{ $lead->person?->name ?? 'Unknown Contact' }}
                             </h1>
                             @if($lead->person?->job_title || $lead->person?->organization)

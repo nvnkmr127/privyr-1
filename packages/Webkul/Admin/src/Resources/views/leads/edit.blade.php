@@ -19,7 +19,7 @@
                         :entity="$lead"
                     />
 
-                    <div class="text-2xl font-black tracking-tight text-slate-900 leading-tight">
+                    <div class="text-xl font-bold text-gray-800 dark:text-white">
                         @lang('admin::app.leads.edit.title')
                     </div>
                 </div>
@@ -33,7 +33,7 @@
 
                         <button
                             type="submit"
-                            class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-black transition shadow-sm"
+                            class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-black transition shadow-sm"
                         >
                             @lang('admin::app.leads.edit.save-btn')
                         </button>
@@ -92,7 +92,7 @@
                         id="lead-details"
                     >
                         <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
-                            <h2 class="text-lg font-black text-slate-900 tracking-tight">
+                            <h2 class="text-base font-semibold text-gray-800 dark:text-white">
                                 @lang('admin::app.leads.edit.details')
                             </h2>
 
@@ -132,7 +132,7 @@
                         id="contact-person"
                     >
                         <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
-                            <h2 class="text-lg font-black text-slate-900 tracking-tight">
+                            <h2 class="text-base font-semibold text-gray-800 dark:text-white">
                                 @lang('admin::app.leads.edit.contact-person')
                             </h2>
 
@@ -157,7 +157,7 @@
                         id="products"
                     >
                         <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
-                            <h2 class="text-lg font-black text-slate-900 tracking-tight">
+                            <h2 class="text-base font-semibold text-gray-800 dark:text-white">
                                 @lang('admin::app.leads.edit.products')
                             </h2>
 

@@ -12,10 +12,10 @@
 
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-black tracking-tight text-slate-900">
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">
                         {{ menu()->getLabel('leads', 'admin::app.leads.index.title') }}
                     </h1>
-                    <span class="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-bold text-slate-700">
+                    <span class="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">
                         {{ app('Webkul\Lead\Repositories\PipelineRepository')->all()->count() }} Pipelines
                     </span>
                 </div>
@@ -40,7 +40,7 @@
                 @if (bouncer()->hasPermission('leads.create'))
                     <a
                         href="{{ route('admin.leads.create', request()->query()) }}"
-                        class="rounded-xl bg-slate-900 hover:bg-black text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-slate-900/10 transition flex items-center gap-2"
+                        class="rounded-xl bg-slate-900 hover:bg-black text-white px-5 py-2.5 text-sm font-semibold shadow-md shadow-slate-900/10 transition flex items-center gap-2"
                     >
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         @lang('admin::app.leads.index.create-btn')

@@ -7,7 +7,7 @@
     <div class="flex flex-col gap-4">
         <div class="flex items-center justify-between gap-4 max-md:flex-col max-md:items-start">
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 class="text-xl font-bold text-gray-800 dark:text-white">
                     @lang('admin::app.leads.inbox.title')
                 </h1>
                 <span id="lead-count-badge" class="rounded-full bg-brandColor/10 px-2.5 py-0.5 text-xs font-semibold text-brandColor dark:bg-brandColor/20">
@@ -22,7 +22,7 @@
                     href="{{ route('admin.leads.create') }}"
                     class="primary-button flex items-center gap-2"
                 >
-                    <span class="icon-add text-xl"></span>
+                    <span class="icon-add text-base"></span>
                     @lang('admin::app.leads.index.create-btn-title')
                 </a>
             </div>

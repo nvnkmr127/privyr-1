@@ -14,15 +14,15 @@
                     <x-admin::breadcrumbs name="leads.create" />
                     
                     <div class="flex items-center gap-3 mt-1">
-                        <h1 class="text-2xl font-black tracking-tight text-slate-900">
+                        <h1 class="text-xl font-bold text-gray-800 dark:text-white">
                             @lang('admin::app.leads.create.title')
                         </h1>
-                        <span class="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-700 shadow-sm">
+                        <span class="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm">
                             New Lead
                         </span>
                     </div>
                     
-                    <p class="text-xs font-medium text-slate-400 mt-1">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
                         Add a new prospect to your CRM and start tracking activities.
                     </p>
                 </div>
@@ -30,7 +30,7 @@
                 {!! view_render_event('admin.leads.create.save_button.before') !!}
 
                 <div class="flex items-center gap-x-3">
-                    <a href="{{ route('admin.leads.index') }}" class="text-xs font-bold text-slate-500 hover:text-slate-900 transition">
+                    <a href="{{ route('admin.leads.index') }}" class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition">
                         Cancel
                     </a>
                     
@@ -39,7 +39,7 @@
 
                         <button
                             type="submit"
-                            class="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-black shadow-md shadow-slate-900/10 transition flex items-center gap-2"
+                            class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-black shadow-md shadow-slate-900/10 transition flex items-center gap-2"
                         >
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             @lang('admin::app.leads.create.save-btn')
@@ -96,7 +96,7 @@
 
                     <div class="flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white shadow-2xs p-8" id="contact-person">
                         <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 mb-2">
-                            <h2 class="text-xl font-black text-slate-900 tracking-tight">
+                            <h2 class="text-base font-semibold text-gray-800 dark:text-white">
                                 Contact Information
                             </h2>
 
