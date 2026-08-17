@@ -2,7 +2,6 @@
 
 namespace Webkul\Lead\Repositories;
 
-use Illuminate\Container\Container;
 use Webkul\Core\Eloquent\Repository;
 
 class StageActionRepository extends Repository
