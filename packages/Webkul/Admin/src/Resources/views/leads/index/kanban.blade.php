@@ -200,6 +200,35 @@
                                             @{{ element.type.name }}
                                         </div>
 
+                                        <!-- Score -->
+                                        <div class="rounded-lg bg-amber-50 border border-amber-200/60 px-2 py-1 text-[10px] font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                                            Score: @{{ element.lead_score ?? 0 }}
+                                        </div>
+
+                                        <!-- Priority -->
+                                        <div 
+                                            class="rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                                            :class="{
+                                                'bg-gray-500': element.priority === 'low',
+                                                'bg-blue-500': element.priority === 'medium',
+                                                'bg-orange-500': element.priority === 'high',
+                                                'bg-red-500': element.priority === 'urgent'
+                                            }"
+                                            v-if="element.priority"
+                                        >
+                                            @{{ element.priority }}
+                                        </div>
+
+                                        <!-- Location -->
+                                        <div class="rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white" v-if="element.location">
+                                            @{{ element.location }}
+                                        </div>
+
+                                        <!-- Qualification Status -->
+                                        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800" v-if="element.is_qualified">
+                                            Qualified
+                                        </div>
+
                                         <!-- Tags -->
                                         <template v-for="tag in element.tags">
                                             {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.tag.before') !!}

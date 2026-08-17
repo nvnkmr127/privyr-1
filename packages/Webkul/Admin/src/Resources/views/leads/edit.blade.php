@@ -118,6 +118,90 @@
                                 />
                             </div>
 
+                            <!-- Native Metadata Fields (Priority, Location, UTM, Qualification) -->
+                            <div class="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-gray-800">
+                                <!-- Priority -->
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Priority
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="select"
+                                        name="priority"
+                                        v-model="lead.priority"
+                                    >
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </x-admin::form.control-group.control>
+                                </x-admin::form.control-group>
+
+                                <!-- Location -->
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Location
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="location"
+                                        v-model="lead.location"
+                                        placeholder="City, Country"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <!-- Qualification Status -->
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Qualification Status
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="select"
+                                        name="is_qualified"
+                                        v-model="lead.is_qualified"
+                                    >
+                                        <option :value="0">Unqualified</option>
+                                        <option :value="1">Qualified</option>
+                                    </x-admin::form.control-group.control>
+                                </x-admin::form.control-group>
+
+                                <!-- UTM Source -->
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        UTM Source
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="utm_source"
+                                        v-model="lead.utm_source"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <!-- UTM Medium -->
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        UTM Medium
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="utm_medium"
+                                        v-model="lead.utm_medium"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <!-- UTM Campaign -->
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        UTM Campaign
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="utm_campaign"
+                                        v-model="lead.utm_campaign"
+                                    />
+                                </x-admin::form.control-group>
+                            </div>
+
                             {!! view_render_event('admin.leads.edit.lead_details.attributes.after', ['lead' => $lead]) !!}
                         </div>
                     </div>

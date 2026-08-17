@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
@@ -197,6 +198,9 @@ class LeadController extends Controller
             case 'archive':
                 $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['is_archived' => true]);
                 break;
+            case 'unarchive':
+                $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['is_archived' => false]);
+                break;
             case 'mark_read':
                 $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['is_unread' => false]);
                 break;
@@ -254,6 +258,7 @@ class LeadController extends Controller
                 ->where([
                     'lead_pipeline_id' => $pipeline->id,
                     'lead_pipeline_stage_id' => $stage->id,
+                    'leads.is_archived' => 0,
                 ]);
 
             if ($userIds = bouncer()->getAuthorizedUserIds()) {
@@ -988,5 +993,133 @@ class LeadController extends Controller
         }
 
         return $leads;
+    }
+
+    public function duplicate($id)
+    {
+        $lead = $this->leadRepository->findOrFail($id);
+
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        $newLead = $lead->replicate();
+        $newLead->title = 'Clone of '.$lead->title;
+        $newLead->save();
+
+        foreach ($lead->products as $product) {
+            $this->productRepository->create([
+                'lead_id' => $newLead->id,
+                'product_id' => $product->product_id,
+                'name' => $product->name,
+                'quantity' => $product->quantity,
+                'price' => $product->price,
+                'amount' => $product->amount,
+            ]);
+        }
+
+        session()->flash('success', 'Lead duplicated successfully.');
+
+        return redirect()->route('admin.leads.view', $newLead->id);
+    }
+
+    public function mergeStore($id)
+    {
+        $primaryLead = $this->leadRepository->findOrFail($id);
+
+        $this->preventUnauthorizedAccess($primaryLead->user_id);
+
+        $this->validate(request(), [
+            'target_lead_id' => 'required|exists:leads,id',
+        ]);
+
+        $targetLeadId = request()->input('target_lead_id');
+
+        if ($targetLeadId == $primaryLead->id) {
+            session()->flash('error', 'Cannot merge a lead into itself.');
+
+            return redirect()->back();
+        }
+
+        $targetLead = $this->leadRepository->findOrFail($targetLeadId);
+
+        $this->preventUnauthorizedAccess($targetLead->user_id);
+
+        DB::table('lead_activities')
+            ->where('lead_id', $targetLead->id)
+            ->update(['lead_id' => $primaryLead->id]);
+
+        DB::table('lead_quotes')
+            ->where('lead_id', $targetLead->id)
+            ->update(['lead_id' => $primaryLead->id]);
+
+        $primaryProductIds = $primaryLead->products()->pluck('product_id')->toArray();
+        foreach ($targetLead->products as $product) {
+            if (! in_array($product->product_id, $primaryProductIds)) {
+                $product->update(['lead_id' => $primaryLead->id]);
+            } else {
+                $product->delete();
+            }
+        }
+
+        $primaryLead->tags()->syncWithoutDetaching($targetLead->tags()->pluck('tags.id')->toArray());
+
+        if (! $primaryLead->lead_value && $targetLead->lead_value) {
+            $primaryLead->update(['lead_value' => $targetLead->lead_value]);
+        }
+        if (! $primaryLead->description && $targetLead->description) {
+            $primaryLead->update(['description' => $targetLead->description]);
+        }
+
+        $this->leadRepository->delete($targetLead->id);
+
+        session()->flash('success', 'Leads merged successfully.');
+
+        return redirect()->route('admin.leads.view', $primaryLead->id);
+    }
+
+    public function convertToQuote($id)
+    {
+        $lead = $this->leadRepository->findOrFail($id);
+
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        $expiredAt = Carbon::now()->addMonth();
+
+        $products = [];
+        foreach ($lead->products as $index => $product) {
+            $products['products'][$index] = [
+                'product_id' => $product->product_id,
+                'name' => $product->name,
+                'quantity' => $product->quantity,
+                'price' => $product->price,
+                'amount' => $product->amount,
+            ];
+        }
+
+        $subTotal = $lead->lead_value ?? 0;
+        $grandTotal = $lead->lead_value ?? 0;
+
+        $quoteData = array_merge([
+            'subject' => 'Quote for Lead: '.$lead->title,
+            'description' => $lead->description,
+            'billing_address' => [
+                'address' => 'Billing Address Placeholder',
+            ],
+            'shipping_address' => [
+                'address' => 'Shipping Address Placeholder',
+            ],
+            'sub_total' => $subTotal,
+            'grand_total' => $grandTotal,
+            'expired_at' => $expiredAt->format('Y-m-d'),
+            'person_id' => $lead->person_id,
+            'user_id' => $lead->user_id ?? auth()->user()->id,
+        ], $products);
+
+        $quote = $this->quoteRepository->create($quoteData);
+
+        $lead->quotes()->attach($quote->id);
+
+        session()->flash('success', 'Lead converted to Quote successfully.');
+
+        return redirect()->route('admin.quotes.edit', $quote->id);
     }
 }

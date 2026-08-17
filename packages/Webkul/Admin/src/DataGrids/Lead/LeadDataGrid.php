@@ -61,6 +61,10 @@ class LeadDataGrid extends DataGrid
                 'leads.status',
                 'leads.lead_value',
                 'leads.expected_close_date',
+                'leads.priority',
+                'leads.location',
+                'leads.lead_score',
+                'leads.is_qualified',
                 'lead_sources.name as lead_source_name',
                 'lead_types.name as lead_type_name',
                 'leads.created_at',
@@ -85,7 +89,8 @@ class LeadDataGrid extends DataGrid
             ->leftJoin('lead_tags', 'leads.id', '=', 'lead_tags.lead_id')
             ->leftJoin('tags', 'tags.id', '=', 'lead_tags.tag_id')
             ->groupBy('leads.id')
-            ->where('leads.lead_pipeline_id', $this->pipeline->id);
+            ->where('leads.lead_pipeline_id', $this->pipeline->id)
+            ->where('leads.is_archived', 0);
 
         /**
          * Custom (user defined) attribute values live in the EAV `attribute_values` table, so they
@@ -135,6 +140,10 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('expected_close_date', 'leads.expected_close_date');
         $this->addFilter('created_at', 'leads.created_at');
         $this->addFilter('rotten_lead', DB::raw('DATEDIFF(NOW(), '.$tablePrefix.'leads.created_at) >= '.$tablePrefix.'lead_pipelines.rotten_days'));
+        $this->addFilter('priority', 'leads.priority');
+        $this->addFilter('location', 'leads.location');
+        $this->addFilter('lead_score', 'leads.lead_score');
+        $this->addFilter('is_qualified', 'leads.is_qualified');
 
         return $queryBuilder;
     }
@@ -307,6 +316,60 @@ class LeadDataGrid extends DataGrid
 
                 return '<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-900/40 dark:text-red-300"><i class="fa-solid fa-fire mr-1 text-red-500"></i> Rotten</span>';
             },
+        ]);
+
+        $this->addColumn([
+            'index' => 'priority',
+            'label' => 'Priority',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+            'closure' => function ($row) {
+                $colors = [
+                    'low' => 'bg-gray-100 text-gray-800',
+                    'medium' => 'bg-blue-100 text-blue-800',
+                    'high' => 'bg-orange-100 text-orange-800',
+                    'urgent' => 'bg-red-100 text-red-800',
+                ];
+                $class = $colors[$row->priority] ?? 'bg-blue-100 text-blue-800';
+
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wider '.$class.'">'.$row->priority.'</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'lead_score',
+            'label' => 'Score',
+            'type' => 'integer',
+            'searchable' => false,
+            'sortable' => true,
+            'closure' => function ($row) {
+                return '<span class="font-bold text-slate-700 dark:text-slate-300">'.($row->lead_score ?? 0).'</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'is_qualified',
+            'label' => 'Qualification',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'closure' => function ($row) {
+                if ($row->is_qualified) {
+                    return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Qualified</span>';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Unqualified</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'location',
+            'label' => 'Location',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
         ]);
 
         $this->addColumn([
