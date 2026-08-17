@@ -305,7 +305,7 @@ class LeadController extends Controller
     public function create(): View
     {
         $pipelineId = request('pipeline_id');
-        if (!$pipelineId) {
+        if (! $pipelineId) {
             $pipelineId = $this->pipelineRepository->getDefaultPipeline()->id;
         }
 
@@ -313,7 +313,7 @@ class LeadController extends Controller
             ->where('entity_type', 'leads')
             ->where(function ($query) use ($pipelineId) {
                 $query->whereNull('lead_pipeline_id')
-                      ->orWhere('lead_pipeline_id', $pipelineId);
+                    ->orWhere('lead_pipeline_id', $pipelineId);
             })
             ->where(function ($query) {
                 $query->whereIn('code', ['description', 'title', 'lead_value', 'lead_type_id', 'lead_source_id', 'expected_close_date', 'user_id'])
@@ -395,7 +395,7 @@ class LeadController extends Controller
             ->where('entity_type', 'leads')
             ->where(function ($query) use ($pipelineId) {
                 $query->whereNull('lead_pipeline_id')
-                      ->orWhere('lead_pipeline_id', $pipelineId);
+                    ->orWhere('lead_pipeline_id', $pipelineId);
             })
             ->where(function ($query) {
                 $query->whereIn('code', ['description', 'title', 'lead_value', 'lead_type_id', 'lead_source_id', 'expected_close_date', 'user_id'])

@@ -411,7 +411,7 @@ class Lead extends AbstractReporting
     public function getPipelineFunnel(): array
     {
         $stages = $this->pipeline->stages()->orderBy('sort_order', 'ASC')->get();
-        
+
         $funnelData = [];
 
         foreach ($stages as $stage) {
@@ -430,12 +430,12 @@ class Lead extends AbstractReporting
                 ->sum('lead_value');
 
             $funnelData[] = [
-                'stage_id'   => $stage->id,
+                'stage_id' => $stage->id,
                 'stage_name' => $stage->name,
-                'color'      => $stage->color ?? '#3b82f6',
-                'count'      => $count,
-                'value'      => core()->formatBasePrice($value),
-                'raw_value'  => (float) $value,
+                'color' => $stage->color ?? '#3b82f6',
+                'count' => $count,
+                'value' => core()->formatBasePrice($value),
+                'raw_value' => (float) $value,
             ];
         }
 

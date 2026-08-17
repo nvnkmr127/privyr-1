@@ -13,6 +13,7 @@ use Webkul\Admin\Http\Requests\MassDestroyRequest;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Attribute\Repositories\AttributeValueRepository;
 use Webkul\Core\Contracts\Validations\Code;
+use Webkul\Lead\Repositories\PipelineRepository;
 
 class AttributeController extends Controller
 {
@@ -24,7 +25,7 @@ class AttributeController extends Controller
     public function __construct(
         protected AttributeRepository $attributeRepository,
         protected AttributeValueRepository $attributeValueRepository,
-        protected \Webkul\Lead\Repositories\PipelineRepository $pipelineRepository
+        protected PipelineRepository $pipelineRepository
     ) {}
 
     /**
@@ -45,6 +46,7 @@ class AttributeController extends Controller
     public function create(): View
     {
         $pipelines = $this->pipelineRepository->all();
+
         return view('admin::settings.attributes.create', compact('pipelines'));
     }
 

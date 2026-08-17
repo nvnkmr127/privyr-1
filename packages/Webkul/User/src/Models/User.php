@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Webkul\Lead\Models\PipelineProxy;
 use Webkul\User\Contracts\User as UserContract;
 
 class User extends Authenticatable implements UserContract
@@ -92,7 +93,7 @@ class User extends Authenticatable implements UserContract
      */
     public function pipelines()
     {
-        return $this->belongsToMany(\Webkul\Lead\Models\PipelineProxy::modelClass(), 'lead_pipeline_user');
+        return $this->belongsToMany(PipelineProxy::modelClass(), 'lead_pipeline_user');
     }
 
     /**
