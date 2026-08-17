@@ -2,7 +2,7 @@
     'isActive' => true,
 ])
 
-<div {{ $attributes->merge(['class' => 'box-shadow rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900']) }}>
+<div {{ $attributes->merge(['class' => 'box-shadow rounded-lg border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-visible']) }}>
     <v-accordion
         is-active="{{ $isActive }}"
         {{ $attributes }}

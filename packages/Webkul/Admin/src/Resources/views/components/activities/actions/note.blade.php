@@ -51,10 +51,10 @@
                             {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.header.title.before') !!}
 
                             <div class="flex items-center gap-3">
-                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-                                    <span class="icon-note text-xl"></span>
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-50 to-orange-100 shadow-sm ring-1 ring-amber-200/50 dark:from-amber-900/50 dark:to-orange-950/50 dark:ring-amber-700/50">
+                                    <span class="icon-note text-2xl text-amber-600 dark:text-amber-400"></span>
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                                     @lang('admin::app.components.activities.actions.note.title')
                                 </h3>
                             </div>
@@ -81,7 +81,7 @@
 
                             <!-- Comment -->
                             <x-admin::form.control-group class="!mb-0">
-                                <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="required font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.note.comment')
                                 </x-admin::form.control-group.label>
 
@@ -89,10 +89,10 @@
                                     type="textarea"
                                     name="comment"
                                     rules="required"
-                                    class="!h-[160px] resize-y !rounded-xl p-3"
+                                    class="!h-[180px] w-full resize-y rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
                                     :label="trans('admin::app.components.activities.actions.note.comment')"
                                     placeholder="Write your note here..."
-                                />
+                                  />
 
                                 <x-admin::form.control-group.error control-name="comment" />
                             </x-admin::form.control-group>
@@ -103,18 +103,19 @@
                         <x-slot:footer>
                             {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.header.footer.save_button.before') !!}
 
-                            <div class="flex items-center gap-x-3">
-                                <p
-                                    class="cursor-pointer font-semibold text-gray-600 transition-all hover:underline dark:text-gray-300"
+                            <div class="flex items-center gap-x-4">
+                                <button
+                                    type="button"
+                                    class="transparent-button px-4 py-2"
                                     @click="resetForm(); $refs.noteActivityModal.close()"
                                 >
                                     Cancel
-                                </p>
+                                </button>
                                 
                                 <x-admin::button
-                                    ::button-class="'primary-button ' + ((isStoring || !meta.valid) ? 'opacity-50 cursor-not-allowed' : '')"
+                                    button-class="primary-button"
                                     :title="trans('admin::app.components.activities.actions.note.save-btn')"
-                                    ::loading-title="'Saving...'"
+                                    :loading-title="trans('admin::app.components.activities.actions.note.saving')"
                                     ::loading="isStoring"
                                     ::disabled="isStoring || !meta.valid"
                                 />

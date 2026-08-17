@@ -94,8 +94,8 @@
                     :class="{
                         'inset-x-0 top-0': position == 'top',
                         'inset-x-0 bottom-0': position == 'bottom',
-                        'inset-y-0 ltr:right-0 rtl:left-0': position == 'right',
-                        'inset-y-0 ltr:left-0 rtl:right-0': position == 'left'
+                        'inset-y-0 ltr:right-0 rtl:left-0 h-full': position == 'right',
+                        'inset-y-0 ltr:left-0 rtl:right-0 h-full': position == 'left'
                     }"
                     :style="'width:' + width"
                     v-if="isOpen"

@@ -1,6 +1,8 @@
 <?php
 
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\Pipeline;
+use Webkul\Lead\Models\Stage;
 
 it('renders the lead inbox page for authenticated admin', function () {
     $this->loginAsAdmin();
@@ -31,7 +33,14 @@ it('returns json lead list for inbox data request', function () {
 it('handles swipe actions on a lead', function () {
     $this->loginAsAdmin();
 
-    $lead = Lead::factory()->create([
+    $pipeline = Pipeline::first();
+    $stage = Stage::first();
+
+    $lead = Lead::create([
+        'title' => 'Swipe Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'status' => 1,
         'is_unread' => true,
         'is_archived' => false,
     ]);
@@ -50,8 +59,24 @@ it('handles swipe actions on a lead', function () {
 it('handles bulk action on multiple leads', function () {
     $this->loginAsAdmin();
 
-    $leads = Lead::factory()->count(2)->create([
-        'is_archived' => false,
+    $pipeline = Pipeline::first();
+    $stage = Stage::first();
+
+    $leads = collect([
+        Lead::create([
+            'title' => 'Bulk Lead 1',
+            'lead_pipeline_id' => $pipeline->id,
+            'lead_pipeline_stage_id' => $stage->id,
+            'status' => 1,
+            'is_archived' => false,
+        ]),
+        Lead::create([
+            'title' => 'Bulk Lead 2',
+            'lead_pipeline_id' => $pipeline->id,
+            'lead_pipeline_stage_id' => $stage->id,
+            'status' => 1,
+            'is_archived' => false,
+        ]),
     ]);
 
     $response = $this->postJson(route('admin.leads.inbox.bulk'), [

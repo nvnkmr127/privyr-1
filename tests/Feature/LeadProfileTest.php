@@ -1,16 +1,24 @@
 <?php
 
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\Pipeline;
+use Webkul\Lead\Models\Stage;
 
 it('renders the lead profile page with master timeline', function () {
     $this->loginAsAdmin();
 
-    $lead = Lead::factory()->create([
+    $pipeline = Pipeline::first();
+    $stage = Stage::first();
+
+    $lead = Lead::create([
         'title' => 'Test Profile Lead',
         'lead_score' => 85,
         'utm_source' => 'facebook',
         'utm_medium' => 'cpc',
         'utm_campaign' => 'summer_sale',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'status' => 1,
     ]);
 
     $response = $this->get(route('admin.leads.view', $lead->id));
@@ -21,8 +29,14 @@ it('renders the lead profile page with master timeline', function () {
 });
 
 it('returns formatted chronological timeline events for a lead', function () {
-    $lead = Lead::factory()->create([
+    $pipeline = Pipeline::first();
+    $stage = Stage::first();
+
+    $lead = Lead::create([
         'title' => 'Timeline Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'status' => 1,
     ]);
 
     $timeline = $lead->getChronologicalTimeline();

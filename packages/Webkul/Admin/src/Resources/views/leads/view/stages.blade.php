@@ -244,6 +244,8 @@
                             this.$parent.$refs.activities.get();
 
                             this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
+
+                            window.location.reload();
                         })
                         .catch ((error) => {
                             this.isUpdating = false;
