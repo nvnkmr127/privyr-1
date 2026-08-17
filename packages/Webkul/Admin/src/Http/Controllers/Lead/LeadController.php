@@ -1062,11 +1062,15 @@ class LeadController extends Controller
 
         $primaryLead->tags()->syncWithoutDetaching($targetLead->tags()->pluck('tags.id')->toArray());
 
-        if (! $primaryLead->lead_value && $targetLead->lead_value) {
-            $primaryLead->update(['lead_value' => $targetLead->lead_value]);
+        $updateData = ['entity_type' => 'leads'];
+        if ((float) $primaryLead->lead_value == 0 && $targetLead->lead_value) {
+            $updateData['lead_value'] = $targetLead->lead_value;
         }
         if (! $primaryLead->description && $targetLead->description) {
-            $primaryLead->update(['description' => $targetLead->description]);
+            $updateData['description'] = $targetLead->description;
+        }
+        if (count($updateData) > 1) {
+            $this->leadRepository->update($updateData, $primaryLead->id);
         }
 
         $this->leadRepository->delete($targetLead->id);
@@ -1074,52 +1078,5 @@ class LeadController extends Controller
         session()->flash('success', 'Leads merged successfully.');
 
         return redirect()->route('admin.leads.view', $primaryLead->id);
-    }
-
-    public function convertToQuote($id)
-    {
-        $lead = $this->leadRepository->findOrFail($id);
-
-        $this->preventUnauthorizedAccess($lead->user_id);
-
-        $expiredAt = Carbon::now()->addMonth();
-
-        $products = [];
-        foreach ($lead->products as $index => $product) {
-            $products['products'][$index] = [
-                'product_id' => $product->product_id,
-                'name' => $product->name,
-                'quantity' => $product->quantity,
-                'price' => $product->price,
-                'amount' => $product->amount,
-            ];
-        }
-
-        $subTotal = $lead->lead_value ?? 0;
-        $grandTotal = $lead->lead_value ?? 0;
-
-        $quoteData = array_merge([
-            'subject' => 'Quote for Lead: '.$lead->title,
-            'description' => $lead->description,
-            'billing_address' => [
-                'address' => 'Billing Address Placeholder',
-            ],
-            'shipping_address' => [
-                'address' => 'Shipping Address Placeholder',
-            ],
-            'sub_total' => $subTotal,
-            'grand_total' => $grandTotal,
-            'expired_at' => $expiredAt->format('Y-m-d'),
-            'person_id' => $lead->person_id,
-            'user_id' => $lead->user_id ?? auth()->user()->id,
-        ], $products);
-
-        $quote = $this->quoteRepository->create($quoteData);
-
-        $lead->quotes()->attach($quote->id);
-
-        session()->flash('success', 'Lead converted to Quote successfully.');
-
-        return redirect()->route('admin.quotes.edit', $quote->id);
     }
 }
