@@ -31,7 +31,7 @@ class StageRepository extends Repository
         return $stage;
     }
 
-    public function update(array $data, $id, $attribute = "id")
+    public function update(array $data, $id, $attribute = 'id')
     {
         $stage = parent::update($data, $id, $attribute);
 

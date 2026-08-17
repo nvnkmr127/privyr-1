@@ -2,6 +2,4 @@
 
 namespace Webkul\Lead\Contracts;
 
-interface StageAction
-{
-}
+interface StageAction {}
