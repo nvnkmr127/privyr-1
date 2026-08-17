@@ -44,7 +44,7 @@
 
                 <div class="grid gap-3">
                     <div class="flex items-center justify-between">
-                        <p class="text-xl font-semibold dark:text-white">
+                        <p class="text-lg font-bold text-gray-800 dark:text-white">
                             @lang('admin::app.leads.index.kanban.toolbar.filters.filters')
                         </p>
                     </div>

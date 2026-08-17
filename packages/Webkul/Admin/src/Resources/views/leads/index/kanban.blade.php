@@ -46,7 +46,7 @@
                                 @if (bouncer()->hasPermission('leads.create'))
                                     <a
                                         :href="'{{ route('admin.leads.create') }}' + '?stage_id=' + stage.id"
-                                        class="icon-add cursor-pointer rounded p-1 text-lg text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-800 dark:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-white"
+                                        class="icon-add cursor-pointer rounded-md p-1 text-lg text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-800 dark:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-white"
                                         target="_blank"
                                     >
                                     </a>

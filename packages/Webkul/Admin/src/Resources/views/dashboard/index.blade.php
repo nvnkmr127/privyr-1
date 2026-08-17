@@ -10,7 +10,7 @@
         {!! view_render_event('admin.dashboard.index.header.left.before') !!}
 
         <div class="grid gap-1.5">
-            <p class="text-2xl font-semibold dark:text-white">
+            <p class="text-xl font-bold text-gray-800 dark:text-white">
                 {{ menu()->getLabel('dashboard', 'admin::app.dashboard.index.title') }}
             </p>
         </div>

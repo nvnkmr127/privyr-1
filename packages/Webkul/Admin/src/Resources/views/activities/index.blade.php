@@ -18,9 +18,9 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <i class="icon-list cursor-pointer rounded p-2 text-2xl"></i>
+                    <i class="icon-list cursor-pointer rounded-md p-2 text-2xl"></i>
 
-                    <i class="icon-calendar cursor-pointe rounded p-2 text-2xl"></i>
+                    <i class="icon-calendar cursor-pointer rounded-md p-2 text-2xl"></i>
                 </div>
             </div>
 

@@ -24,7 +24,7 @@
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="grid max-w-3xl gap-2">
-                <p class="text-2xl font-bold text-gray-800 dark:text-white">
+                <p class="text-xl font-bold text-gray-800 dark:text-white">
                     @lang('admin::app.help.index.title')
                 </p>
 

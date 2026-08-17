@@ -54,7 +54,7 @@
                             v-if="! isShowSavedFilters"
                             class="flex items-center justify-between"
                         >
-                            <p class="text-xl font-semibold text-gray-800 dark:text-white">
+                            <p class="text-lg font-bold text-gray-800 dark:text-white">
                                 @lang('admin::app.components.datagrid.filters.title')
                             </p>
 
@@ -75,7 +75,7 @@
                             >
                             </i>
 
-                            <p class="text-xl font-semibold text-gray-800 dark:text-white">
+                            <p class="text-lg font-bold text-gray-800 dark:text-white">
                                 @{{ applied.savedFilterId ? '@lang('admin::app.components.datagrid.toolbar.filter.update-filter')' : '@lang('admin::app.components.datagrid.toolbar.filter.save-filter')' }}
                             </p>
                         </div>

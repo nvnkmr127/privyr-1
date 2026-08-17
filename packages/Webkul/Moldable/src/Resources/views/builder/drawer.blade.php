@@ -752,7 +752,7 @@
                 tab.className = 'drawer-step-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition border border-slate-900 bg-slate-900 text-white shadow-xs shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900';
                 if (badge) {
                     badge.className = 'step-badge h-4.5 w-4.5 rounded-full bg-white text-slate-900 flex items-center justify-center text-[10px] font-black';
-                    badge.innerHTML = String(stepNum);
+                    badge.innerHTML = '●';
                 }
             } else if (stepNum < tabIndex || completedDrawerTabs.has(stepNum)) {
                 // Completed step
@@ -765,8 +765,8 @@
                 // Upcoming step
                 tab.className = 'drawer-step-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-transparent text-slate-400 shrink-0 cursor-not-allowed opacity-75';
                 if (badge) {
-                    badge.className = 'step-badge h-4.5 w-4.5 rounded-full bg-slate-200/80 text-slate-500 flex items-center justify-center text-[10px] font-black';
-                    badge.innerHTML = String(stepNum);
+                    badge.className = 'step-badge h-4.5 w-4.5 rounded-full bg-slate-100 text-slate-400 border border-slate-300 flex items-center justify-center text-[10px] font-medium';
+                    badge.innerHTML = '○';
                 }
             }
         });
