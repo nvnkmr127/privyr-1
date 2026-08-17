@@ -97,6 +97,14 @@ class Dashboard
     }
 
     /**
+     * Returns pipeline funnel statistics.
+     */
+    public function getPipelineFunnel(): mixed
+    {
+        return $this->leadReporting->getPipelineFunnel();
+    }
+
+    /**
      * Returns top selling products statistics.
      */
     public function getTopSellingProducts(): Collection

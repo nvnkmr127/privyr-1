@@ -438,6 +438,28 @@
                             </x-admin::form.control-group>
 
                             {!! view_render_event('admin.settings.attributes.edit.form_controls.entity_type.after', ['attribute' => $attribute]) !!}
+
+                            <!-- Pipeline Type -->
+                            @if ($attribute->type !== 'lookup' && (!$attribute->entity_type || $attribute->entity_type === 'leads'))
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Pipeline Specific
+                                    </x-admin::form.control-group.label>
+
+                                    <x-admin::form.control-group.control
+                                        type="select"
+                                        id="lead_pipeline_id"
+                                        name="lead_pipeline_id"
+                                        :value="$attribute->lead_pipeline_id"
+                                        label="Pipeline Specific"
+                                    >
+                                        <option value="">All Pipelines</option>
+                                        @foreach ($pipelines as $pipeline)
+                                            <option value="{{ $pipeline->id }}" {{ $attribute->lead_pipeline_id == $pipeline->id ? 'selected' : '' }}>{{ $pipeline->name }}</option>
+                                        @endforeach
+                                    </x-admin::form.control-group.control>
+                                </x-admin::form.control-group>
+                            @endif
                         </x-slot>
                     </x-admin::accordion>
                     

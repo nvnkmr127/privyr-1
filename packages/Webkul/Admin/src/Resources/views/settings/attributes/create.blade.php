@@ -388,6 +388,7 @@
                                     name="entity_type"
                                     rules="required"
                                     value="{{ old('entity_type') }}"
+                                    v-model="entityType"
                                     :label="trans('admin::app.settings.attributes.create.entity-type')"
                                     :placeholder="trans('admin::app.settings.attributes.create.entity-type')"
                                 >
@@ -401,6 +402,26 @@
                             </x-admin::form.control-group>
 
                             {!! view_render_event('admin.settings.attributes.create.form_controls.entity_type.after') !!}
+
+                            <!-- Pipeline Type -->
+                            <x-admin::form.control-group v-if="attributeType !== 'lookup' && (!entityType || entityType === 'leads')">
+                                <x-admin::form.control-group.label>
+                                    Pipeline Specific
+                                </x-admin::form.control-group.label>
+
+                                <x-admin::form.control-group.control
+                                    type="select"
+                                    id="lead_pipeline_id"
+                                    name="lead_pipeline_id"
+                                    value="{{ old('lead_pipeline_id') }}"
+                                    label="Pipeline Specific"
+                                >
+                                    <option value="">All Pipelines</option>
+                                    @foreach ($pipelines as $pipeline)
+                                        <option value="{{ $pipeline->id }}">{{ $pipeline->name }}</option>
+                                    @endforeach
+                                </x-admin::form.control-group.control>
+                            </x-admin::form.control-group>
                         </x-slot>
                     </x-admin::accordion>
                     
@@ -598,6 +619,8 @@
                         isNullOptionChecked: false,
 
                         options: [],
+
+                        entityType: 'leads',
 
                         swatchValue: [],
 

@@ -61,6 +61,9 @@
                 <!-- Total Persons -->
                 @include('admin::dashboard.index.top-persons')
             </div>
+
+            <!-- Pipeline Funnel -->
+            @include('admin::dashboard.index.pipeline-funnel')
         </div>
 
         {!! view_render_event('admin.dashboard.index.content.left.after') !!}

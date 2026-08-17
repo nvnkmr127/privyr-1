@@ -304,8 +304,17 @@ class LeadController extends Controller
      */
     public function create(): View
     {
+        $pipelineId = request('pipeline_id');
+        if (!$pipelineId) {
+            $pipelineId = $this->pipelineRepository->getDefaultPipeline()->id;
+        }
+
         $attributes = $this->attributeRepository
             ->where('entity_type', 'leads')
+            ->where(function ($query) use ($pipelineId) {
+                $query->whereNull('lead_pipeline_id')
+                      ->orWhere('lead_pipeline_id', $pipelineId);
+            })
             ->where(function ($query) {
                 $query->whereIn('code', ['description', 'title', 'lead_value', 'lead_type_id', 'lead_source_id', 'expected_close_date', 'user_id'])
                     ->orWhere('is_user_defined', 1);
@@ -378,16 +387,22 @@ class LeadController extends Controller
      */
     public function edit(int $id): View
     {
+        $lead = $this->leadRepository->findOrFail($id);
+
+        $pipelineId = $lead->lead_pipeline_id;
+
         $attributes = $this->attributeRepository
             ->where('entity_type', 'leads')
+            ->where(function ($query) use ($pipelineId) {
+                $query->whereNull('lead_pipeline_id')
+                      ->orWhere('lead_pipeline_id', $pipelineId);
+            })
             ->where(function ($query) {
                 $query->whereIn('code', ['description', 'title', 'lead_value', 'lead_type_id', 'lead_source_id', 'expected_close_date', 'user_id'])
                     ->orWhere('is_user_defined', 1);
             })
             ->orderBy('sort_order', 'asc')
             ->get();
-
-        $lead = $this->leadRepository->findOrFail($id);
 
         $this->preventUnauthorizedAccess($lead->user_id);
 

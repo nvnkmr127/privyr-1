@@ -228,6 +228,15 @@
                                 />
                             </x-admin::form.control-group>
                         </div>
+
+                        <!-- Custom Attributes -->
+                        @if ($attributes->where('is_user_defined', 1)->count() > 0)
+                            <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-100">
+                                <x-admin::attributes
+                                    :custom-attributes="$attributes->where('is_user_defined', 1)"
+                                />
+                            </div>
+                        @endif
                     </div>
                 </div>
 
