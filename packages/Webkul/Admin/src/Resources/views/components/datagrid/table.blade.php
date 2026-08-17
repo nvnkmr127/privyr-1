@@ -198,13 +198,13 @@
 
                                 <!-- Columns -->
                                 <template v-for="column in available.columns">
-                                    <p
+                                    <div
                                         class="truncate"
                                         :title="String(record[column.index] || '').replace(/(<([^>]+)>)/gi, '')"
                                         v-html="record[column.index]"
                                         v-if="column.visibility"
                                     >
-                                    </p>
+                                    </div>
                                 </template>
 
                                 <!-- Actions -->

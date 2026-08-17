@@ -51,10 +51,10 @@
                             {!! view_render_event('admin.components.activities.actions.file.form_controls.modal.header.title.before') !!}
 
                             <div class="flex items-center gap-3.5">
-                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-                                    <span class="icon-file text-xl"></span>
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 shadow-sm ring-1 ring-blue-200/50 dark:from-blue-900/50 dark:to-indigo-950/50 dark:ring-blue-700/50">
+                                    <span class="icon-file text-2xl text-blue-600 dark:text-blue-400"></span>
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                                     @lang('admin::app.components.activities.actions.file.title')
                                 </h3>
                             </div>
@@ -81,28 +81,29 @@
 
                             <!-- Title -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.file.title-control')
                                 </x-admin::form.control-group.label>
                                 
                                 <x-admin::form.control-group.control
                                     type="text"
                                     name="title"
-                                    class="!rounded-xl"
+                                    class="w-full rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
+                                    placeholder="Enter file title (optional)"
                                 />
                             </x-admin::form.control-group>
 
                             <!-- Description -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.file.description')
                                 </x-admin::form.control-group.label>
                                 
                                 <x-admin::form.control-group.control
                                     type="textarea"
                                     name="comment"
-                                    class="!h-[160px] resize-y !rounded-xl p-3"
-                                    placeholder="Write details here..."
+                                    class="!h-[100px] w-full resize-y rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
+                                    placeholder="Add a description..."
                                 />
                             </x-admin::form.control-group>
                             
@@ -115,62 +116,59 @@
                                 <x-admin::form.control-group.control
                                     type="text"
                                     name="name"
-                                    class="!rounded-xl"
+                                    class="w-full rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
                                 />
                             </x-admin::form.control-group>
 
                             <!-- File -->
                             <x-admin::form.control-group class="!mb-0">
-                                <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="required font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.file.file')
                                 </x-admin::form.control-group.label>
-                                
-                                <v-field
-                                    name="file"
-                                    rules="required"
-                                    v-slot="{ handleChange, handleBlur, errorMessage }"
-                                >
-                                    <input
+
+                                <v-field name="file" rules="required" v-slot="{ handleChange, errorMessage, field }">
+                                    <input 
                                         type="file"
-                                        id="file"
                                         class="hidden"
-                                        accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip"
-                                        @change="e => { handleChange(e); handleFileChange(e); }"
-                                        @blur="handleBlur"
                                         ref="fileInput"
+                                        @change="e => { handleFileChange(e); handleChange(e); }"
                                     />
                                     
-                                    <!-- Custom UI -->
+                                    <!-- Upload zone -->
                                     <div 
-                                        class="mt-2 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all hover:border-blue-400 dark:border-gray-700 dark:bg-gray-900"
-                                        :class="{'border-blue-500 bg-blue-50/50': isDragging}"
+                                        :class="[
+                                            'group mt-2 flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all duration-200',
+                                            isDragging 
+                                                ? 'border-brandColor bg-brandColor/5 shadow-[0_0_15px_rgba(var(--brand-color),0.15)] dark:bg-brandColor/10' 
+                                                : (errorMessage ? 'border-red-300 bg-red-50/50 hover:bg-red-50 dark:border-red-900 dark:bg-red-900/20' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:bg-gray-800')
+                                        ]"
                                         @dragover.prevent="isDragging = true"
                                         @dragleave.prevent="isDragging = false"
                                         @drop.prevent="e => { isDragging = false; handleDrop(e, handleChange); }"
                                         v-if="!selectedFile"
                                     >
-                                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                                            <span class="icon-file text-xl"></span>
+                                        <div :class="['mb-4 flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-110', isDragging ? 'bg-brandColor text-white shadow-lg shadow-brandColor/30' : 'bg-blue-100 text-blue-600 shadow-sm dark:bg-blue-900/50 dark:text-blue-400']">
+                                            <span class="icon-file text-2xl"></span>
                                         </div>
-                                        <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            <button type="button" class="text-blue-600 hover:underline dark:text-blue-400" @click="$refs.fileInput.click()">Click to upload</button> or drag and drop
+                                        <p class="mb-1 text-base font-semibold text-gray-700 dark:text-gray-200">
+                                            <button type="button" class="text-brandColor hover:underline dark:text-blue-400" @click="$refs.fileInput.click()">Click to upload</button> <span class="font-normal text-gray-500">or drag and drop</span>
                                         </p>
-                                        <p class="text-xs text-gray-500">PDF, DOC, XLS, CSV, ZIP or Images (Max. 10MB)</p>
+                                        <p class="text-sm text-gray-500">PDF, DOC, XLS, CSV, ZIP or Images (Max. 10MB)</p>
                                     </div>
 
                                     <!-- Selected state -->
-                                    <div v-else class="mt-2 flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                                        <div class="flex items-center gap-3 overflow-hidden">
-                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-                                                <span class="icon-file text-lg"></span>
+                                    <div v-else class="animate-fade-in mt-2 flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm ring-1 ring-gray-100 transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:ring-gray-800">
+                                        <div class="flex items-center gap-4 overflow-hidden">
+                                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-50 to-indigo-100 shadow-sm ring-1 ring-blue-200/50 text-blue-600 dark:from-blue-900/50 dark:to-indigo-950/50 dark:text-blue-400 dark:ring-blue-700/50">
+                                                <span class="icon-file text-xl"></span>
                                             </div>
                                             <div class="overflow-hidden">
-                                                <p class="truncate text-sm font-medium text-gray-700 dark:text-gray-300">@{{ selectedFile.name }}</p>
-                                                <p class="text-xs text-gray-500">@{{ formatFileSize(selectedFile.size) }}</p>
+                                                <p class="truncate text-sm font-bold text-gray-900 dark:text-white">@{{ selectedFile.name }}</p>
+                                                <p class="text-xs font-medium text-gray-500">@{{ formatFileSize(selectedFile.size) }}</p>
                                             </div>
                                         </div>
-                                        <button type="button" @click="() => { clearFile(); handleChange(null); }" class="shrink-0 rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-800">
-                                            <span class="icon-delete text-lg"></span>
+                                        <button type="button" @click="() => { clearFile(); handleChange(null); }" class="shrink-0 rounded-lg bg-gray-50 p-2.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:bg-gray-800 dark:hover:bg-red-900/30">
+                                            <span class="icon-delete text-xl"></span>
                                         </button>
                                     </div>
                                     
@@ -184,18 +182,19 @@
                         <x-slot:footer>
                             {!! view_render_event('admin.components.activities.actions.file.form_controls.modal.footer.save_buton.before') !!}
 
-                            <div class="flex items-center gap-x-3">
-                                <p
-                                    class="cursor-pointer font-semibold text-gray-600 transition-all hover:underline dark:text-gray-300"
+                            <div class="flex items-center gap-x-4">
+                                <button
+                                    type="button"
+                                    class="transparent-button px-4 py-2"
                                     @click="resetForm(); $refs.fileActivityModal.close()"
                                 >
                                     Cancel
-                                </p>
+                                </button>
                                 
                                 <x-admin::button
-                                    ::button-class="'primary-button ' + ((isStoring || !meta.valid) ? 'opacity-50 cursor-not-allowed' : '')"
+                                    button-class="primary-button"
                                     :title="trans('admin::app.components.activities.actions.file.save-btn')"
-                                    ::loading-title="'Uploading...'"
+                                    :loading-title="trans('admin::app.components.activities.actions.file.uploading')"
                                     ::loading="isStoring"
                                     ::disabled="isStoring || !meta.valid"
                                 />

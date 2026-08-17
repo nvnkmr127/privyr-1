@@ -673,3 +673,7 @@
 .tox.tox-silver-sink.tox-tinymce-aux {
     z-index: 99999;
 }
+
+.flatpickr-calendar {
+    z-index: 100005 !important;
+}

@@ -52,20 +52,20 @@
                             {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.before') !!}
 
                             <div class="flex items-center gap-3.5">
-                                <div :class="['flex h-11 w-11 shrink-0 items-center justify-center rounded-full', selectedType.colorClass]">
-                                    <span :class="[selectedType.icon, 'text-xl']"></span>
+                                <div :class="['flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm ring-1 dark:ring-opacity-50', selectedType.colorClass]">
+                                    <span :class="[selectedType.icon, 'text-2xl']"></span>
                                 </div>
                                 
                                 <div class="flex items-center gap-2">
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <h3 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                                         @lang('admin::app.components.activities.actions.activity.title')
                                     </h3>
                                     
                                     <x-admin::dropdown>
                                         <x-slot:toggle>
-                                            <div class="flex cursor-pointer items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm font-semibold text-gray-600 shadow-sm hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                                            <div class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-100 hover:shadow dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-200 dark:hover:bg-gray-800">
                                                 @{{ selectedType.label }}
-                                                <span class="icon-down-arrow text-lg"></span>
+                                                <span class="icon-down-arrow text-lg opacity-70"></span>
                                             </div>
                                         </x-slot>
 
@@ -108,16 +108,17 @@
 
                             <!-- Title -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="required font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.activity.title-control')
                                 </x-admin::form.control-group.label>
                                 
                                 <x-admin::form.control-group.control
                                     type="text"
                                     name="title"
-                                    rules="required|max:80"
-                                    class="!rounded-xl"
+                                    rules="required"
+                                    class="w-full rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
                                     :label="trans('admin::app.components.activities.actions.activity.title-control')"
+                                    placeholder="Enter activity title"
                                 />
 
                                 <x-admin::form.control-group.error control-name="title" />
@@ -125,16 +126,16 @@
 
                             <!-- Description -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.activity.description')
                                 </x-admin::form.control-group.label>
                                 
                                 <x-admin::form.control-group.control
                                     type="textarea"
                                     name="comment"
-                                    rules="max:500"
-                                    class="!h-[160px] resize-y !rounded-xl p-3"
-                                    placeholder="Write details here..."
+                                    class="!h-[120px] w-full resize-y rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
+                                    :label="trans('admin::app.components.activities.actions.activity.description')"
+                                    placeholder="Add description..."
                                 />
 
                                 <x-admin::form.control-group.error control-name="comment" />
@@ -142,18 +143,19 @@
 
                             <!-- Participants -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.activity.participants.title')
                                 </x-admin::form.control-group.label>
 
                                 <x-admin::activities.actions.activity.participants />
+                                
+                                <x-admin::form.control-group.error control-name="participants" />
                             </x-admin::form.control-group>
-
-                            <!-- Schedule Date -->
-                            <div class="flex flex-col md:flex-row gap-4">
+                            
+                            <div class="grid grid-cols-2 gap-4">
                                 <!-- Started From -->
                                 <x-admin::form.control-group class="w-full">
-                                    <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
+                                    <x-admin::form.control-group.label class="required font-semibold text-gray-800 dark:text-gray-200">
                                         @lang('admin::app.components.activities.actions.activity.schedule-from')
                                     </x-admin::form.control-group.label>
                                     
@@ -161,7 +163,7 @@
                                         type="datetime"
                                         name="schedule_from"
                                         rules="required"
-                                        class="!rounded-xl"
+                                        class="w-full rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
                                         :label="trans('admin::app.components.activities.actions.activity.schedule-from')"
                                     />
 
@@ -170,15 +172,15 @@
                                 
                                 <!-- Started To -->
                                 <x-admin::form.control-group class="w-full">
-                                    <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
+                                    <x-admin::form.control-group.label class="required font-semibold text-gray-800 dark:text-gray-200">
                                         @lang('admin::app.components.activities.actions.activity.schedule-to')
                                     </x-admin::form.control-group.label>
                                     
                                     <x-admin::form.control-group.control
                                         type="datetime"
                                         name="schedule_to"
-                                        rules="required"
-                                        class="!rounded-xl"
+                                        rules="required|after:schedule_from"
+                                        class="w-full rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
                                         :label="trans('admin::app.components.activities.actions.activity.schedule-to')"
                                     />
 
@@ -188,14 +190,15 @@
 
                             <!-- Location -->
                             <x-admin::form.control-group v-if="selectedType.hasLocation" class="!mb-0">
-                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
+                                <x-admin::form.control-group.label class="font-semibold text-gray-800 dark:text-gray-200">
                                     @lang('admin::app.components.activities.actions.activity.location')
                                 </x-admin::form.control-group.label>
                                 
                                 <x-admin::form.control-group.control
                                     type="text"
                                     name="location"
-                                    class="!rounded-xl"
+                                    class="w-full rounded border border-gray-300 bg-white px-2.5 py-2 text-sm font-normal text-gray-800 transition-all hover:border-gray-400 focus:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400 dark:focus:border-gray-400"
+                                    placeholder="Add a location..."
                                 />
                             </x-admin::form.control-group>
 
@@ -205,18 +208,19 @@
                         <x-slot:footer>
                             {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.footer.save_button.before') !!}
 
-                            <div class="flex items-center gap-x-3">
-                                <p
-                                    class="cursor-pointer font-semibold text-gray-600 transition-all hover:underline dark:text-gray-300"
+                            <div class="flex items-center gap-x-4">
+                                <button
+                                    type="button"
+                                    class="transparent-button px-4 py-2"
                                     @click="resetForm(); $refs.activityModal.close()"
                                 >
                                     Cancel
-                                </p>
+                                </button>
                                 
                                 <x-admin::button
-                                    ::button-class="'primary-button ' + ((isStoring || !meta.valid) ? 'opacity-50 cursor-not-allowed' : '')"
+                                    button-class="primary-button"
                                     :title="trans('admin::app.components.activities.actions.activity.save-btn')"
-                                    ::loading-title="'Saving...'"
+                                    :loading-title="trans('admin::app.components.activities.actions.activity.saving')"
                                     ::loading="isStoring"
                                     ::disabled="isStoring || !meta.valid"
                                 />
@@ -266,19 +270,19 @@
                             label: "{{ trans('admin::app.components.activities.actions.activity.call') }}",
                             value: 'call',
                             icon: 'icon-call',
-                            colorClass: 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
+                            colorClass: 'from-blue-50 to-indigo-100 ring-blue-200/50 text-blue-600 dark:from-blue-900/50 dark:to-indigo-950/50 dark:text-blue-400 dark:ring-blue-700',
                             hasLocation: false
                         }, {
                             label: "{{ trans('admin::app.components.activities.actions.activity.meeting') }}",
                             value: 'meeting',
                             icon: 'icon-meeting',
-                            colorClass: 'bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400',
+                            colorClass: 'from-purple-50 to-fuchsia-100 ring-purple-200/50 text-purple-600 dark:from-purple-900/50 dark:to-fuchsia-950/50 dark:text-purple-400 dark:ring-purple-700',
                             hasLocation: true
                         }, {
                             label: "{{ trans('admin::app.components.activities.actions.activity.lunch') }}",
                             value: 'lunch',
                             icon: 'icon-activity',
-                            colorClass: 'bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
+                            colorClass: 'from-emerald-50 to-teal-100 ring-emerald-200/50 text-emerald-600 dark:from-emerald-900/50 dark:to-teal-950/50 dark:text-emerald-400 dark:ring-emerald-700',
                             hasLocation: true
                         },
                     ]
