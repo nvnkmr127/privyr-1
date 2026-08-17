@@ -38,9 +38,10 @@
             {!! view_render_event('admin.components.activities.actions.mail.form_controls.before') !!}
 
             <x-admin::form
-                v-slot="{ meta, errors, handleSubmit }"
+                v-slot="{ meta, errors, handleSubmit, resetForm }"
                 enctype="multipart/form-data"
                 as="div"
+                ref="modalForm"
             >
                 <form
                     @submit="handleSubmit($event, save)"
@@ -48,18 +49,23 @@
                 >
                     {!! view_render_event('admin.components.activities.actions.mail.form_controls.modal.before') !!}
 
-                    <x-admin::modal
+                    <x-admin::drawer
                         ref="mailActivityModal"
-                        position="bottom-right"
+                        width="500px"
                     >
                         <x-slot:header>
                             {!! view_render_event('admin.components.activities.actions.mail.form_controls.modal.header.before') !!}
 
-                            <h3 class="text-base font-semibold dark:text-white">
-                                @lang('admin::app.components.activities.actions.mail.title')
-                            </h3>
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                    <span class="icon-mail text-xl"></span>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 dark:text-white">
+                                    @lang('admin::app.components.activities.actions.mail.title')
+                                </h3>
+                            </div>
 
-                            {!! view_render_event('admin.components.activities.actions.mail.form_controls.modal.header.before') !!}
+                            {!! view_render_event('admin.components.activities.actions.mail.form_controls.modal.header.after') !!}
                         </x-slot>
 
                         <x-slot:content>
@@ -205,17 +211,27 @@
                                     for="file-upload"
                                 ></label>
 
-                                <x-admin::button
-                                    class="primary-button"
-                                    :title="trans('admin::app.components.activities.actions.mail.send-btn')"
-                                    ::loading="isStoring"
-                                    ::disabled="isStoring"
-                                />
+                                <div class="flex items-center gap-x-3">
+                                    <p
+                                        class="cursor-pointer font-semibold text-gray-600 transition-all hover:underline dark:text-gray-300"
+                                        @click="resetForm(); $refs.mailActivityModal.close()"
+                                    >
+                                        Cancel
+                                    </p>
+                                    
+                                    <x-admin::button
+                                        class="primary-button"
+                                        :title="trans('admin::app.components.activities.actions.mail.send-btn')"
+                                        loading-title="{{ trans('admin::app.components.activities.actions.mail.saving') }}"
+                                        ::loading="isStoring"
+                                        ::disabled="isStoring"
+                                    />
+                                </div>
                             </div>
 
                             {!! view_render_event('admin.components.activities.actions.mail.form_controls.modal.footer.save_button.after') !!}
                         </x-slot>
-                    </x-admin::modal>
+                    </x-admin::drawer>
 
                     {!! view_render_event('admin.components.activities.actions.mail.form_controls.modal.after') !!}
                 </form>
@@ -263,7 +279,7 @@
                     this.$refs.mailActivityModal.open();
                 },
 
-                save(params, { resetForm, setErrors  }) {
+                save(params, { resetForm, setErrors }) {
                     this.isStoring = true;
 
                     let formData = new FormData(this.$refs.mailActionForm);
@@ -280,6 +296,8 @@
 
                             this.$emitter.emit('on-activity-added', response.data.data);
 
+                            resetForm();
+
                             this.$refs.mailActivityModal.close();
                         })
                         .catch (error => {
@@ -289,8 +307,6 @@
                                 setErrors(error.response.data.errors);
                             } else {
                                 this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
-
-                                this.$refs.mailActivityModal.close();
                             }
                         });
                 },

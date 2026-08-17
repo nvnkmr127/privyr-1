@@ -18,12 +18,12 @@
 
     @isset($header)
         <template v-slot:header="{ close }">
-            <div {{ $header->attributes->merge(['class' => 'flex justify-between items-center gap-y-2.5 border-b p-3 dark:border-gray-800 max-sm:px-4']) }}>
+            <div {{ $header->attributes->merge(['class' => 'flex justify-between items-center gap-y-2.5 border-b border-slate-100 p-5 dark:border-gray-800 shrink-0']) }}>
                 {{ $header }}
 
-                <div class="w-full flex-1 ltr:right-3 ltr:text-right rtl:left-3 rtl:text-left">
+                <div class="flex items-center">
                     <span
-                        class="icon-cross-large cursor-pointer text-3xl hover:rounded-md hover:bg-gray-100 dark:hover:bg-gray-950"
+                        class="icon-cross-large cursor-pointer text-2xl p-1.5 text-slate-500 hover:text-slate-700 hover:bg-gray-100 rounded-lg transition-colors dark:hover:bg-gray-800"
                         @click="close"
                     >
                     </span>
@@ -34,7 +34,7 @@
 
     @isset($content)
         <template v-slot:content>
-            <div {{ $content->attributes->merge(['class' => 'flex-1 overflow-auto p-3 max-sm:px-4']) }}>
+            <div {{ $content->attributes->merge(['class' => 'flex-1 min-h-0 overflow-auto p-5']) }}>
                 {{ $content }}
             </div>
         </template>
@@ -42,7 +42,7 @@
 
     @isset($footer)
         <template v-slot:footer>
-            <div {{ $footer->attributes->merge(['class' => 'pb-8']) }}>
+            <div {{ $footer->attributes->merge(['class' => 'border-t border-slate-100 p-5 dark:border-gray-800 flex items-center justify-end gap-3 shrink-0']) }}>
                 {{ $footer }}
             </div>
         </template>
@@ -90,7 +90,7 @@
                 :leave-to-class="enterFromLeaveToClasses"
             >
                 <div
-                    class="fixed z-[10003] m-3 rounded-lg bg-white dark:bg-gray-900 max-sm:!w-[calc(100%-24px)]"
+                    class="fixed z-[10003] bg-white shadow-2xl dark:bg-gray-900 max-sm:!w-full"
                     :class="{
                         'inset-x-0 top-0': position == 'top',
                         'inset-x-0 bottom-0': position == 'bottom',
@@ -100,24 +100,20 @@
                     :style="'width:' + width"
                     v-if="isOpen"
                 >
-                    <div class="pointer-events-auto h-full w-full overflow-auto rounded-lg bg-white dark:bg-gray-900">
+                    <div class="pointer-events-auto h-full w-full bg-white dark:bg-gray-900">
                         <div class="flex h-full w-full flex-col">
-                            <div class="min-h-0 min-w-0 flex-1 overflow-auto">
-                                <div class="flex h-full flex-col">
-                                    <!-- Header Slot-->
-                                    <slot
-                                        name="header"
-                                        :close="close"
-                                    >
-                                    </slot>
+                            <!-- Header Slot-->
+                            <slot
+                                name="header"
+                                :close="close"
+                            >
+                            </slot>
 
-                                    <!-- Content Slot -->
-                                    <slot name="content"></slot>
+                            <!-- Content Slot -->
+                            <slot name="content"></slot>
 
-                                    <!-- Footer Slot -->
-                                    <slot name="footer"></slot>
-                                </div>
-                            </div>
+                            <!-- Footer Slot -->
+                            <slot name="footer"></slot>
                         </div>
                     </div>
                 </div>
