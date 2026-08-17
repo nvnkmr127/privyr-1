@@ -36,23 +36,28 @@
             {!! view_render_event('admin.components.activities.actions.note.form_controls.before') !!}
 
             <x-admin::form
-                v-slot="{ meta, errors, handleSubmit }"
+                v-slot="{ meta, errors, handleSubmit, resetForm }"
                 as="div"
                 ref="modalForm"
             >
                 <form @submit="handleSubmit($event, save)">
                     {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.before') !!}
 
-                    <x-admin::modal 
+                    <x-admin::drawer 
                         ref="noteActivityModal"
-                        position="bottom-right"
+                        width="500px"
                     >
                         <x-slot:header>
                             {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.header.title.before') !!}
 
-                            <h3 class="text-base font-semibold dark:text-white">
-                                @lang('admin::app.components.activities.actions.note.title')
-                            </h3>
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                                    <span class="icon-note text-xl"></span>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                    @lang('admin::app.components.activities.actions.note.title')
+                                </h3>
+                            </div>
 
                             {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.header.title.after') !!}
                         </x-slot>
@@ -70,13 +75,13 @@
                             <!-- Id -->
                             <x-admin::form.control-group.control
                                 type="hidden"
-                                ::name="entityControlName"
-                                ::value="entity.id"
+                                v-bind:name="entityControlName"
+                                v-bind:value="entity.id"
                             />
 
                             <!-- Comment -->
                             <x-admin::form.control-group class="!mb-0">
-                                <x-admin::form.control-group.label class="required">
+                                <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
                                     @lang('admin::app.components.activities.actions.note.comment')
                                 </x-admin::form.control-group.label>
 
@@ -84,7 +89,9 @@
                                     type="textarea"
                                     name="comment"
                                     rules="required"
+                                    class="!h-[160px] resize-y !rounded-xl p-3"
                                     :label="trans('admin::app.components.activities.actions.note.comment')"
+                                    placeholder="Write your note here..."
                                 />
 
                                 <x-admin::form.control-group.error control-name="comment" />
@@ -96,16 +103,26 @@
                         <x-slot:footer>
                             {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.header.footer.save_button.before') !!}
 
-                            <x-admin::button
-                                class="primary-button"
-                                :title="trans('admin::app.components.activities.actions.note.save-btn')"
-                                ::loading="isStoring"
-                                ::disabled="isStoring"
-                            />
+                            <div class="flex items-center gap-x-3">
+                                <p
+                                    class="cursor-pointer font-semibold text-gray-600 transition-all hover:underline dark:text-gray-300"
+                                    @click="resetForm(); $refs.noteActivityModal.close()"
+                                >
+                                    Cancel
+                                </p>
+                                
+                                <x-admin::button
+                                    ::button-class="'primary-button ' + ((isStoring || !meta.valid) ? 'opacity-50 cursor-not-allowed' : '')"
+                                    :title="trans('admin::app.components.activities.actions.note.save-btn')"
+                                    ::loading-title="'Saving...'"
+                                    ::loading="isStoring"
+                                    ::disabled="isStoring || !meta.valid"
+                                />
+                            </div>
 
                             {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.header.footer.save_button.after') !!}
                         </x-slot>
-                    </x-admin::modal>
+                    </x-admin::drawer>
 
                     {!! view_render_event('admin.components.activities.actions.note.form_controls.modal.after') !!}
                 </form>
@@ -144,7 +161,7 @@
                     this.$refs.noteActivityModal.open();
                 },
 
-                save(params) {
+                save(params, { resetForm, setErrors }) {
                     this.isStoring = true;
 
                     this.$axios.post("{{ route('admin.activities.store') }}", params)
@@ -155,6 +172,8 @@
 
                             this.$emitter.emit('on-activity-added', response.data.data);
 
+                            resetForm();
+
                             this.$refs.noteActivityModal.close();
                         })
                         .catch (error => {
@@ -164,8 +183,6 @@
                                 setErrors(error.response.data.errors);
                             } else {
                                 this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
-
-                                this.$refs.noteActivityModal.close();
                             }
                         });
                 },

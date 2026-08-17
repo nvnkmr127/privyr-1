@@ -6,20 +6,17 @@
         id="v-button-template"
     >
         <button
-            v-if="! loading"
-            :class="[buttonClass, '']"
+            v-bind="$attrs"
+            :class="[buttonClass, loading ? 'flex items-center justify-center gap-2' : '']"
+            :disabled="loading || $attrs.disabled"
         >
-            @{{ title }}
-        </button>
+            <x-admin::spinner v-if="loading" class="relative" />
 
-        <button
-            v-else
-            :class="[buttonClass, '']"
-        >
-            <!-- Spinner -->
-            <x-admin::spinner class="absolute" />
-
-            <span class="relative h-full w-full opacity-0">
+            <span v-if="loading && loadingTitle">
+                @{{ loadingTitle }}
+            </span>
+            
+            <span v-else :class="loading ? 'relative h-full w-full opacity-0' : ''">
                 @{{ title }}
             </span>
         </button>
@@ -30,6 +27,7 @@
             template: '#v-button-template',
 
             props: {
+                loadingTitle: String,
                 loading: Boolean,
                 buttonType: String,
                 title: String,

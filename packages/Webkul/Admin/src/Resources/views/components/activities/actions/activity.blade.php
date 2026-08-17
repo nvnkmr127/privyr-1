@@ -37,43 +37,54 @@
             {!! view_render_event('admin.components.activities.actions.activity.form_controls.before') !!}
 
             <x-admin::form
-                v-slot="{ meta, errors, handleSubmit }"
+                v-slot="{ meta, errors, handleSubmit, resetForm }"
                 as="div"
                 ref="modalForm"
             >
                 <form @submit="handleSubmit($event, save)">
                     {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.before') !!}
 
-                    <x-admin::modal
+                    <x-admin::drawer
                         ref="activityModal"
-                        position="bottom-right"
+                        width="500px"
                     >
                         <x-slot:header>
                             {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.before') !!}
 
-                            <x-admin::dropdown>
-                                <x-slot:toggle>
-                                    <h3 class="flex cursor-pointer items-center gap-1 text-base font-semibold dark:text-white">
-                                        @lang('admin::app.components.activities.actions.activity.title') - @{{ selectedType.label }}
-
-                                        <span class="icon-down-arrow text-2xl"></span>
+                            <div class="flex items-center gap-3.5">
+                                <div :class="['flex h-11 w-11 shrink-0 items-center justify-center rounded-full', selectedType.colorClass]">
+                                    <span :class="[selectedType.icon, 'text-xl']"></span>
+                                </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                        @lang('admin::app.components.activities.actions.activity.title')
                                     </h3>
-                                </x-slot>
+                                    
+                                    <x-admin::dropdown>
+                                        <x-slot:toggle>
+                                            <div class="flex cursor-pointer items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm font-semibold text-gray-600 shadow-sm hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                                                @{{ selectedType.label }}
+                                                <span class="icon-down-arrow text-lg"></span>
+                                            </div>
+                                        </x-slot>
 
-                                <x-slot:menu>
-                                    {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.menu_item.before') !!}
+                                    <x-slot:menu>
+                                        {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.menu_item.before') !!}
 
-                                    <x-admin::dropdown.menu.item
-                                        ::class="{ 'bg-gray-100 dark:bg-gray-950': selectedType.value === type.value }"
-                                        v-for="type in availableTypes"
-                                        @click="selectedType = type"
-                                    >
-                                        @{{ type.label }}
-                                    </x-admin::dropdown.menu.item>
+                                        <x-admin::dropdown.menu.item
+                                            ::class="{ 'bg-gray-100 dark:bg-gray-950': selectedType.value === type.value }"
+                                            v-for="type in availableTypes"
+                                            @click="selectedType = type"
+                                        >
+                                            @{{ type.label }}
+                                        </x-admin::dropdown.menu.item>
 
-                                    {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.menu_item.after') !!}
-                                </x-slot>
-                            </x-admin::dropdown>
+                                        {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.menu_item.after') !!}
+                                    </x-slot>
+                                    </x-admin::dropdown>
+                                </div>
+                            </div>
 
                             {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.header.dropdown.after') !!}
                         </x-slot>
@@ -97,7 +108,7 @@
 
                             <!-- Title -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label class="required">
+                                <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
                                     @lang('admin::app.components.activities.actions.activity.title-control')
                                 </x-admin::form.control-group.label>
                                 
@@ -105,6 +116,7 @@
                                     type="text"
                                     name="title"
                                     rules="required|max:80"
+                                    class="!rounded-xl"
                                     :label="trans('admin::app.components.activities.actions.activity.title-control')"
                                 />
 
@@ -113,7 +125,7 @@
 
                             <!-- Description -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label>
+                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
                                     @lang('admin::app.components.activities.actions.activity.description')
                                 </x-admin::form.control-group.label>
                                 
@@ -121,6 +133,8 @@
                                     type="textarea"
                                     name="comment"
                                     rules="max:500"
+                                    class="!h-[160px] resize-y !rounded-xl p-3"
+                                    placeholder="Write details here..."
                                 />
 
                                 <x-admin::form.control-group.error control-name="comment" />
@@ -128,7 +142,7 @@
 
                             <!-- Participants -->
                             <x-admin::form.control-group>
-                                <x-admin::form.control-group.label>
+                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
                                     @lang('admin::app.components.activities.actions.activity.participants.title')
                                 </x-admin::form.control-group.label>
 
@@ -136,10 +150,10 @@
                             </x-admin::form.control-group>
 
                             <!-- Schedule Date -->
-                            <div class="flex gap-4">
+                            <div class="flex flex-col md:flex-row gap-4">
                                 <!-- Started From -->
                                 <x-admin::form.control-group class="w-full">
-                                    <x-admin::form.control-group.label class="required">
+                                    <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
                                         @lang('admin::app.components.activities.actions.activity.schedule-from')
                                     </x-admin::form.control-group.label>
                                     
@@ -147,6 +161,7 @@
                                         type="datetime"
                                         name="schedule_from"
                                         rules="required"
+                                        class="!rounded-xl"
                                         :label="trans('admin::app.components.activities.actions.activity.schedule-from')"
                                     />
 
@@ -155,7 +170,7 @@
                                 
                                 <!-- Started To -->
                                 <x-admin::form.control-group class="w-full">
-                                    <x-admin::form.control-group.label class="required">
+                                    <x-admin::form.control-group.label class="required font-medium text-gray-700 dark:text-gray-300">
                                         @lang('admin::app.components.activities.actions.activity.schedule-to')
                                     </x-admin::form.control-group.label>
                                     
@@ -163,6 +178,7 @@
                                         type="datetime"
                                         name="schedule_to"
                                         rules="required"
+                                        class="!rounded-xl"
                                         :label="trans('admin::app.components.activities.actions.activity.schedule-to')"
                                     />
 
@@ -171,14 +187,15 @@
                             </div>
 
                             <!-- Location -->
-                            <x-admin::form.control-group class="!mb-0">
-                                <x-admin::form.control-group.label>
+                            <x-admin::form.control-group v-if="selectedType.hasLocation" class="!mb-0">
+                                <x-admin::form.control-group.label class="font-medium text-gray-700 dark:text-gray-300">
                                     @lang('admin::app.components.activities.actions.activity.location')
                                 </x-admin::form.control-group.label>
                                 
                                 <x-admin::form.control-group.control
                                     type="text"
                                     name="location"
+                                    class="!rounded-xl"
                                 />
                             </x-admin::form.control-group>
 
@@ -188,16 +205,26 @@
                         <x-slot:footer>
                             {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.footer.save_button.before') !!}
 
-                            <x-admin::button
-                                class="primary-button"
-                                :title="trans('admin::app.components.activities.actions.activity.save-btn')"
-                                ::loading="isStoring"
-                                ::disabled="isStoring"
-                            />
+                            <div class="flex items-center gap-x-3">
+                                <p
+                                    class="cursor-pointer font-semibold text-gray-600 transition-all hover:underline dark:text-gray-300"
+                                    @click="resetForm(); $refs.activityModal.close()"
+                                >
+                                    Cancel
+                                </p>
+                                
+                                <x-admin::button
+                                    ::button-class="'primary-button ' + ((isStoring || !meta.valid) ? 'opacity-50 cursor-not-allowed' : '')"
+                                    :title="trans('admin::app.components.activities.actions.activity.save-btn')"
+                                    ::loading-title="'Saving...'"
+                                    ::loading="isStoring"
+                                    ::disabled="isStoring || !meta.valid"
+                                />
+                            </div>
 
                             {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.footer.save_button.after') !!}
                         </x-slot>
-                    </x-admin::modal>
+                    </x-admin::drawer>
 
                     {!! view_render_event('admin.components.activities.actions.activity.form_controls.modal.after') !!}
                 </form>
@@ -237,15 +264,37 @@
                     availableTypes: [
                         {
                             label: "{{ trans('admin::app.components.activities.actions.activity.call') }}",
-                            value: 'call'
+                            value: 'call',
+                            icon: 'icon-call',
+                            colorClass: 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
+                            hasLocation: false
                         }, {
                             label: "{{ trans('admin::app.components.activities.actions.activity.meeting') }}",
-                            value: 'meeting'
+                            value: 'meeting',
+                            icon: 'icon-meeting',
+                            colorClass: 'bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400',
+                            hasLocation: true
                         }, {
                             label: "{{ trans('admin::app.components.activities.actions.activity.lunch') }}",
-                            value: 'lunch'
+                            value: 'lunch',
+                            icon: 'icon-activity',
+                            colorClass: 'bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
+                            hasLocation: true
                         },
                     ]
+                }
+            },
+
+            watch: {
+                selectedType: function (newType) {
+                    if (!newType.hasLocation) {
+                        // Reset location field safely when switching to a type that doesn't need it
+                        const locationInput = this.$refs.modalForm.$el.querySelector('input[name="location"]');
+                        if (locationInput) {
+                            locationInput.value = '';
+                            locationInput.dispatchEvent(new Event('input'));
+                        }
+                    }
                 }
             },
 
@@ -254,7 +303,7 @@
                     this.$refs.activityModal.open();
                 },
 
-                save(params) {
+                save(params, { resetForm, setErrors }) {
                     this.isStoring = true;
 
                     this.$axios.post("{{ route('admin.activities.store') }}", params)
@@ -265,6 +314,8 @@
 
                             this.$emitter.emit('on-activity-added', response.data.data);
 
+                            resetForm();
+
                             this.$refs.activityModal.close();
                         })
                         .catch (error => {
@@ -274,8 +325,6 @@
                                 setErrors(error.response.data.errors);
                             } else {
                                 this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
-
-                                this.$refs.activityModal.close();
                             }
                         });
                 },
