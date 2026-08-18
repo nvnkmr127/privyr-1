@@ -14,7 +14,7 @@
                 role="button"
             >
                 <ul class="flex flex-wrap items-center gap-1">
-                    <template v-for="userType in ['users', 'persons']">
+                    <template v-for="userType in ['users']">
                         {!! view_render_event('admin.components.activities.actions.activity.participants.user_type.before') !!}
 
                         <li
@@ -59,7 +59,7 @@
                 </ul>
 
                 <div>
-                    <template v-if="! isSearching.users && ! isSearching.persons">
+                    <template v-if="! isSearching.users">
                         <span
                             class="absolute right-1.5 top-1.5 text-2xl"
                             :class="[searchTerm.length >= 2 ? 'icon-up-arrow' : 'icon-down-arrow']"
@@ -83,18 +83,8 @@
                     <!-- Users -->
                     <li
                         class="flex flex-col gap-2"
-                        v-for="userType in ['users', 'persons']"
-                    >
-                        {!! view_render_event('admin.components.activities.actions.activity.participants.dropdown.user_type.before') !!}
-
                         <h3 class="text-sm font-bold text-gray-600 dark:text-gray-300">
-                            <template v-if="userType === 'users'">
-                                @lang('admin::app.components.activities.actions.activity.participants.users')
-                            </template>
-
-                            <template v-else>
-                                @lang('admin::app.components.activities.actions.activity.participants.persons')
-                            </template>
+                            @lang('admin::app.components.activities.actions.activity.participants.users')
                         </h3>
 
                         {!! view_render_event('admin.components.activities.actions.activity.participants.dropdown.user_type.after') !!}
@@ -138,8 +128,6 @@
                     type: Object,
                     default: () => ({
                         users: [],
-
-                        persons: [],
                     })
                 }
             },
@@ -148,28 +136,20 @@
                 return {
                     isSearching: {
                         users: false,
-                        
-                        persons: false,
                     },
 
                     searchTerm: '',
 
                     addedParticipants: {
                         users: [],
-                        
-                        persons: [],
                     },
 
                     searchedParticipants: {
                         users: [],
-                        
-                        persons: [],
                     },
 
                     searchEnpoints: {
                         users: "{{ route('admin.settings.users.search') }}",
-                        
-                        persons: "{{ route('admin.contacts.persons.search') }}",
                     },
                 }
             },
@@ -177,8 +157,6 @@
             watch: {
                 searchTerm(newVal, oldVal) {
                     this.search('users');
-                    
-                    this.search('persons');
                 },
             },
 
@@ -229,8 +207,6 @@
 
                     this.searchedParticipants = {
                         users: [],
-                        
-                        persons: [],
                     };
                 },
 

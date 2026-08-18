@@ -7,7 +7,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeValue;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\DataGrid\DataGrid;
 use Webkul\User\Repositories\UserRepository;
 
@@ -33,12 +32,9 @@ class QuoteDataGrid extends DataGrid
                 'quotes.created_at',
                 'users.id as user_id',
                 'users.name as sales_person',
-                'persons.id as person_id',
-                'persons.name as person_name',
                 'quotes.expired_at as expired_quotes'
             )
-            ->leftJoin('users', 'quotes.user_id', '=', 'users.id')
-            ->leftJoin('persons', 'quotes.person_id', '=', 'persons.id');
+            ->leftJoin('users', 'quotes.user_id', '=', 'users.id');
 
         if (request()->boolean('export')) {
             foreach ($this->getCustomAttributes() as $attribute) {
@@ -62,7 +58,6 @@ class QuoteDataGrid extends DataGrid
         $this->addFilter('id', 'quotes.id');
         $this->addFilter('user', 'quotes.user_id');
         $this->addFilter('sales_person', 'users.name');
-        $this->addFilter('person_name', 'persons.name');
         $this->addFilter('expired_at', 'quotes.expired_at');
         $this->addFilter('created_at', 'quotes.created_at');
 
@@ -106,27 +101,7 @@ class QuoteDataGrid extends DataGrid
             ],
         ]);
 
-        $this->addColumn([
-            'index' => 'person_name',
-            'label' => trans('admin::app.quotes.index.datagrid.person'),
-            'type' => 'string',
-            'sortable' => true,
-            'searchable' => true,
-            'filterable' => true,
-            'filterable_type' => 'searchable_dropdown',
-            'filterable_options' => [
-                'repository' => PersonRepository::class,
-                'column' => [
-                    'label' => 'name',
-                    'value' => 'name',
-                ],
-            ],
-            'closure' => function ($row) {
-                $route = route('admin.contacts.persons.view', $row->person_id);
 
-                return "<a class=\"text-brandColor transition-all hover:underline\" href='".$route."'>".$row->person_name.'</a>';
-            },
-        ]);
 
         $this->addColumn([
             'index' => 'sub_total',

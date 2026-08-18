@@ -6,8 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Webkul\Contact\Contracts\Person;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
@@ -18,7 +16,6 @@ class LeadCaptureService
 {
     public function __construct(
         protected LeadRepository $leadRepository,
-        protected PersonRepository $personRepository,
         protected PipelineRepository $pipelineRepository
     ) {}
 
@@ -51,10 +48,10 @@ class LeadCaptureService
 
             // Duplicate Detection — scoped to the tenant so one tenant's contacts
             // never dedupe against another tenant's.
-            $existingPerson = $this->detectDuplicateContact($email, $phone, $workspaceId);
+            $existingLead = $this->detectDuplicateContact($email, $phone, $workspaceId);
 
             // Dry run: exercise the real mapping / dedup / routing path and report
-            // what WOULD happen, without persisting a Person, Lead, or log. Used by
+            // what WOULD happen, without persisting a Lead, or log. Used by
             // the admin "Test integration" action so tests never create prod data.
             if ($dryRun) {
                 $pipelineId = $connector->default_lead_pipeline_id ?? $this->pipelineRepository->getDefaultPipeline()?->id;
@@ -66,13 +63,13 @@ class LeadCaptureService
                     'phone' => $phone,
                     'title' => $mappedData['title'] ?? ($connector->name.' - '.($mappedData['person']['name'] ?? 'New Lead')),
                     'pipeline' => $this->pipelineRepository->find($pipelineId)?->name,
-                    'duplicate' => (bool) $existingPerson,
+                    'duplicate' => (bool) $existingLead,
                     'duplicate_action' => $connector->duplicate_action,
-                    'would_create_lead' => ! ($existingPerson && $connector->duplicate_action === 'skip'),
+                    'would_create_lead' => ! ($existingLead && $connector->duplicate_action === 'skip'),
                 ];
             }
 
-            if ($existingPerson && $connector->duplicate_action === 'skip') {
+            if ($existingLead && $connector->duplicate_action === 'skip') {
                 LeadCaptureLog::create([
                     'connector_id' => $connector->id,
                     'workspace_id' => $workspaceId,
@@ -84,40 +81,13 @@ class LeadCaptureService
                 return null;
             }
 
-            // Create or update Person. entity_type is required by Krayin's
-            // attribute-value layer (PersonRepository::create -> attributeValue save).
-            $customPersonAttributes = is_array($mappedData['person'] ?? null)
-                ? Arr::except($mappedData['person'], ['name', 'emails', 'contact_numbers', 'id'])
-                : [];
-
-            $personData = array_merge([
-                'entity_type' => 'persons',
-                'name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
-                'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
-                'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
-            ], $customPersonAttributes);
-
-            if ($existingPerson && in_array($connector->duplicate_action, ['update', 'attach_contact'])) {
-                $person = $existingPerson;
-                if (! empty($customPersonAttributes)) {
-                    $this->personRepository->update(array_merge($customPersonAttributes, ['entity_type' => 'persons']), $person->id);
-                }
-            } else {
-                $person = $this->personRepository->create($personData);
-
-                // Stamp tenant ownership on the newly captured contact.
-                if ($workspaceId) {
-                    $person->forceFill(['workspace_id' => $workspaceId])->save();
-                }
-            }
-
             // Pipeline & Stage Fallbacks
             $pipelineId = $connector->default_lead_pipeline_id ?? $this->pipelineRepository->getDefaultPipeline()?->id;
             $pipeline = $this->pipelineRepository->find($pipelineId);
             $stageId = $connector->default_lead_pipeline_stage_id ?? $pipeline?->stages?->first()?->id;
 
-            // Create Lead
-            $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($person->name ?? 'New Lead'));
+            // Create or update Lead
+            $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($mappedData['person']['name'] ?? 'New Lead'));
             $customLeadAttributes = Arr::except($mappedData, ['person', 'title', 'description', 'lead_value']);
 
             $leadData = array_merge([
@@ -125,7 +95,9 @@ class LeadCaptureService
                 'title' => $leadTitle,
                 'description' => $mappedData['description'] ?? 'Captured automatically via '.$connector->name,
                 'lead_value' => $mappedData['lead_value'] ?? 0,
-                'person_id' => $person->id,
+                'person_name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
+                'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
+                'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
                 'user_id' => $connector->default_user_id,
                 'lead_pipeline_id' => $pipelineId,
                 'lead_pipeline_stage_id' => $stageId,
@@ -133,7 +105,20 @@ class LeadCaptureService
                 'last_contacted_at' => null,
             ], $customLeadAttributes);
 
-            $lead = $this->leadRepository->create($leadData);
+            if ($existingLead && in_array($connector->duplicate_action, ['update', 'attach_contact'])) {
+                if (isset($leadData['person'])) {
+                    throw new \Exception('PERSON IS IN LEADDATA UPDATE');
+                }
+                $lead = $this->leadRepository->update($leadData, $existingLead->id);
+            } else {
+                if (isset($leadData['person'])) {
+                    throw new \Exception('PERSON IS IN LEADDATA CREATE');
+                }
+                $lead = $this->leadRepository->create($leadData);
+            }
+            if (array_key_exists('person', $lead->getAttributes())) {
+                throw new \Exception('PERSON IS IN LEAD ATTRIBUTES IMMEDIATELY AFTER CREATE/UPDATE');
+            }
 
             // Stamp tenant ownership on the captured lead.
             if ($workspaceId) {
@@ -290,9 +275,9 @@ class LeadCaptureService
     }
 
     /**
-     * Detect duplicate person by email or phone number.
+     * Detect duplicate lead by email or phone number.
      *
-     * @return Person|null
+     * @return Lead|null
      */
     public function detectDuplicateContact(?string $email, ?string $phone, $workspaceId = null)
     {
@@ -300,7 +285,7 @@ class LeadCaptureService
             return null;
         }
 
-        $query = $this->personRepository->getModel()->newQuery();
+        $query = $this->leadRepository->getModel()->newQuery();
 
         // Tenant isolation: only match contacts owned by the same workspace.
         if ($workspaceId !== null) {

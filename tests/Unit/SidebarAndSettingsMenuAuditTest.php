@@ -8,7 +8,6 @@ test('sidebar and settings menu configuration contains all backend feature route
         'admin.moldable.builder.index',
         'admin.settings.web_forms.index',
         'admin.settings.email_templates.index',
-        'admin.settings.google_contacts.index',
         'admin.settings.warehouses.index',
     ];
 

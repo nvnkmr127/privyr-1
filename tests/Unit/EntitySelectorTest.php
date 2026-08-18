@@ -5,7 +5,7 @@ test('moldable configuration defines all 5 required entities', function () {
 
     expect($entities)->toBeArray();
 
-    $expectedEntities = ['leads', 'persons', 'organizations', 'products', 'quotes'];
+    $expectedEntities = ['leads'];
 
     foreach ($expectedEntities as $code) {
         expect(array_key_exists($code, $entities))

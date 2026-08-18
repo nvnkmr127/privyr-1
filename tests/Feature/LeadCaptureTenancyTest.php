@@ -130,7 +130,6 @@ it('stamps captured leads and contacts with the connector’s tenant, isolating 
 
     expect($leadA)->not->toBeNull()
         ->and($leadB)->not->toBeNull()
-        ->and($leadA->person_id)->not->toBe($leadB->person_id) // independent contacts per tenant
-        ->and($leadA->person->workspace_id)->toBe($a->id)
-        ->and($leadB->person->workspace_id)->toBe($b->id);
+        ->and($leadA->workspace_id)->toBe($a->id)
+        ->and($leadB->workspace_id)->toBe($b->id);
 });

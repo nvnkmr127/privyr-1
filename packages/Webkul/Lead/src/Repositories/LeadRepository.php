@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Attribute\Repositories\AttributeValueRepository;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Core\Eloquent\Repository;
 use Webkul\Lead\Contracts\Lead;
 
@@ -27,8 +26,8 @@ class LeadRepository extends Repository
         'status',
         'user_id',
         'user.name',
-        'person_id',
-        'person.name',
+        'user.name',
+        'person_name',
         'lead_source_id',
         'lead_type_id',
         'lead_pipeline_id',
@@ -45,7 +44,6 @@ class LeadRepository extends Repository
      */
     public function __construct(
         protected StageRepository $stageRepository,
-        protected PersonRepository $personRepository,
         protected ProductRepository $productRepository,
         protected AttributeRepository $attributeRepository,
         protected AttributeValueRepository $attributeValueRepository,
@@ -85,14 +83,12 @@ class LeadRepository extends Repository
                 'leads.created_at as created_at',
                 'title',
                 'lead_value',
-                'persons.name as person_name',
-                'leads.person_id as person_id',
+                'person_name',
                 'lead_pipelines.id as lead_pipeline_id',
                 'lead_pipeline_stages.name as status',
                 'lead_pipeline_stages.id as lead_pipeline_stage_id'
             )
                 ->addSelect(DB::raw('DATEDIFF('.DB::getTablePrefix().'leads.created_at + INTERVAL lead_pipelines.rotten_days DAY, now()) as rotten_days'))
-                ->leftJoin('persons', 'leads.person_id', '=', 'persons.id')
                 ->leftJoin('lead_pipelines', 'leads.lead_pipeline_id', '=', 'lead_pipelines.id')
                 ->leftJoin('lead_pipeline_stages', 'leads.lead_pipeline_stage_id', '=', 'lead_pipeline_stages.id')
                 ->where('title', 'like', "%$term%")
@@ -116,27 +112,6 @@ class LeadRepository extends Repository
      */
     public function create(array $data)
     {
-        /**
-         * If a person is provided, create or update the person and set the `person_id`.
-         */
-        if (isset($data['person'])) {
-            if (! empty($data['person']['id'])) {
-                $person = $this->personRepository->findOrFail($data['person']['id']);
-            } else {
-                /**
-                 * Assign the person to the lead owner (falling back to the current user) so that the
-                 * person is not created with a null `user_id`, which would otherwise hide it from the
-                 * person listing for users restricted to group/individual data scope.
-                 */
-                $person = $this->personRepository->create(array_merge($data['person'], [
-                    'entity_type' => 'persons',
-                    'user_id' => $data['user_id'] ?? auth()->guard('user')->id(),
-                ]));
-            }
-
-            $data['person_id'] = $person->id;
-        }
-
         if (empty($data['expected_close_date'])) {
             $data['expected_close_date'] = null;
         }
@@ -173,29 +148,6 @@ class LeadRepository extends Repository
      */
     public function update(array $data, $id, $attributes = [])
     {
-        /**
-         * If a person is provided, create or update the person and set the `person_id`.
-         * Be cautious, as a lead can be updated without providing person data.
-         * For example, in the lead Kanban section, when switching stages, only the stage will be updated.
-         */
-        if (isset($data['person'])) {
-            if (! empty($data['person']['id'])) {
-                $person = $this->personRepository->findOrFail($data['person']['id']);
-            } else {
-                /**
-                 * Assign the person to the lead owner (falling back to the current user) so that the
-                 * person is not created with a null `user_id`, which would otherwise hide it from the
-                 * person listing for users restricted to group/individual data scope.
-                 */
-                $person = $this->personRepository->create(array_merge($data['person'], [
-                    'entity_type' => 'persons',
-                    'user_id' => $data['user_id'] ?? auth()->guard('user')->id(),
-                ]));
-            }
-
-            $data['person_id'] = $person->id;
-        }
-
         if (isset($data['lead_pipeline_stage_id'])) {
             $stage = $this->stageRepository->find($data['lead_pipeline_stage_id']);
 
@@ -282,7 +234,7 @@ class LeadRepository extends Repository
     public function getInboxLeads(string $preset = 'all', ?string $search = null, array $filters = [], int $perPage = 15)
     {
         $query = $this->model->newQuery()
-            ->with(['person', 'user', 'stage', 'source', 'type', 'tags']);
+            ->with(['user', 'stage', 'source', 'type', 'tags']);
 
         // Exclude archived by default unless specifically requesting archived preset
         if ($preset === 'archived') {
@@ -330,10 +282,8 @@ class LeadRepository extends Repository
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('person', function ($personQuery) use ($search) {
-                        $personQuery->where('name', 'like', "%{$search}%")
-                            ->orWhere('emails', 'like', "%{$search}%");
-                    });
+                    ->orWhere('person_name', 'like', "%{$search}%")
+                    ->orWhere('emails', 'like', "%{$search}%");
             });
         }
 

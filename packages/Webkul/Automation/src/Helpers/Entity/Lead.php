@@ -8,7 +8,6 @@ use Webkul\Admin\Notifications\Common;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Automation\Repositories\WebhookRepository;
 use Webkul\Automation\Services\WebhookService;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\EmailTemplate\Repositories\EmailTemplateRepository;
 use Webkul\Lead\Contracts\Lead as ContractsLead;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -31,7 +30,6 @@ class Lead extends AbstractEntity
         protected EmailTemplateRepository $emailTemplateRepository,
         protected LeadRepository $leadRepository,
         protected ActivityRepository $activityRepository,
-        protected PersonRepository $personRepository,
         protected TagRepository $tagRepository,
         protected WebhookRepository $webhookRepository,
         protected WebhookService $webhookService
@@ -72,11 +70,7 @@ class Lead extends AbstractEntity
                 'name' => trans('admin::app.settings.workflows.helpers.update-lead'),
                 'attributes' => $this->getAttributes('leads'),
             ], [
-                'id' => 'update_person',
-                'name' => trans('admin::app.settings.workflows.helpers.update-person'),
-                'attributes' => $this->getAttributes('persons'),
-            ], [
-                'id' => 'send_email_to_person',
+                'id' => 'send_email_to_lead',
                 'name' => trans('admin::app.settings.workflows.helpers.send-email-to-person'),
                 'options' => $emailTemplates,
             ], [
@@ -116,15 +110,7 @@ class Lead extends AbstractEntity
 
                     break;
 
-                case 'update_person':
-                    $this->personRepository->update([
-                        'entity_type' => 'persons',
-                        $action['attribute'] => $action['value'],
-                    ], $lead->person_id);
-
-                    break;
-
-                case 'send_email_to_person':
+                case 'send_email_to_lead':
                     $emailTemplate = $this->emailTemplateRepository->find($action['value']);
 
                     if (! $emailTemplate) {
@@ -133,7 +119,7 @@ class Lead extends AbstractEntity
 
                     try {
                         Mail::queue(new Common([
-                            'to' => data_get($lead->person->emails, '*.value'),
+                            'to' => data_get($lead->emails, '*.value'),
                             'subject' => $this->replacePlaceholders($lead, $emailTemplate->subject),
                             'body' => $this->replacePlaceholders($lead, $emailTemplate->content),
                         ]));

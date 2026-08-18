@@ -11,9 +11,9 @@ class MessageTemplateService
      */
     public function parse(string $template, $lead): string
     {
-        $personName = $lead->person?->name ?? 'there';
-        $phone = collect($lead->person?->contact_numbers ?? [])->pluck('value')->filter()->first() ?? '';
-        $email = collect($lead->person?->emails ?? [])->pluck('value')->filter()->first() ?? '';
+        $personName = $lead->person_name ?? 'there';
+        $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first() ?? '';
+        $email = collect($lead->emails ?? [])->pluck('value')->filter()->first() ?? '';
         $agentName = $lead->user?->name ?? 'Sales Team';
         $source = $lead->source?->name ?? 'Direct';
 

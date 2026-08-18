@@ -26,7 +26,7 @@ class SendLeadWhatsAppNotification
         try {
             Log::info("WhatsApp Auto-responder triggered for Lead #{$lead->id}: {$lead->title}");
 
-            $phone = collect($lead->person?->contact_numbers ?? [])->pluck('value')->filter()->first();
+            $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first();
 
             if (! $phone) {
                 return;

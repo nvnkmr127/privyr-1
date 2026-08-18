@@ -19,7 +19,6 @@ use Webkul\Admin\Http\Requests\MassUpdateRequest;
 use Webkul\Admin\Http\Resources\LeadResource;
 use Webkul\Admin\Http\Resources\StageResource;
 use Webkul\Attribute\Repositories\AttributeRepository;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\DataGrid\ColumnTypes\Date as DateColumn;
 use Webkul\DataGrid\Enums\DateRangeOptionEnum;
 use Webkul\Lead\Helpers\MagicAI;
@@ -57,8 +56,7 @@ class LeadController extends Controller
         protected LeadRepository $leadRepository,
         protected ProductRepository $productRepository,
         protected QuoteItemRepository $quoteItemRepository,
-        protected QuoteRepository $quoteRepository,
-        protected PersonRepository $personRepository
+        protected QuoteRepository $quoteRepository
     ) {
         request()->request->add(['entity_type' => 'leads']);
     }
@@ -178,7 +176,7 @@ class LeadController extends Controller
 
         return response()->json([
             'message' => trans('admin::app.leads.inbox.action-success'),
-            'lead' => $lead->fresh(['person', 'user', 'stage', 'source', 'type', 'tags']),
+            'lead' => $lead->fresh(['user', 'stage', 'source', 'type', 'tags']),
         ]);
     }
 
@@ -277,8 +275,6 @@ class LeadController extends Controller
                     'type',
                     'source',
                     'user',
-                    'person',
-                    'person.organization',
                     'pipeline',
                     'pipeline.stages',
                     'stage',
@@ -767,23 +763,15 @@ class LeadController extends Controller
                 'visibility' => true,
             ],
             [
-                'index' => 'person.id',
+                'index' => 'person_name',
                 'label' => trans('admin::app.leads.index.kanban.columns.contact-person'),
                 'type' => 'string',
-                'searchable' => false,
-                'search_field' => 'in',
+                'searchable' => true,
+                'search_field' => 'like',
                 'filterable' => true,
-                'allow_multiple_values' => true,
+                'allow_multiple_values' => false,
                 'sortable' => true,
                 'visibility' => true,
-                'filterable_type' => 'searchable_dropdown',
-                'filterable_options' => [
-                    'repository' => PersonRepository::class,
-                    'column' => [
-                        'label' => 'name',
-                        'value' => 'id',
-                    ],
-                ],
             ],
             [
                 'index' => 'lead_type_id',

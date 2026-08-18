@@ -3,7 +3,7 @@
 namespace Webkul\Admin\Listeners;
 
 use Webkul\Activity\Contracts\Activity as ActivityContract;
-use Webkul\Contact\Repositories\PersonRepository;
+
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\Warehouse\Repositories\WarehouseRepository;
@@ -17,7 +17,6 @@ class Activity
      */
     public function __construct(
         protected LeadRepository $leadRepository,
-        protected PersonRepository $personRepository,
         protected ProductRepository $productRepository,
         protected WarehouseRepository $warehouseRepository
     ) {}
@@ -32,12 +31,6 @@ class Activity
 
             if (! $lead->activities->contains($activity->id)) {
                 $lead->activities()->attach($activity->id);
-            }
-        } elseif (request()->input('person_id')) {
-            $person = $this->personRepository->find(request()->input('person_id'));
-
-            if (! $person->activities->contains($activity->id)) {
-                $person->activities()->attach($activity->id);
             }
         } elseif (request()->input('warehouse_id')) {
             $warehouse = $this->warehouseRepository->find(request()->input('warehouse_id'));

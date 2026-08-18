@@ -3,7 +3,6 @@
 namespace Webkul\Email\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Webkul\Contact\Models\PersonProxy;
 use Webkul\Email\Contracts\Email as EmailContract;
 use Webkul\Lead\Models\LeadProxy;
 use Webkul\Tag\Models\TagProxy;
@@ -91,14 +90,6 @@ class Email extends Model implements EmailContract
     public function emails()
     {
         return $this->hasMany(EmailProxy::modelClass(), 'parent_id');
-    }
-
-    /**
-     * Get the person that owns the thread.
-     */
-    public function person()
-    {
-        return $this->belongsTo(PersonProxy::modelClass());
     }
 
     /**

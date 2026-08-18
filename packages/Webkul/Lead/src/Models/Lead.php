@@ -12,7 +12,6 @@ use Illuminate\Support\Collection;
 use Webkul\Activity\Models\ActivityProxy;
 use Webkul\Activity\Traits\LogsActivity;
 use Webkul\Attribute\Traits\CustomAttribute;
-use Webkul\Contact\Models\PersonProxy;
 use Webkul\Email\Models\EmailProxy;
 use Webkul\Lead\Contracts\Lead as LeadContract;
 use Webkul\Quote\Models\QuoteProxy;
@@ -37,7 +36,10 @@ class Lead extends Model implements LeadContract
         'expected_close_date',
         'closed_at',
         'user_id',
-        'person_id',
+        'person_name',
+        'emails',
+        'contact_numbers',
+        'organization_name',
         'lead_source_id',
         'lead_type_id',
         'lead_pipeline_id',
@@ -68,6 +70,8 @@ class Lead extends Model implements LeadContract
         'is_qualified' => 'boolean',
         'last_contacted_at' => 'datetime',
         'next_follow_up_at' => 'datetime',
+        'emails' => 'array',
+        'contact_numbers' => 'array',
     ];
 
     /**
@@ -85,14 +89,6 @@ class Lead extends Model implements LeadContract
     public function user(): BelongsTo
     {
         return $this->belongsTo(UserProxy::modelClass());
-    }
-
-    /**
-     * Get the person that owns the lead.
-     */
-    public function person(): BelongsTo
-    {
-        return $this->belongsTo(PersonProxy::modelClass());
     }
 
     /**
@@ -329,7 +325,7 @@ class Lead extends Model implements LeadContract
         }
 
         // 3. Emails Sent / Opened
-        foreach ($this->emails as $email) {
+        foreach ($this->emails()->get() as $email) {
             $events->push([
                 'id' => 'email_'.$email->id,
                 'type' => 'email_sent',
@@ -369,12 +365,12 @@ class Lead extends Model implements LeadContract
     public function calculateScore()
     {
         $score = 0;
-        if ($this->person) {
+        if ($this->person_name) {
             $score += 20;
-            if ($this->person->emails && count($this->person->emails) > 0) {
+            if ($this->emails && count($this->emails) > 0) {
                 $score += 10;
             }
-            if ($this->person->contact_numbers && count($this->person->contact_numbers) > 0) {
+            if ($this->contact_numbers && count($this->contact_numbers) > 0) {
                 $score += 10;
             }
         }

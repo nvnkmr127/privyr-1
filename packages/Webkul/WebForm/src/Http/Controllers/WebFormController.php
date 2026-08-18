@@ -7,7 +7,6 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Attribute\Repositories\AttributeRepository;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
@@ -25,7 +24,6 @@ class WebFormController extends Controller
     public function __construct(
         protected AttributeRepository $attributeRepository,
         protected WebFormRepository $webFormRepository,
-        protected PersonRepository $personRepository,
         protected LeadRepository $leadRepository,
         protected PipelineRepository $pipelineRepository,
         protected SourceRepository $sourceRepository,
@@ -48,15 +46,6 @@ class WebFormController extends Controller
      */
     public function formStore(int $id): JsonResponse
     {
-        $person = $this->personRepository
-            ->getModel()
-            ->where('emails', 'like', '%'.request('persons.emails.0.value').'%')
-            ->first();
-
-        if ($person) {
-            request()->request->add(['persons' => array_merge(request('persons'), ['id' => $person->id])]);
-        }
-
         app(WebForm::class);
 
         $webForm = $this->webFormRepository->findOrFail($id);
@@ -69,8 +58,6 @@ class WebFormController extends Controller
             $data = request('leads');
 
             $data['entity_type'] = 'leads';
-
-            $data['person'] = request('persons');
 
             $data['status'] = 1;
 
@@ -111,20 +98,6 @@ class WebFormController extends Controller
             $lead = $this->leadRepository->create($data);
 
             Event::dispatch('lead.create.after', $lead);
-        } else {
-            if (! $person) {
-                Event::dispatch('contacts.person.create.before');
-
-                $data = request('persons');
-
-                request()->request->add(['entity_type' => 'persons']);
-
-                $data['entity_type'] = 'persons';
-
-                $person = $this->personRepository->create($data);
-
-                Event::dispatch('contacts.person.create.after', $person);
-            }
         }
 
         if ($webForm->submit_success_action == 'message') {

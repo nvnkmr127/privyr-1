@@ -123,7 +123,7 @@ it('treats zero successful deliveries as not sent and prunes the dead tokens', f
 
     $sent = app(PushNotificationService::class)->sendToUser($admin, 'New Lead', 'Body');
 
-    expect($sent)->toBeFalse();
+    expect($sent['sent'])->toBeFalse();
 
     // Dead tokens pruned; nothing left to stamp as used.
     $this->assertDatabaseMissing('device_tokens', ['token' => 'gone-1']);
@@ -148,7 +148,7 @@ it('dispatches a push to the agent devices and prunes dead tokens', function () 
 
     $sent = app(PushNotificationService::class)->sendToUser($admin, 'New Lead', 'Body');
 
-    expect($sent)->toBeTrue();
+    expect($sent['sent'])->toBeTrue();
 
     Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send')
         && data_get($request->data(), 'message.token') === 'live-token');
@@ -180,10 +180,11 @@ it('pushes to the assigned agent when a lead is captured', function () {
         'is_active' => true,
     ]);
 
+    $email = 'priya.' . \Illuminate\Support\Str::random(5) . '@example.com';
     app(LeadCaptureService::class)->processIncomingPayload($connector, [
         'full_name' => 'Priya Nair',
-        'email' => 'priya.nair@example.com',
-        'phone' => '+91 9000000001',
+        'email' => $email,
+        'phone' => '+91 9' . rand(100000000, 999999999),
     ]);
 
     Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send')

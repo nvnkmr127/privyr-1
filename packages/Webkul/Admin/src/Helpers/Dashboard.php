@@ -6,8 +6,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Webkul\Admin\Helpers\Reporting\Activity;
 use Webkul\Admin\Helpers\Reporting\Lead;
-use Webkul\Admin\Helpers\Reporting\Organization;
-use Webkul\Admin\Helpers\Reporting\Person;
 use Webkul\Admin\Helpers\Reporting\Product;
 use Webkul\Admin\Helpers\Reporting\Quote;
 
@@ -22,8 +20,6 @@ class Dashboard
         protected Lead $leadReporting,
         protected Activity $activityReporting,
         protected Product $productReporting,
-        protected Person $personReporting,
-        protected Organization $organizationReporting,
         protected Quote $quoteReporting,
     ) {}
 
@@ -48,8 +44,6 @@ class Dashboard
             'average_lead_value' => $this->leadReporting->getAverageLeadValueProgress(),
             'average_leads_per_day' => $this->leadReporting->getAverageLeadsPerDayProgress(),
             'total_quotations' => $this->quoteReporting->getTotalQuotesProgress(),
-            'total_persons' => $this->personReporting->getTotalPersonsProgress(),
-            'total_organizations' => $this->organizationReporting->getTotalOrganizationsProgress(),
         ];
     }
 
@@ -112,13 +106,7 @@ class Dashboard
         return $this->productReporting->getTopSellingProductsByRevenue(5);
     }
 
-    /**
-     * Returns top selling products statistics.
-     */
-    public function getTopPersons(): Collection
-    {
-        return $this->personReporting->getTopCustomersByRevenue(5);
-    }
+
 
     /**
      * Get the start date.

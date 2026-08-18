@@ -102,8 +102,53 @@
                         </div>
 
                         <div class="w-full">
-                            <!-- Contact Person Component -->
-                            @include('admin::leads.common.contact')
+                            <div class="grid grid-cols-2 gap-4">
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label class="required">
+                                        Contact Name
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="person_name"
+                                        rules="required"
+                                        placeholder="e.g. John Doe"
+                                    />
+                                    <x-admin::form.control-group.error control-name="person_name" />
+                                </x-admin::form.control-group>
+
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Organization Name
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="organization_name"
+                                        placeholder="e.g. Acme Corp"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Emails (Comma separated)
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="emails[]"
+                                        placeholder="john@example.com"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Contact Numbers (Comma separated)
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="contact_numbers[]"
+                                        placeholder="+1 234 567 8900"
+                                    />
+                                </x-admin::form.control-group>
+                            </div>
                         </div>
                     </div>
 

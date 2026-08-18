@@ -138,15 +138,15 @@
                                     <!-- Header -->
                                     <div class="flex items-start justify-between">
                                         <div class="flex items-center gap-1">
-                                            <x-admin::avatar ::name="element.person ? element.person.name : 'Unknown'" />
+                                            <x-admin::avatar ::name="element.person_name || 'Unknown'" />
 
                                             <div class="flex flex-col gap-0.5">
                                                 <span class="text-xs font-bold text-slate-900">
-                                                    @{{ element.person ? element.person.name : 'Unknown' }}
+                                                    @{{ element.person_name || 'Unknown' }}
                                                 </span>
 
                                                 <span class="text-[10px] font-semibold text-slate-500 leading-normal">
-                                                    @{{ element.person && element.person.organization ? element.person.organization.name : '' }}
+                                                    @{{ element.organization_name || '' }}
                                                 </span>
                                             </div>
                                         </div>
@@ -257,11 +257,11 @@
                                     <!-- One-Tap Card Quick Actions -->
                                     <div 
                                         class="mt-1 flex items-center justify-between border-t border-gray-200 pt-2 dark:border-gray-700"
-                                        v-if="element.person && element.person.contact_numbers && element.person.contact_numbers.length"
+                                        v-if="element.contact_numbers && element.contact_numbers.length > 0"
                                     >
                                         <div class="flex items-center gap-1.5">
                                             <a
-                                                :href="'https://wa.me/' + element.person.contact_numbers[0].value.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hi ' + (element.person ? element.person.name : 'there') + ', regarding ' + element.title)"
+                                                :href="'https://wa.me/' + element.contact_numbers[0].replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hi ' + (element.person_name || 'there') + ', regarding ' + element.title)"
                                                 target="_blank"
                                                 class="flex items-center gap-1 rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-emerald-700 transition"
                                                 @click.stop
@@ -270,7 +270,7 @@
                                             </a>
 
                                             <a
-                                                :href="'tel:' + element.person.contact_numbers[0].value"
+                                                :href="'tel:' + element.contact_numbers[0]"
                                                 class="flex items-center gap-1 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-blue-700 transition"
                                                 @click.stop
                                             >

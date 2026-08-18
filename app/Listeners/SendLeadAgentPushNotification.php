@@ -23,11 +23,12 @@ class SendLeadAgentPushNotification
      */
     public function handle($lead)
     {
+        Log::info("SendLeadAgentPushNotification fired for lead: " . $lead->id);
         try {
             $user = $lead->user;
             $agentName = $user->name ?? 'Agent';
-            $prospectName = $lead->person?->name ?? 'New Prospect';
-            $phone = collect($lead->person?->contact_numbers ?? [])->pluck('value')->filter()->first() ?? 'N/A';
+            $prospectName = $lead->person_name ?? 'New Prospect';
+            $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first() ?? 'N/A';
 
             $leadUrl = route('admin.leads.view', $lead->id);
 

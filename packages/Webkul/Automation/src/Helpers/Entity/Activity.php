@@ -10,7 +10,6 @@ use Webkul\Admin\Notifications\Common;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Automation\Repositories\WebhookRepository;
 use Webkul\Automation\Services\WebhookService;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\EmailTemplate\Repositories\EmailTemplateRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 
@@ -32,7 +31,6 @@ class Activity extends AbstractEntity
         protected AttributeRepository $attributeRepository,
         protected EmailTemplateRepository $emailTemplateRepository,
         protected LeadRepository $leadRepository,
-        protected PersonRepository $personRepository,
         protected ActivityRepository $activityRepository,
         protected WebhookRepository $webhookRepository,
         protected WebhookService $webhookService
@@ -134,7 +132,7 @@ class Activity extends AbstractEntity
         $value = '<ul style="padding-left: 18px;margin: 0;">';
 
         foreach ($entity->participants as $participant) {
-            $value .= '<li>'.($participant->user ? $participant->user->name : $participant->person->name).'</li>';
+            $value .= '<li>'.($participant->user ? $participant->user->name : '').'</li>';
         }
 
         $value .= '</ul>';
@@ -252,7 +250,7 @@ class Activity extends AbstractEntity
                             Mail::queue(new Common([
                                 'to' => $participant->user
                                     ? $participant->user->email
-                                    : data_get($participant->person->emails, '*.value'),
+                                    : '',
                                 'subject' => $this->replacePlaceholders($activity, $emailTemplate->subject),
                                 'body' => $this->replacePlaceholders($activity, $emailTemplate->content),
                                 'attachments' => [
@@ -302,10 +300,6 @@ class Activity extends AbstractEntity
         foreach ($activity->participants as $participant) {
             if ($participant->user) {
                 $content[] = 'ATTENDEE;ROLE=REQ-PARTICIPANT;CN='.$participant->user->name.';PARTSTAT=NEEDS-ACTION:MAILTO:'.$participant->user->email;
-            } else {
-                foreach (data_get($participant->person->emails, '*.value') as $email) {
-                    $content[] = 'ATTENDEE;ROLE=REQ-PARTICIPANT;CN='.$participant->person->name.';PARTSTAT=NEEDS-ACTION:MAILTO:'.$email;
-                }
             }
         }
 
