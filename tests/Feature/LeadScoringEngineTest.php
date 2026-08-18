@@ -3,12 +3,12 @@
 use Carbon\Carbon;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadScoreRule;
+use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Services\LeadScoringEngine;
-use Webkul\User\Models\User;
 
 it('calculates score based on dynamic rules', function () {
     $this->loginAsAdmin();
-    $repo = app(\Webkul\Lead\Repositories\LeadRepository::class);
+    $repo = app(LeadRepository::class);
 
     // Create rules
     LeadScoreRule::create([
@@ -58,7 +58,7 @@ it('calculates score based on dynamic rules', function () {
 
 it('evaluates health state correctly', function () {
     $this->loginAsAdmin();
-    $repo = app(\Webkul\Lead\Repositories\LeadRepository::class);
+    $repo = app(LeadRepository::class);
 
     $lead = $repo->create([
         'title' => 'Hot Lead',
@@ -83,15 +83,15 @@ it('evaluates health state correctly', function () {
 
     // Test overrides
     $lead->getConnection()->table('leads')->where('id', $lead->id)->update([
-        'lead_score' => 90, 
-        'last_contacted_at' => Carbon::now()->subDays(8)
+        'lead_score' => 90,
+        'last_contacted_at' => Carbon::now()->subDays(8),
     ]);
     $lead->refresh();
     expect($lead->health_state)->toEqual('at_risk');
 
     $lead->getConnection()->table('leads')->where('id', $lead->id)->update([
-        'lead_score' => 90, 
-        'last_contacted_at' => Carbon::now()->subDays(15)
+        'lead_score' => 90,
+        'last_contacted_at' => Carbon::now()->subDays(15),
     ]);
     $lead->refresh();
     expect($lead->health_state)->toEqual('stale');

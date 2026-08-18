@@ -458,11 +458,11 @@ class Lead extends Model implements LeadContract
     public function getHealthStateAttribute()
     {
         // Check for stale first (overrides score)
-        if ($this->last_contacted_at && \Carbon\Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 14) {
+        if ($this->last_contacted_at && Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 14) {
             return 'stale';
         }
 
-        if ($this->last_contacted_at && \Carbon\Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 7) {
+        if ($this->last_contacted_at && Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 7) {
             return 'at_risk';
         }
 
