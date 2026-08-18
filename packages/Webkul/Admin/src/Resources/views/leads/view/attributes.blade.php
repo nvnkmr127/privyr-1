@@ -204,6 +204,53 @@
                                             </div>
                                         </div>
 
+                                        <!-- Next Action -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Next Action
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="text" name="next_action" value="{{ $lead->next_action }}" onblur="this.form.submit()" onkeydown="if(event.key==='Enter') this.form.submit()" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0" placeholder="e.g. Call back..." />
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- Next Follow-up Date -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Next Follow-up
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="datetime-local" name="next_follow_up_at" value="{{ $lead->next_follow_up_at ? \Carbon\Carbon::parse($lead->next_follow_up_at)->format('Y-m-d\TH:i') : '' }}" onblur="this.form.submit()" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0" />
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- Follow-up Owner -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Follow-up Owner
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" onchange="this.submit()">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <select name="follow_up_owner_id" class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer">
+                                                        <option value="">Unassigned</option>
+                                                        @foreach(app('Webkul\User\Repositories\UserRepository')->all() as $user)
+                                                            <option value="{{ $user->id }}" {{ $lead->follow_up_owner_id == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </form>
+                                            </div>
+                                        </div>
+
                                         <!-- Location -->
                                         <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
                                             <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">

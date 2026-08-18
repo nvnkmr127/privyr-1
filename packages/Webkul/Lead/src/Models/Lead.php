@@ -364,7 +364,7 @@ class Lead extends Model implements LeadContract
             ]);
         }
 
-        // 2. Activities (Calls, Notes, Tasks, Emails, Meetings)
+        // 2. Activities (Calls, Notes, Tasks, Emails, Meetings, System)
         foreach ($this->activities as $activity) {
             $type = $activity->type ?? 'note';
             $iconMap = [
@@ -374,17 +374,40 @@ class Lead extends Model implements LeadContract
                 'task' => 'icon-task',
                 'email' => 'icon-mail',
                 'whatsapp' => 'icon-message',
+                'system' => 'icon-activity',
             ];
 
-            $events->push([
-                'id' => 'activity_'.$activity->id,
-                'type' => 'activity_'.$type,
-                'title' => ucfirst($type).' '.($activity->title ? ': '.$activity->title : ''),
-                'description' => $activity->comment ?? $activity->additional,
-                'icon' => $iconMap[$type] ?? 'icon-note',
-                'badge_color' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-                'timestamp' => $activity->created_at ?? $this->created_at,
-            ]);
+            if ($type === 'system') {
+                $additional = $activity->additional;
+                $description = '';
+                if (is_array($additional)) {
+                    if (isset($additional['old']) && isset($additional['new'])) {
+                        $description = "Changed from **{$additional['old']}** to **{$additional['new']}**";
+                    } else {
+                        $description = json_encode($additional);
+                    }
+                }
+
+                $events->push([
+                    'id' => 'activity_'.$activity->id,
+                    'type' => 'activity_system',
+                    'title' => $activity->title ?? 'System Event',
+                    'description' => $description,
+                    'icon' => 'icon-activity',
+                    'badge_color' => 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300',
+                    'timestamp' => $activity->created_at ?? $this->created_at,
+                ]);
+            } else {
+                $events->push([
+                    'id' => 'activity_'.$activity->id,
+                    'type' => 'activity_'.$type,
+                    'title' => ucfirst($type).' '.($activity->title ? ': '.$activity->title : ''),
+                    'description' => $activity->comment ?? (is_array($activity->additional) ? json_encode($activity->additional) : $activity->additional),
+                    'icon' => $iconMap[$type] ?? 'icon-note',
+                    'badge_color' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+                    'timestamp' => $activity->created_at ?? $this->created_at,
+                ]);
+            }
         }
 
         // 3. Emails Sent / Opened
@@ -419,43 +442,38 @@ class Lead extends Model implements LeadContract
     public static function boot()
     {
         parent::boot();
-
-        static::saving(function ($lead) {
-            $lead->lead_score = $lead->calculateScore();
-        });
     }
 
-    public function calculateScore()
+    /**
+     * Get the score logs for the lead.
+     */
+    public function scoreLogs()
     {
-        $score = 0;
-        if ($this->person_name) {
-            $score += 20;
-            if ($this->emails && count($this->emails) > 0) {
-                $score += 10;
-            }
-            if ($this->contact_numbers && count($this->contact_numbers) > 0) {
-                $score += 10;
-            }
-        }
-        if ($this->lead_value > 0) {
-            $score += 20;
-        }
-        if ($this->priority === 'urgent') {
-            $score += 20;
-        } elseif ($this->priority === 'high') {
-            $score += 15;
-        } elseif ($this->priority === 'medium') {
-            $score += 10;
-        } else {
-            $score += 5;
-        }
-        if ($this->activities()->count() > 0) {
-            $score += 20;
-        }
-        if ($this->qualification_status === 'qualified') {
-            $score += 20;
+        return $this->hasMany(LeadScoreLog::class);
+    }
+
+    /**
+     * Get the health state attribute.
+     */
+    public function getHealthStateAttribute()
+    {
+        // Check for stale first (overrides score)
+        if ($this->last_contacted_at && \Carbon\Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 14) {
+            return 'stale';
         }
 
-        return min($score, 100);
+        if ($this->last_contacted_at && \Carbon\Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 7) {
+            return 'at_risk';
+        }
+
+        if ($this->lead_score >= 80) {
+            return 'hot';
+        }
+
+        if ($this->lead_score >= 50) {
+            return 'warm';
+        }
+
+        return 'cold';
     }
 }

@@ -24,6 +24,10 @@ Route::controller(LeadConnectorController::class)->prefix('settings/lead-connect
 // NOTE: the public webhook receivers and QR form are registered in the Admin
 // package's Front/web.php (no admin auth), so external platforms can reach them.
 
+use Webkul\Admin\Http\Controllers\Lead\AnalyticsController;
+
+Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics.index');
+
 Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::get('', 'index')->name('admin.leads.index');
 
@@ -48,6 +52,12 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::put('edit/{id}', 'update')->name('admin.leads.update');
 
     Route::put('attributes/edit/{id}', 'updateAttributes')->name('admin.leads.attributes.update');
+
+    Route::post('nurture/stop/{id}', 'stopNurture')->name('admin.leads.nurture.stop');
+
+    Route::post('follow-up/complete/{id}', 'completeFollowUp')->name('admin.leads.follow_up.complete');
+    
+    Route::post('follow-up/snooze/{id}', 'snoozeFollowUp')->name('admin.leads.follow_up.snooze');
 
     Route::put('stage/edit/{id}', 'updateStage')->name('admin.leads.stage.update');
 

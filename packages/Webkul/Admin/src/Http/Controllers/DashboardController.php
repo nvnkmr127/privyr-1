@@ -4,34 +4,17 @@ namespace Webkul\Admin\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
-use Webkul\Admin\Helpers\Dashboard;
-use Webkul\Lead\Repositories\PipelineRepository;
+use Webkul\Admin\Helpers\LeadProductivityDashboard;
 
 class DashboardController extends Controller
 {
-    /**
-     * Request param functions
-     *
-     * @var array
-     */
-    protected $typeFunctions = [
-        'over-all' => 'getOverAllStats',
-        'revenue-stats' => 'getRevenueStats',
-        'total-leads' => 'getTotalLeadsStats',
-        'revenue-by-sources' => 'getLeadsStatsBySources',
-        'revenue-by-types' => 'getLeadsStatsByTypes',
-        'open-leads-by-states' => 'getOpenLeadsByStates',
-        'pipeline-funnel' => 'getPipelineFunnel',
-    ];
-
     /**
      * Create a new controller instance.
      *
      * @return void
      */
     public function __construct(
-        protected Dashboard $dashboardHelper,
-        protected PipelineRepository $pipelineRepository
+        protected LeadProductivityDashboard $dashboardHelper
     ) {}
 
     /**
@@ -42,25 +25,20 @@ class DashboardController extends Controller
     public function index()
     {
         return view('admin::dashboard.index')->with([
-            'startDate' => $this->dashboardHelper->getStartDate(),
-            'endDate' => $this->dashboardHelper->getEndDate(),
-            'pipelines' => $this->pipelineRepository->all(),
-            'defaultPipeline' => $this->pipelineRepository->getDefaultPipeline(),
+            'metrics' => $this->dashboardHelper->getMetrics(),
+            'nextActions' => $this->dashboardHelper->getMyNextActions(),
         ]);
     }
 
     /**
-     * Display a listing of the resource.
+     * Endpoint for async stats (if needed).
      *
      * @return JsonResponse
      */
     public function stats()
     {
-        $stats = $this->dashboardHelper->{$this->typeFunctions[request()->query('type')]}();
-
         return response()->json([
-            'statistics' => $stats,
-            'date_range' => $this->dashboardHelper->getDateRange(),
+            'metrics' => $this->dashboardHelper->getMetrics(),
         ]);
     }
 }
