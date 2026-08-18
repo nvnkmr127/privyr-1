@@ -625,8 +625,6 @@ class LeadController extends Controller
         }
     }
 
-
-
     /**
      * Kanban lookup.
      */
@@ -949,7 +947,6 @@ class LeadController extends Controller
         $newLead = $lead->replicate();
         $newLead->title = 'Clone of '.$lead->title;
         $newLead->save();
-
 
         session()->flash('success', 'Lead duplicated successfully.');
 

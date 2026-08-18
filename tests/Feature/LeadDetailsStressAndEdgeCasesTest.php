@@ -2,13 +2,13 @@
 
 use Carbon\Carbon;
 use Webkul\Activity\Models\Activity;
+use Webkul\Attribute\Models\Attribute;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Source;
 use Webkul\Lead\Models\Stage;
 use Webkul\Lead\Models\Type;
 use Webkul\User\Models\User;
-use Webkul\Attribute\Models\Attribute;
 
 beforeEach(function () {
     $this->admin = User::first();

@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Services\MessageTemplateService;
 use App\Services\WhatsAppService;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Webkul\Activity\Repositories\ActivityRepository;
 

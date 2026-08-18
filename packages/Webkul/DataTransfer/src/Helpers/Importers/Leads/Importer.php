@@ -339,8 +339,6 @@ class Importer extends AbstractImporter
         return true;
     }
 
-
-
     /**
      * Delete leads from current batch.
      */

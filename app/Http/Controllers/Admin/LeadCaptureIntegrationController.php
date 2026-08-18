@@ -10,7 +10,6 @@ use Illuminate\Validation\Rule;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Services\LeadCaptureService;
-
 use Webkul\User\Repositories\UserRepository;
 
 class LeadCaptureIntegrationController extends Controller
