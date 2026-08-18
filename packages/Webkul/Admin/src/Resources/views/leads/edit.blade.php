@@ -157,11 +157,13 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="select"
-                                        name="is_qualified"
-                                        v-model="lead.is_qualified"
+                                        name="qualification_status"
+                                        v-model="lead.qualification_status"
                                     >
-                                        <option :value="0">Unqualified</option>
-                                        <option :value="1">Qualified</option>
+                                        <option value="">None</option>
+                                        <option value="unqualified">Unqualified</option>
+                                        <option value="qualified">Qualified</option>
+                                        <option value="disqualified">Disqualified</option>
                                     </x-admin::form.control-group.control>
                                 </x-admin::form.control-group>
 

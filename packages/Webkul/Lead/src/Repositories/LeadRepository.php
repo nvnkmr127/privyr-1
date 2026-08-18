@@ -125,6 +125,49 @@ class LeadRepository extends Repository
 
         Event::dispatch('lead.create.after', $lead);
 
+        if (! empty($lead->qualification_status)) {
+            app(\Webkul\Lead\Repositories\LeadQualificationRepository::class)->create([
+                'lead_id' => $lead->id,
+                'status'  => $lead->qualification_status,
+                'reason'  => $data['qualification_reason'] ?? null,
+                'user_id' => auth()->check() ? auth()->id() : null,
+            ]);
+        }
+
+        // Assignment logic
+        if (empty($lead->user_id)) {
+            $lead->refresh();
+            // Try to auto-assign
+            $assigned = app(\Webkul\Lead\Services\LeadAssignmentService::class)->assignLead($lead);
+            
+            // Fallback if no rules matched
+            if (!$assigned) {
+                // Determine a fallback user, e.g., super admin
+                $fallbackUser = \Webkul\User\Models\UserProxy::modelClass()::orderBy('id')->first();
+                if ($fallbackUser) {
+                    \Illuminate\Support\Facades\DB::table('leads')->where('id', $lead->id)->update(['user_id' => $fallbackUser->id]);
+                    $lead->user_id = $fallbackUser->id;
+
+                    app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+                        'lead_id' => $lead->id,
+                        'assigned_to' => $fallbackUser->id,
+                        'assigned_by' => null,
+                        'previous_owner' => null,
+                        'reason' => 'Fallback Assignment'
+                    ]);
+                }
+            }
+        } else {
+            // Manual assignment during creation
+            app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+                'lead_id' => $lead->id,
+                'assigned_to' => $lead->user_id,
+                'assigned_by' => auth()->check() ? auth()->id() : null,
+                'previous_owner' => null,
+                'reason' => $data['assignment_reason'] ?? 'Manual Assignment'
+            ]);
+        }
+
         return $lead;
     }
 
@@ -151,10 +194,32 @@ class LeadRepository extends Repository
             $data['expected_close_date'] = null;
         }
 
+        $originalLead = $this->find($id);
+        $originalUserId = $originalLead ? $originalLead->user_id : null;
+
         $lead = parent::update($data, $id);
 
         if (isset($stage) && $stage->code === 'won') {
             app(MetaConversionsApiService::class)->sendConversionEvent($lead, 'Purchase');
+        }
+
+        if ($lead->qualification_status !== ($originalLead->qualification_status ?? null)) {
+            app(\Webkul\Lead\Repositories\LeadQualificationRepository::class)->create([
+                'lead_id' => $lead->id,
+                'status'  => $lead->qualification_status,
+                'reason'  => $data['qualification_reason'] ?? null,
+                'user_id' => auth()->check() ? auth()->id() : null,
+            ]);
+        }
+
+        if ($lead->user_id !== $originalUserId) {
+            app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+                'lead_id' => $lead->id,
+                'assigned_to' => $lead->user_id,
+                'assigned_by' => auth()->check() ? auth()->id() : null,
+                'previous_owner' => $originalUserId,
+                'reason' => $data['assignment_reason'] ?? 'Manual Reassignment'
+            ]);
         }
 
         /**
@@ -272,5 +337,56 @@ class LeadRepository extends Repository
         }
 
         return $query->latest('updated_at')->paginate($perPage);
+    }
+
+    /**
+     * Get Leads that have an overdue follow-up.
+     */
+    public function getOverdueLeads()
+    {
+        return $this->model->whereNotNull('next_follow_up_at')
+            ->whereDate('next_follow_up_at', '<', Carbon::today())
+            ->get();
+    }
+
+    /**
+     * Get Leads due for follow-up today.
+     */
+    public function getDueTodayLeads()
+    {
+        return $this->model->whereNotNull('next_follow_up_at')
+            ->whereDate('next_follow_up_at', '=', Carbon::today())
+            ->get();
+    }
+
+    /**
+     * Get Leads that are stale (no contact for > 14 days).
+     */
+    public function getStaleLeads()
+    {
+        return $this->model->whereNotNull('last_contacted_at')
+            ->where('last_contacted_at', '<', Carbon::now()->subDays(14))
+            ->get();
+    }
+
+    /**
+     * Get Leads that need attention (unread or no contact attempt at all).
+     */
+    public function getNeedsAttentionLeads()
+    {
+        return $this->model->where(function ($query) {
+            $query->where('is_unread', true)
+                  ->orWhereNull('last_contacted_at');
+        })->get();
+    }
+
+    /**
+     * Get Leads with no next action scheduled.
+     */
+    public function getNoNextActionLeads()
+    {
+        return $this->model->whereNull('next_follow_up_at')
+            ->whereNull('next_action')
+            ->get();
     }
 }

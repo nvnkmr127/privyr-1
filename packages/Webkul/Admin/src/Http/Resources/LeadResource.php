@@ -29,7 +29,7 @@ class LeadResource extends JsonResource
             'priority' => $this->priority,
             'lead_score' => $this->lead_score,
             'location' => $this->location,
-            'is_qualified' => $this->is_qualified,
+            'qualification_status' => $this->qualification_status,
             'utm_source' => $this->utm_source,
             'utm_medium' => $this->utm_medium,
             'utm_campaign' => $this->utm_campaign,

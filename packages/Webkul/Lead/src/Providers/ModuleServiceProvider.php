@@ -19,5 +19,9 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
         Stage::class,
         StageAction::class,
         Type::class,
+        \Webkul\Lead\Models\LeadQualification::class,
+        \Webkul\Lead\Models\LeadAssignment::class,
+        \Webkul\Lead\Models\LeadAssignmentRule::class,
+        \Webkul\Lead\Models\LeadAssignmentRuleCondition::class,
     ];
 }

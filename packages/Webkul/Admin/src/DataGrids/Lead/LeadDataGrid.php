@@ -63,7 +63,7 @@ class LeadDataGrid extends DataGrid
                 'leads.priority',
                 'leads.location',
                 'leads.lead_score',
-                'leads.is_qualified',
+                'leads.qualification_status',
                 'lead_sources.name as lead_source_name',
                 'lead_types.name as lead_type_name',
                 'leads.created_at',
@@ -140,7 +140,7 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('priority', 'leads.priority');
         $this->addFilter('location', 'leads.location');
         $this->addFilter('lead_score', 'leads.lead_score');
-        $this->addFilter('is_qualified', 'leads.is_qualified');
+        $this->addFilter('qualification_status', 'leads.qualification_status');
 
         return $queryBuilder;
     }
@@ -330,14 +330,16 @@ class LeadDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index' => 'is_qualified',
+            'index' => 'qualification_status',
             'label' => 'Qualification',
             'type' => 'string',
             'searchable' => false,
             'sortable' => true,
             'closure' => function ($row) {
-                if ($row->is_qualified) {
+                if ($row->qualification_status === 'qualified') {
                     return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Qualified</span>';
+                } elseif ($row->qualification_status === 'disqualified') {
+                    return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-800">Disqualified</span>';
                 }
 
                 return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Unqualified</span>';

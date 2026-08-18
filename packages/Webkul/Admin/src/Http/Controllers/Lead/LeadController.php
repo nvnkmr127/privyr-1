@@ -203,7 +203,19 @@ class LeadController extends Controller
                 break;
             case 'reassign':
                 if ($userId = request()->input('user_id')) {
-                    $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['user_id' => $userId]);
+                    $leads = $this->leadRepository->getModel()->whereIn('id', $leadIds)->get();
+                    foreach ($leads as $lead) {
+                        $previousOwner = $lead->user_id;
+                        $lead->update(['user_id' => $userId]);
+
+                        app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+                            'lead_id' => $lead->id,
+                            'assigned_to' => $userId,
+                            'assigned_by' => auth()->check() ? auth()->id() : null,
+                            'previous_owner' => $previousOwner,
+                            'reason' => 'Bulk Reassignment'
+                        ]);
+                    }
                 }
                 break;
             case 'change_stage':
@@ -996,5 +1008,65 @@ class LeadController extends Controller
         session()->flash('success', 'Leads merged successfully.');
 
         return redirect()->route('admin.leads.view', $primaryLead->id);
+    }
+
+    /**
+     * Schedule a follow-up for a lead.
+     */
+    public function scheduleFollowUp(int $id)
+    {
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        $this->validate(request(), [
+            'next_action' => 'required|string',
+            'date' => 'required|date',
+            'owner_id' => 'nullable|exists:users,id',
+        ]);
+
+        app(\Webkul\Lead\Services\LeadFollowUpService::class)->schedule(
+            $lead,
+            request('next_action'),
+            request('date'),
+            request('owner_id')
+        );
+
+        session()->flash('success', 'Follow-up scheduled successfully.');
+
+        return redirect()->back();
+    }
+
+    /**
+     * Snooze an existing follow-up.
+     */
+    public function snoozeFollowUp(int $id)
+    {
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        $this->validate(request(), [
+            'date' => 'required|date',
+        ]);
+
+        app(\Webkul\Lead\Services\LeadFollowUpService::class)->snooze($lead, request('date'));
+
+        session()->flash('success', 'Follow-up snoozed successfully.');
+
+        return redirect()->back();
+    }
+
+    /**
+     * Complete the current follow-up.
+     */
+    public function completeFollowUp(int $id)
+    {
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        app(\Webkul\Lead\Services\LeadFollowUpService::class)->complete($lead, request('note', ''));
+
+        session()->flash('success', 'Follow-up completed successfully.');
+
+        return redirect()->back();
     }
 }

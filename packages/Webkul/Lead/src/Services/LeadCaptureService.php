@@ -83,7 +83,7 @@ class LeadCaptureService
 
             // Create or update Lead
             $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($mappedData['person']['name'] ?? 'New Lead'));
-            $customLeadAttributes = Arr::except($mappedData, ['person', 'title', 'description', 'lead_value']);
+            $customLeadAttributes = Arr::except($mappedData, ['person', 'title', 'description', 'lead_value', 'utm_source', 'utm_medium', 'utm_campaign', 'location']);
 
             $leadData = array_merge([
                 'entity_type' => 'leads',
@@ -94,10 +94,15 @@ class LeadCaptureService
                 'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
                 'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
                 'user_id' => $connector->default_user_id,
+                'lead_source_id' => $connector->lead_source_id ?? null,
                 'lead_pipeline_id' => $pipelineId,
                 'lead_pipeline_stage_id' => $stageId,
                 'is_unread' => true,
                 'last_contacted_at' => null,
+                'utm_source' => $mappedData['utm_source'] ?? null,
+                'utm_medium' => $mappedData['utm_medium'] ?? null,
+                'utm_campaign' => $mappedData['utm_campaign'] ?? null,
+                'location' => $mappedData['location'] ?? null,
             ], $customLeadAttributes);
 
             if ($existingLead && in_array($connector->duplicate_action, ['update', 'attach_contact'])) {
@@ -189,6 +194,14 @@ class LeadCaptureService
                 $result['lead_value'] = (float) $val;
             } elseif (! $result['description'] && (Str::contains($lowerKey, ['description', 'notes', 'comment', 'message']))) {
                 $result['description'] = $val;
+            } elseif (! isset($result['utm_source']) && (Str::contains($lowerKey, ['utm_source', 'source']))) {
+                $result['utm_source'] = $val;
+            } elseif (! isset($result['utm_medium']) && (Str::contains($lowerKey, ['utm_medium', 'medium']))) {
+                $result['utm_medium'] = $val;
+            } elseif (! isset($result['utm_campaign']) && (Str::contains($lowerKey, ['utm_campaign', 'campaign']))) {
+                $result['utm_campaign'] = $val;
+            } elseif (! isset($result['location']) && (Str::contains($lowerKey, ['location', 'city', 'state', 'country', 'address']))) {
+                $result['location'] = $val;
             }
         }
 

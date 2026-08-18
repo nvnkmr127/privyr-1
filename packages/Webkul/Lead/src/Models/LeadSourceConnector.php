@@ -23,6 +23,7 @@ class LeadSourceConnector extends Model
         'duplicate_action',
         'field_mappings',
         'embed_config',
+        'lead_source_id',
         'default_lead_pipeline_id',
         'default_lead_pipeline_stage_id',
         'default_user_id',

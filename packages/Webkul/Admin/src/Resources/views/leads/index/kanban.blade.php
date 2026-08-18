@@ -231,8 +231,11 @@
                                         </div>
 
                                         <!-- Qualification Status -->
-                                        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800" v-if="element.is_qualified">
+                                        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800" v-if="element.qualification_status === 'qualified'">
                                             Qualified
+                                        </div>
+                                        <div class="rounded-lg bg-rose-50 border border-rose-200 px-2 py-1 text-[10px] font-bold text-rose-800" v-if="element.qualification_status === 'disqualified'">
+                                            Disqualified
                                         </div>
 
                                         <!-- Tags -->
