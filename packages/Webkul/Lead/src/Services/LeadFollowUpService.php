@@ -3,7 +3,6 @@
 namespace Webkul\Lead\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Event;
 use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -46,13 +45,13 @@ class LeadFollowUpService
      */
     public function complete(Lead $lead, string $note = ''): Lead
     {
-        if (!$lead->next_action) {
+        if (! $lead->next_action) {
             return $lead;
         }
 
         // Log the completed action as an activity on the timeline
         Activity::create([
-            'title' => 'Completed Follow-up: ' . $lead->next_action,
+            'title' => 'Completed Follow-up: '.$lead->next_action,
             'type' => 'system',
             'comment' => $note,
             'is_done' => 1,

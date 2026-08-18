@@ -104,12 +104,13 @@ class Lead extends Model implements LeadContract
     public function getFollowUpStateAttribute(): string
     {
         if ($this->next_follow_up_at) {
-            if ($this->next_follow_up_at->isPast() && !$this->next_follow_up_at->isToday()) {
+            if ($this->next_follow_up_at->isPast() && ! $this->next_follow_up_at->isToday()) {
                 return 'Overdue';
             }
             if ($this->next_follow_up_at->isToday()) {
                 return 'Due Today';
             }
+
             return 'Upcoming';
         }
 
@@ -155,8 +156,9 @@ class Lead extends Model implements LeadContract
     {
         $activeEnrollment = $this->nurtureEnrollments()->where('status', 'active')->first();
         if ($activeEnrollment) {
-            return "Active in: " . ($activeEnrollment->sequence->name ?? 'Sequence');
+            return 'Active in: '.($activeEnrollment->sequence->name ?? 'Sequence');
         }
+
         return null;
     }
 

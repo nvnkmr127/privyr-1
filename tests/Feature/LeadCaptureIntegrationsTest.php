@@ -4,6 +4,7 @@ use Illuminate\Support\Str;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
+use Webkul\Lead\Models\Source;
 
 /*
 |--------------------------------------------------------------------------
@@ -144,7 +145,7 @@ it('rejects webhooks for an inactive connector', function () {
 });
 
 it('extracts UTM parameters, location, and assigns lead_source_id when capturing lead', function () {
-    $leadSource = Webkul\Lead\Models\Source::create(['name' => 'Ad Campaign Source']);
+    $leadSource = Source::create(['name' => 'Ad Campaign Source']);
 
     $connector = makeConnector([
         'name' => 'Campaign Tracker',

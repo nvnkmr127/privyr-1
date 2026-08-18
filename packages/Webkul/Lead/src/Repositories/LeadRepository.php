@@ -13,6 +13,8 @@ use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Attribute\Repositories\AttributeValueRepository;
 use Webkul\Core\Eloquent\Repository;
 use Webkul\Lead\Contracts\Lead;
+use Webkul\Lead\Services\LeadAssignmentService;
+use Webkul\User\Models\UserProxy;
 
 class LeadRepository extends Repository
 {
@@ -126,10 +128,10 @@ class LeadRepository extends Repository
         Event::dispatch('lead.create.after', $lead);
 
         if (! empty($lead->qualification_status)) {
-            app(\Webkul\Lead\Repositories\LeadQualificationRepository::class)->create([
+            app(LeadQualificationRepository::class)->create([
                 'lead_id' => $lead->id,
-                'status'  => $lead->qualification_status,
-                'reason'  => $data['qualification_reason'] ?? null,
+                'status' => $lead->qualification_status,
+                'reason' => $data['qualification_reason'] ?? null,
                 'user_id' => auth()->check() ? auth()->id() : null,
             ]);
         }
@@ -138,33 +140,33 @@ class LeadRepository extends Repository
         if (empty($lead->user_id)) {
             $lead->refresh();
             // Try to auto-assign
-            $assigned = app(\Webkul\Lead\Services\LeadAssignmentService::class)->assignLead($lead);
-            
+            $assigned = app(LeadAssignmentService::class)->assignLead($lead);
+
             // Fallback if no rules matched
-            if (!$assigned) {
+            if (! $assigned) {
                 // Determine a fallback user, e.g., super admin
-                $fallbackUser = \Webkul\User\Models\UserProxy::modelClass()::orderBy('id')->first();
+                $fallbackUser = UserProxy::modelClass()::orderBy('id')->first();
                 if ($fallbackUser) {
-                    \Illuminate\Support\Facades\DB::table('leads')->where('id', $lead->id)->update(['user_id' => $fallbackUser->id]);
+                    DB::table('leads')->where('id', $lead->id)->update(['user_id' => $fallbackUser->id]);
                     $lead->user_id = $fallbackUser->id;
 
-                    app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+                    app(LeadAssignmentRepository::class)->create([
                         'lead_id' => $lead->id,
                         'assigned_to' => $fallbackUser->id,
                         'assigned_by' => null,
                         'previous_owner' => null,
-                        'reason' => 'Fallback Assignment'
+                        'reason' => 'Fallback Assignment',
                     ]);
                 }
             }
         } else {
             // Manual assignment during creation
-            app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+            app(LeadAssignmentRepository::class)->create([
                 'lead_id' => $lead->id,
                 'assigned_to' => $lead->user_id,
                 'assigned_by' => auth()->check() ? auth()->id() : null,
                 'previous_owner' => null,
-                'reason' => $data['assignment_reason'] ?? 'Manual Assignment'
+                'reason' => $data['assignment_reason'] ?? 'Manual Assignment',
             ]);
         }
 
@@ -204,21 +206,21 @@ class LeadRepository extends Repository
         }
 
         if ($lead->qualification_status !== ($originalLead->qualification_status ?? null)) {
-            app(\Webkul\Lead\Repositories\LeadQualificationRepository::class)->create([
+            app(LeadQualificationRepository::class)->create([
                 'lead_id' => $lead->id,
-                'status'  => $lead->qualification_status,
-                'reason'  => $data['qualification_reason'] ?? null,
+                'status' => $lead->qualification_status,
+                'reason' => $data['qualification_reason'] ?? null,
                 'user_id' => auth()->check() ? auth()->id() : null,
             ]);
         }
 
         if ($lead->user_id !== $originalUserId) {
-            app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+            app(LeadAssignmentRepository::class)->create([
                 'lead_id' => $lead->id,
                 'assigned_to' => $lead->user_id,
                 'assigned_by' => auth()->check() ? auth()->id() : null,
                 'previous_owner' => $originalUserId,
-                'reason' => $data['assignment_reason'] ?? 'Manual Reassignment'
+                'reason' => $data['assignment_reason'] ?? 'Manual Reassignment',
             ]);
         }
 
@@ -376,7 +378,7 @@ class LeadRepository extends Repository
     {
         return $this->model->where(function ($query) {
             $query->where('is_unread', true)
-                  ->orWhereNull('last_contacted_at');
+                ->orWhereNull('last_contacted_at');
         })->get();
     }
 

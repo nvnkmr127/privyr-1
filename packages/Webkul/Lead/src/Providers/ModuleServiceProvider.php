@@ -4,6 +4,10 @@ namespace Webkul\Lead\Providers;
 
 use Webkul\Core\Providers\BaseModuleServiceProvider;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\LeadAssignment;
+use Webkul\Lead\Models\LeadAssignmentRule;
+use Webkul\Lead\Models\LeadAssignmentRuleCondition;
+use Webkul\Lead\Models\LeadQualification;
 use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Source;
 use Webkul\Lead\Models\Stage;
@@ -19,9 +23,9 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
         Stage::class,
         StageAction::class,
         Type::class,
-        \Webkul\Lead\Models\LeadQualification::class,
-        \Webkul\Lead\Models\LeadAssignment::class,
-        \Webkul\Lead\Models\LeadAssignmentRule::class,
-        \Webkul\Lead\Models\LeadAssignmentRuleCondition::class,
+        LeadQualification::class,
+        LeadAssignment::class,
+        LeadAssignmentRule::class,
+        LeadAssignmentRuleCondition::class,
     ];
 }

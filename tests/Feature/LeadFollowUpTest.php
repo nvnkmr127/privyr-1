@@ -4,7 +4,8 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Webkul\Activity\Models\Activity;
-use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Services\LeadFollowUpService;
 use Webkul\User\Models\User;
 
 beforeEach(function () {
@@ -15,7 +16,7 @@ it('computes lead follow-up states dynamically', function () {
     $this->loginAsAdmin();
     $admin = User::orderBy('id')->first();
 
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'title' => 'State Test Lead',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,
@@ -51,7 +52,7 @@ it('schedules snoozes and completes a follow-up', function () {
     $this->loginAsAdmin();
     $admin = User::orderBy('id')->first();
 
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'title' => 'Follow-up Test Lead',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,
@@ -59,7 +60,7 @@ it('schedules snoozes and completes a follow-up', function () {
         'user_id' => $admin->id,
     ]);
 
-    $service = app(\Webkul\Lead\Services\LeadFollowUpService::class);
+    $service = app(LeadFollowUpService::class);
 
     // Schedule
     $date = Carbon::tomorrow()->toDateTimeString();
