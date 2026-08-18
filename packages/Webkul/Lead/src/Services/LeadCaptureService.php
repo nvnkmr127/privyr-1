@@ -43,12 +43,8 @@ class LeadCaptureService
             $email = $mappedData['person']['emails'] ?? null;
             $phone = $mappedData['person']['contact_numbers'] ?? null;
 
-            // Tenant: every captured record is owned by the connector's workspace.
-            $workspaceId = $connector->workspace_id;
-
-            // Duplicate Detection — scoped to the tenant so one tenant's contacts
-            // never dedupe against another tenant's.
-            $existingLead = $this->detectDuplicateContact($email, $phone, $workspaceId);
+            // Duplicate Detection
+            $existingLead = $this->detectDuplicateContact($email, $phone);
 
             // Dry run: exercise the real mapping / dedup / routing path and report
             // what WOULD happen, without persisting a Lead, or log. Used by
@@ -72,7 +68,6 @@ class LeadCaptureService
             if ($existingLead && $connector->duplicate_action === 'skip') {
                 LeadCaptureLog::create([
                     'connector_id' => $connector->id,
-                    'workspace_id' => $workspaceId,
                     'raw_payload' => $payload,
                     'status' => 'duplicate_flagged',
                     'error_message' => 'Duplicate contact found. Ingestion skipped as per connector configuration.',
@@ -120,10 +115,7 @@ class LeadCaptureService
                 throw new \Exception('PERSON IS IN LEAD ATTRIBUTES IMMEDIATELY AFTER CREATE/UPDATE');
             }
 
-            // Stamp tenant ownership on the captured lead.
-            if ($workspaceId) {
-                $lead->forceFill(['workspace_id' => $workspaceId])->save();
-            }
+
 
             // Update Connector Statistics
             $connector->increment('captured_count');
@@ -132,7 +124,6 @@ class LeadCaptureService
             // Create Log Entry
             LeadCaptureLog::create([
                 'connector_id' => $connector->id,
-                'workspace_id' => $workspaceId,
                 'raw_payload' => $payload,
                 'status' => 'success',
                 'lead_id' => $lead->id,
@@ -143,7 +134,6 @@ class LeadCaptureService
             if (! $dryRun) {
                 LeadCaptureLog::create([
                     'connector_id' => $connector->id,
-                    'workspace_id' => $connector->workspace_id,
                     'raw_payload' => $payload,
                     'status' => 'error',
                     'error_message' => $e->getMessage(),
@@ -279,18 +269,13 @@ class LeadCaptureService
      *
      * @return Lead|null
      */
-    public function detectDuplicateContact(?string $email, ?string $phone, $workspaceId = null)
+    public function detectDuplicateContact(?string $email, ?string $phone)
     {
         if (empty($email) && empty($phone)) {
             return null;
         }
 
         $query = $this->leadRepository->getModel()->newQuery();
-
-        // Tenant isolation: only match contacts owned by the same workspace.
-        if ($workspaceId !== null) {
-            $query->where('workspace_id', $workspaceId);
-        }
 
         $query->where(function ($q) use ($email, $phone) {
             if ($email) {

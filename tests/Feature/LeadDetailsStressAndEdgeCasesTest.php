@@ -8,6 +8,7 @@ use Webkul\Lead\Models\Source;
 use Webkul\Lead\Models\Stage;
 use Webkul\Lead\Models\Type;
 use Webkul\User\Models\User;
+use Webkul\Attribute\Models\Attribute;
 
 beforeEach(function () {
     $this->admin = User::first();
@@ -36,6 +37,17 @@ it('Scenario 1 & 7: handles lead with very few / missing values without layout b
 
 it('Scenario 2 & 3 & 4: handles leads with 20, 50, and 100+ custom fields with progressive disclosure', function () {
     $lead = Lead::first();
+
+    for ($i = 1; $i <= 9; $i++) {
+        Attribute::where('code', "test_attr_{$i}")->delete();
+        Attribute::create([
+            'code' => "test_attr_{$i}",
+            'name' => "Test Attr {$i}",
+            'type' => 'text',
+            'entity_type' => 'leads',
+            'is_user_defined' => 1,
+        ]);
+    }
 
     $response = $this->get(route('admin.leads.view', $lead->id));
 
@@ -96,10 +108,10 @@ it('Scenario 8 & 9: handles multiple activities with large content and read more
             'type' => $actData['type'],
             'comment' => $actData['comment'],
             'user_id' => $this->admin->id,
+            'lead_id' => $lead->id,
             'is_done' => 1,
             'created_at' => Carbon::now()->subMinutes(rand(10, 500)),
         ]);
-        $lead->activities()->attach($act->id);
     }
 
     $response = $this->get(route('admin.leads.view', $lead->id));

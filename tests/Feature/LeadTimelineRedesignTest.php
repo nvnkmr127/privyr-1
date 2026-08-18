@@ -31,10 +31,9 @@ it('renders chronological timeline events with category filter buttons and badge
         'type' => 'call',
         'comment' => str_repeat('Detailed discussion regarding requirements and milestones. ', 10),
         'user_id' => $admin->id,
+        'lead_id' => $lead->id,
         'is_done' => 1,
     ]);
-
-    $lead->activities()->attach($activity->id);
 
     $response = $this->get(route('admin.leads.view', $lead->id));
 

@@ -15,7 +15,6 @@ use Webkul\DataTransfer\Helpers\Import;
 use Webkul\DataTransfer\Helpers\Importers\AbstractImporter;
 use Webkul\DataTransfer\Repositories\ImportBatchRepository;
 use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Repositories\ProductRepository as LeadProductRepository;
 
 class Importer extends AbstractImporter
 {
@@ -41,7 +40,6 @@ class Importer extends AbstractImporter
         'lead_pipeline_id',
         'lead_pipeline_stage_id',
         'expected_close_date',
-        'product',
     ];
 
     /**
@@ -66,7 +64,7 @@ class Importer extends AbstractImporter
     /**
      * Is linking required
      */
-    protected bool $linkingRequired = true;
+    protected bool $linkingRequired = false;
 
     /**
      * Create a new helper instance.
@@ -76,7 +74,6 @@ class Importer extends AbstractImporter
     public function __construct(
         protected ImportBatchRepository $importBatchRepository,
         protected LeadRepository $leadRepository,
-        protected LeadProductRepository $leadProductRepository,
         protected AttributeRepository $attributeRepository,
         protected AttributeValueRepository $attributeValueRepository,
         protected Storage $leadsStorage,
@@ -342,86 +339,7 @@ class Importer extends AbstractImporter
         return true;
     }
 
-    /**
-     * Start the products linking process
-     */
-    public function linkBatch(ImportBatchContract $batch): bool
-    {
-        Event::dispatch('data_transfer.imports.batch.linking.before', $batch);
 
-        /**
-         * Load leads storage with batch ids.
-         */
-        $this->leadsStorage->load(Arr::pluck($batch->data, 'title'));
-
-        $products = [];
-
-        foreach ($batch->data as $rowData) {
-            /**
-             * Prepare products.
-             */
-            $this->prepareProducts($rowData, $products);
-        }
-
-        $this->saveProducts($products);
-
-        /**
-         * Update import batch summary
-         */
-        $this->importBatchRepository->update([
-            'state' => Import::STATE_LINKED,
-        ], $batch->id);
-
-        Event::dispatch('data_transfer.imports.batch.linking.after', $batch);
-
-        return true;
-    }
-
-    /**
-     * Prepare products.
-     */
-    public function prepareProducts($rowData, &$product): void
-    {
-        if (! empty($rowData['product'])) {
-            $product[$rowData['title']] = $this->parseProducts($rowData['product']);
-        }
-    }
-
-    /**
-     * Save products.
-     */
-    public function saveProducts(array $products): void
-    {
-        $leadProducts = [];
-
-        foreach ($products as $title => $product) {
-            $lead = $this->leadsStorage->get($title);
-
-            $leadProducts['insert'][] = [
-                'lead_id' => $lead['id'],
-                'product_id' => $product['id'],
-                'price' => $product['price'],
-                'quantity' => $product['quantity'],
-                'amount' => $product['amount'],
-            ];
-        }
-
-        /**
-         * Nothing to link when none of the rows in this batch reference a product.
-         */
-        if (empty($leadProducts['insert'])) {
-            return;
-        }
-
-        foreach ($leadProducts['insert'] as $key => $leadProduct) {
-            $this->leadProductRepository->deleteWhere([
-                'lead_id' => $leadProduct['lead_id'],
-                'product_id' => $leadProduct['product_id'],
-            ]);
-        }
-
-        $this->leadProductRepository->upsert($leadProducts['insert'], ['lead_id', 'product_id']);
-    }
 
     /**
      * Delete leads from current batch.

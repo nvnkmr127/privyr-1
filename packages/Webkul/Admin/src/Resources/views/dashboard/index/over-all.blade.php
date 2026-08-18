@@ -103,32 +103,7 @@
                     </div>
                 </div>
                 
-                <!-- Total Quotes -->
-                <div class="flex flex-col gap-2 rounded-lg border border-gray-300 bg-white px-4 py-5 dark:border-gray-800 dark:bg-gray-900">
-                    <p class="text-xs font-medium text-gray-600 dark:text-gray-300">
-                        @lang('admin::app.dashboard.index.over-all.total-quotations')
-                    </p>
 
-                    <div class="flex gap-2">
-                        <p class="text-xl font-bold dark:text-gray-300">
-                            @{{ report.statistics.total_quotations.current }}
-                        </p>
-
-                        <div class="flex items-center gap-0.5">
-                            <span
-                                class="text-base !font-semibold text-green-500"
-                                :class="[report.statistics.total_quotations.progress < 0 ? 'icon-stats-down text-red-500 dark:!text-red-500' : 'icon-stats-up text-green-500 dark:!text-green-500']"
-                            ></span>
-
-                            <p
-                                class="text-xs font-semibold text-green-500"
-                                :class="[report.statistics.total_quotations.progress < 0 ?  'text-red-500' : 'text-green-500']"
-                            >
-                                @{{ Math.abs(report.statistics.total_quotations.progress.toFixed(2)) }}%
-                            </p>
-                        </div>
-                    </div>
-                </div>
                 
 
             </div>

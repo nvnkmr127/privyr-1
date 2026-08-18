@@ -5,9 +5,8 @@ namespace Webkul\Activity\Models;
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Activity\Contracts\Activity as ActivityContract;
 use Webkul\Lead\Models\LeadProxy;
-use Webkul\Product\Models\ProductProxy;
 use Webkul\User\Models\UserProxy;
-use Webkul\Warehouse\Models\WarehouseProxy;
+
 
 class Activity extends Model implements ActivityContract
 {
@@ -50,6 +49,7 @@ class Activity extends Model implements ActivityContract
         'schedule_to',
         'is_done',
         'user_id',
+        'lead_id',
     ];
 
     /**
@@ -77,26 +77,10 @@ class Activity extends Model implements ActivityContract
     }
 
     /**
-     * The leads that belong to the activity.
+     * Get the lead that owns the activity.
      */
-    public function leads()
+    public function lead()
     {
-        return $this->belongsToMany(LeadProxy::modelClass(), 'lead_activities');
-    }
-
-    /**
-     * The leads that belong to the activity.
-     */
-    public function products()
-    {
-        return $this->belongsToMany(ProductProxy::modelClass(), 'product_activities');
-    }
-
-    /**
-     * The Warehouse that belong to the activity.
-     */
-    public function warehouses()
-    {
-        return $this->belongsToMany(WarehouseProxy::modelClass(), 'warehouse_activities');
+        return $this->belongsTo(LeadProxy::modelClass());
     }
 }

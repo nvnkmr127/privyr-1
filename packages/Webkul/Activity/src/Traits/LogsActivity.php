@@ -23,12 +23,11 @@ trait LogsActivity
                     'type' => 'system',
                     'title' => trans('admin::app.activities.created'),
                     'is_done' => 1,
+                    'lead_id' => $model->id,
                     'user_id' => auth()->check()
                         ? auth()->id()
                         : null,
                 ]);
-
-                $model->activities()->attach($activity->id);
 
                 return;
             }
@@ -77,6 +76,7 @@ trait LogsActivity
                 'type' => 'system',
                 'title' => trans('admin::app.activities.updated', ['attribute' => $attributeCode]),
                 'is_done' => 1,
+                'lead_id' => $model instanceof AttributeValue ? $model->entity->id : $model->id,
                 'additional' => json_encode([
                     'attribute' => $attributeCode,
                     'new' => [
@@ -90,12 +90,6 @@ trait LogsActivity
                 ]),
                 'user_id' => auth()->id(),
             ]);
-
-            if ($model instanceof AttributeValue) {
-                $model->entity->activities()->attach($activity->id);
-            } else {
-                $model->activities()->attach($activity->id);
-            }
         }
     }
 

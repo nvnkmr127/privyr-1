@@ -12,7 +12,6 @@ class LeadSourceConnector extends Model
     protected $table = 'lead_source_connectors';
 
     protected $fillable = [
-        'workspace_id',
         'name',
         'source_type',
         'webhook_token',
@@ -51,7 +50,6 @@ class LeadSourceConnector extends Model
      */
     public function scopeForWorkspace($query, $workspaceId)
     {
-        return $query->where('workspace_id', $workspaceId);
     }
 
     public function pipeline(): BelongsTo

@@ -2,7 +2,6 @@
 
 namespace Webkul\Lead\Models;
 
-use App\Support\Concerns\BelongsToWorkspace;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,13 +13,12 @@ use Webkul\Activity\Traits\LogsActivity;
 use Webkul\Attribute\Traits\CustomAttribute;
 use Webkul\Email\Models\EmailProxy;
 use Webkul\Lead\Contracts\Lead as LeadContract;
-use Webkul\Quote\Models\QuoteProxy;
 use Webkul\Tag\Models\TagProxy;
 use Webkul\User\Models\UserProxy;
 
 class Lead extends Model implements LeadContract
 {
-    use BelongsToWorkspace, CustomAttribute, LogsActivity;
+    use CustomAttribute, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -126,17 +124,9 @@ class Lead extends Model implements LeadContract
     /**
      * Get the activities.
      */
-    public function activities(): BelongsToMany
+    public function activities(): HasMany
     {
-        return $this->belongsToMany(ActivityProxy::modelClass(), 'lead_activities');
-    }
-
-    /**
-     * Get the products.
-     */
-    public function products(): HasMany
-    {
-        return $this->hasMany(ProductProxy::modelClass());
+        return $this->hasMany(ActivityProxy::modelClass());
     }
 
     /**
@@ -145,14 +135,6 @@ class Lead extends Model implements LeadContract
     public function emails(): HasMany
     {
         return $this->hasMany(EmailProxy::modelClass());
-    }
-
-    /**
-     * The quotes that belong to the lead.
-     */
-    public function quotes(): BelongsToMany
-    {
-        return $this->belongsToMany(QuoteProxy::modelClass(), 'lead_quotes');
     }
 
     /**

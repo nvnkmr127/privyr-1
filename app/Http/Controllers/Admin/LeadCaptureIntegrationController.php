@@ -10,8 +10,7 @@ use Illuminate\Validation\Rule;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Services\LeadCaptureService;
-use Webkul\Moldable\Models\Workspace;
-use Webkul\Moldable\Models\WorkspaceMember;
+
 use Webkul\User\Repositories\UserRepository;
 
 class LeadCaptureIntegrationController extends Controller
@@ -23,28 +22,11 @@ class LeadCaptureIntegrationController extends Controller
     ) {}
 
     /**
-     * The current tenant (Moldable workspace), resolved by the ResolveWorkspace
-     * middleware from the authenticated session — never from raw browser input.
-     */
-    protected function currentWorkspace(Request $request)
-    {
-        $workspace = $request->attributes->get('moldable_workspace');
-
-        abort_unless($workspace, 403, 'No workspace context.');
-
-        return $workspace;
-    }
-
-    /**
-     * Directory of lead sources + the connectors already created for each,
-     * scoped to the current tenant.
+     * Directory of lead sources + the connectors already created for each.
      */
     public function index(Request $request)
     {
-        $workspace = $this->currentWorkspace($request);
-
-        $connectors = LeadSourceConnector::forWorkspace($workspace->id)
-            ->latest()
+        $connectors = LeadSourceConnector::latest()
             ->get()
             ->groupBy('source_type');
 
@@ -60,45 +42,7 @@ class LeadCaptureIntegrationController extends Controller
             'integrations' => $integrations,
             'pipelines' => $this->pipelineRepository->all(['id', 'name']),
             'users' => $this->userRepository->all(['id', 'name']),
-            'workspaceId' => $workspace->id,
-            'workspaces' => $this->userWorkspaces($request),
         ]);
-    }
-
-    /**
-     * The workspaces (tenants) the authenticated user may switch between.
-     */
-    protected function userWorkspaces(Request $request)
-    {
-        $ids = WorkspaceMember::where('user_id', $request->user()->getAuthIdentifier())
-            ->where('is_active', true)
-            ->pluck('workspace_id');
-
-        return Workspace::whereIn('id', $ids)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-    }
-
-    /**
-     * Switch the active tenant. Membership is validated here (never trust the id
-     * blindly); the selection persists in the session so subsequent page loads
-     * are scoped to it. Returns 403 if the user is not a member.
-     */
-    public function switchWorkspace(Request $request)
-    {
-        $id = $request->input('workspace_id');
-
-        $isMember = WorkspaceMember::where('workspace_id', $id)
-            ->where('user_id', $request->user()->getAuthIdentifier())
-            ->where('is_active', true)
-            ->exists();
-
-        abort_unless($isMember, 403, 'You are not a member of that workspace.');
-
-        $request->session()->put('current_workspace_id', (int) $id);
-
-        return response()->json(['message' => 'Workspace switched.', 'workspace_id' => (int) $id]);
     }
 
     /**
@@ -116,10 +60,7 @@ class LeadCaptureIntegrationController extends Controller
             'assignee' => ['nullable', Rule::exists('users', 'id')],
         ]);
 
-        $workspace = $this->currentWorkspace($request);
-
         $connector = LeadSourceConnector::create([
-            'workspace_id' => $workspace->id,
             'name' => $validated['name'],
             'source_type' => $validated['source_type'],
             'webhook_token' => Str::random(32),
@@ -144,8 +85,7 @@ class LeadCaptureIntegrationController extends Controller
      */
     public function test(Request $request, int $id)
     {
-        $connector = LeadSourceConnector::forWorkspace($this->currentWorkspace($request)->id)
-            ->whereKey($id)
+        $connector = LeadSourceConnector::whereKey($id)
             ->firstOrFail();
 
         $sample = $request->input('payload', [
@@ -169,8 +109,7 @@ class LeadCaptureIntegrationController extends Controller
      */
     public function disconnect(Request $request, int $id)
     {
-        $connector = LeadSourceConnector::forWorkspace($this->currentWorkspace($request)->id)
-            ->whereKey($id)
+        $connector = LeadSourceConnector::whereKey($id)
             ->firstOrFail();
         $connector->update(['is_active' => false]);
 
@@ -182,8 +121,7 @@ class LeadCaptureIntegrationController extends Controller
      */
     public function reconnect(Request $request, int $id)
     {
-        $connector = LeadSourceConnector::forWorkspace($this->currentWorkspace($request)->id)
-            ->whereKey($id)
+        $connector = LeadSourceConnector::whereKey($id)
             ->firstOrFail();
         $connector->update(['is_active' => true]);
 

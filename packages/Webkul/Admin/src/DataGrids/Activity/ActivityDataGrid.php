@@ -29,8 +29,7 @@ class ActivityDataGrid extends DataGrid
                 'users.name as created_by',
             )
             ->leftJoin('activity_participants', 'activities.id', '=', 'activity_participants.activity_id')
-            ->leftJoin('lead_activities', 'activities.id', '=', 'lead_activities.activity_id')
-            ->leftJoin('leads', 'lead_activities.lead_id', '=', 'leads.id')
+            ->leftJoin('leads', 'activities.lead_id', '=', 'leads.id')
             ->leftJoin('users', 'activities.user_id', '=', 'users.id')
             ->whereIn('type', ['call', 'meeting', 'lunch'])
             ->where(function ($query) {

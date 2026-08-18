@@ -45,12 +45,8 @@ class SendLeadWhatsAppNotification
                     ? "⚡ Automated WhatsApp auto-responder sent to {$phone}"
                     : "⚡ WhatsApp auto-responder queued for {$phone} (Watxio not configured)",
                 'user_id' => $lead->user_id ?? 1,
-                'is_done' => 1,
-            ]);
-
-            DB::table('lead_activities')->insert([
                 'lead_id' => $lead->id,
-                'activity_id' => $activity->id,
+                'is_done' => 1,
             ]);
         } catch (\Throwable $e) {
             Log::error('SendLeadWhatsAppNotification error: '.$e->getMessage());

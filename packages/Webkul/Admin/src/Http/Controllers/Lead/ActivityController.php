@@ -32,8 +32,7 @@ class ActivityController extends Controller
     public function index($id)
     {
         $activities = $this->activityRepository
-            ->leftJoin('lead_activities', 'activities.id', '=', 'lead_activities.activity_id')
-            ->where('lead_activities.lead_id', $id)
+            ->where('lead_id', $id)
             ->get();
 
         return ActivityResource::collection($this->concatEmailAsActivities($id, $activities));

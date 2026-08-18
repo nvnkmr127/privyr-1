@@ -128,29 +128,6 @@ Breadcrumbs::for('contacts.organizations.edit', function (BreadcrumbTrail $trail
     $trail->push(trans('admin::app.contacts.organizations.edit.title'), route('admin.contacts.organizations.edit', $organization->id));
 });
 
-// Products
-Breadcrumbs::for('products', function (BreadcrumbTrail $trail) {
-    $trail->parent('dashboard');
-    $trail->push(menu()->getLabel('products', 'admin::app.layouts.products'), route('admin.products.index'));
-});
-
-// Dashboard > Products > Create Product
-Breadcrumbs::for('products.create', function (BreadcrumbTrail $trail) {
-    $trail->parent('products');
-    $trail->push(trans('admin::app.products.create.title'), route('admin.products.create'));
-});
-
-// Dashboard > Products > View Product
-Breadcrumbs::for('products.view', function (BreadcrumbTrail $trail, $product) {
-    $trail->parent('products');
-    $trail->push('#'.$product->id, route('admin.products.view', $product->id));
-});
-
-// Dashboard > Products > Edit Product
-Breadcrumbs::for('products.edit', function (BreadcrumbTrail $trail, $product) {
-    $trail->parent('products');
-    $trail->push(trans('admin::app.products.edit.title'), route('admin.products.edit', $product->id));
-});
 
 // Settings
 Breadcrumbs::for('settings', function (BreadcrumbTrail $trail) {
@@ -373,35 +350,6 @@ Breadcrumbs::for('settings.web_forms.edit', function (BreadcrumbTrail $trail, $w
     $trail->push(trans('admin::app.settings.webforms.edit.title'), route('admin.settings.web_forms.edit', $webForm->id));
 });
 
-// Settings > Warehouse
-Breadcrumbs::for('settings.warehouses', function (BreadcrumbTrail $trail) {
-    $trail->parent('settings');
-    $trail->push(trans('admin::app.settings.warehouses.index.title'), route('admin.settings.warehouses.index'));
-});
-
-// Dashboard > Settings > Warehouse > Create Warehouse
-Breadcrumbs::for('settings.warehouses.create', function (BreadcrumbTrail $trail) {
-    $trail->parent('settings.warehouses');
-    $trail->push(trans('admin::app.settings.warehouses.create.title'), route('admin.settings.warehouses.create'));
-});
-
-// Dashboard > Settings > Warehouse > Edit Warehouse
-Breadcrumbs::for('settings.warehouses.edit', function (BreadcrumbTrail $trail, $warehouse) {
-    $trail->parent('settings.warehouses');
-    $trail->push(trans('admin::app.settings.warehouses.edit.title'), route('admin.settings.warehouses.edit', $warehouse->id));
-});
-
-// Dashboard > Settings > Warehouse > View Warehouse
-Breadcrumbs::for('settings.warehouses.view', function (BreadcrumbTrail $trail, $warehouse) {
-    $trail->parent('settings.warehouses');
-    $trail->push('#'.$warehouse->id, route('admin.settings.warehouses.view', $warehouse->id));
-});
-
-// Dashboard > Settings > Warehouse > View Warehouse > Products
-Breadcrumbs::for('settings.warehouses.view.products', function (BreadcrumbTrail $trail, $warehouse) {
-    $trail->parent('settings.warehouses.view', $warehouse);
-    $trail->push(trans('admin::app.settings.warehouses.products'), route('admin.settings.warehouses.products.index', $warehouse->id));
-});
 
 // Dashboard > Settings > Locations
 Breadcrumbs::for('settings.locations', function (BreadcrumbTrail $trail) {
