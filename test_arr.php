@@ -1,5 +1,8 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
+
+use Illuminate\Support\Arr;
+
+require __DIR__.'/vendor/autoload.php';
 $payload = [
     'full_name' => 'Alice Walker',
     'email' => 'alice@globex.org',
@@ -15,7 +18,7 @@ $mappedData = [
         'emails' => 'alice@globex.org',
         'contact_numbers' => '+15551234',
     ],
-    'deal_prio_xyz' => 'High Priority P1'
+    'deal_prio_xyz' => 'High Priority P1',
 ];
-$customLeadAttributes = \Illuminate\Support\Arr::except($mappedData, ['person', 'title', 'description', 'lead_value']);
+$customLeadAttributes = Arr::except($mappedData, ['person', 'title', 'description', 'lead_value']);
 print_r($customLeadAttributes);

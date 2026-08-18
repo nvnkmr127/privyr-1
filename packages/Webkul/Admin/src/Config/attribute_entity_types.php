@@ -6,8 +6,6 @@ return [
         'repository' => 'Webkul\Lead\Repositories\LeadRepository',
     ],
 
-
-
     'products' => [
         'name' => 'admin::app.products.index.title',
         'repository' => 'Webkul\Product\Repositories\ProductRepository',

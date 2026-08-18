@@ -23,7 +23,7 @@ class SendLeadAgentPushNotification
      */
     public function handle($lead)
     {
-        Log::info("SendLeadAgentPushNotification fired for lead: " . $lead->id);
+        Log::info('SendLeadAgentPushNotification fired for lead: '.$lead->id);
         try {
             $user = $lead->user;
             $agentName = $user->name ?? 'Agent';

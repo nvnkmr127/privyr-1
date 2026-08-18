@@ -32,8 +32,6 @@ return [
         'repository' => 'Webkul\User\Repositories\UserRepository',
     ],
 
-
-
     'warehouses' => [
         'name' => 'Warehouses',
         'repository' => 'Webkul\Warehouse\Repositories\WarehouseRepository',

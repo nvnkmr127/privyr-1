@@ -20,12 +20,10 @@ require 'mail-routes.php';
  */
 require 'settings-routes.php';
 
-
 /**
  * Activities routes.
  */
 require 'activities-routes.php';
-
 
 /**
  * Configuration routes.

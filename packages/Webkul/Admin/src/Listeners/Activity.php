@@ -3,7 +3,6 @@
 namespace Webkul\Admin\Listeners;
 
 use Webkul\Activity\Contracts\Activity as ActivityContract;
-
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\Warehouse\Repositories\WarehouseRepository;

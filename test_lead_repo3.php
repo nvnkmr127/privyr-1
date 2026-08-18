@@ -1,9 +1,12 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$app = require_once __DIR__ . '/bootstrap/app.php';
+
+use Webkul\Lead\Repositories\LeadRepository;
+
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
-$repo = app(\Webkul\Lead\Repositories\LeadRepository::class);
+$repo = app(LeadRepository::class);
 try {
     $lead = $repo->create([
         'entity_type' => 'leads',
@@ -11,6 +14,6 @@ try {
         'user_id' => 1,
     ]);
     print_r(array_keys($lead->getAttributes()));
-} catch (\Exception $e) {
+} catch (Exception $e) {
     echo $e->getMessage();
 }

@@ -4,6 +4,7 @@ use Illuminate\Support\Str;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
+use Webkul\Moldable\Models\Workspace;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,7 +100,7 @@ it('serves a real embed loader script for active tokens and an inert one otherwi
 it('runs the test action as a dry run without persisting a lead', function () {
     $this->actingAs(getDefaultAdmin(), 'user');
 
-    $workspaceId = \Webkul\Moldable\Models\Workspace::first()->id;
+    $workspaceId = Workspace::first()->id;
     $connector = makeConnector(['workspace_id' => $workspaceId]);
     $leadsBefore = Lead::count();
     $logsBefore = LeadCaptureLog::where('connector_id', $connector->id)->count();
