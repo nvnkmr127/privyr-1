@@ -103,7 +103,7 @@ class WebForm extends FormRequest
                     array_push($validations[in_array($attribute->type, ['email', 'phone'])
                         ? $attribute->code.'.*.value'
                         : $attribute->code
-                    ], function ($field, $value, $fail) use ($attribute, $entityType) {
+                    ], function ($field, $value, $fail) use ($attribute) {
                         if (! $this->attributeValueRepository->isValueUnique(
                             null,
                             $attribute->entity_type,

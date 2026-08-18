@@ -2,8 +2,4 @@
 
 namespace Webkul\Lead\Models;
 
-use Konekt\Concord\Proxies\ModelProxy;
-
-class StageActionProxy extends Proxy
-{
-}
+class StageActionProxy extends Proxy {}

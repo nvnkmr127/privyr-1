@@ -106,8 +106,6 @@ class Dashboard
         return $this->productReporting->getTopSellingProductsByRevenue(5);
     }
 
-
-
     /**
      * Get the start date.
      *

@@ -23,5 +23,3 @@ test('MOLD-023: Lead custom attributes resolve correctly on Lead entity', functi
     $attribute->delete();
     $lead->delete();
 });
-
-

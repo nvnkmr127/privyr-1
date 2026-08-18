@@ -101,8 +101,6 @@ class QuoteDataGrid extends DataGrid
             ],
         ]);
 
-
-
         $this->addColumn([
             'index' => 'sub_total',
             'label' => trans('admin::app.quotes.index.datagrid.subtotal'),

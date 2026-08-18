@@ -180,11 +180,11 @@ it('pushes to the assigned agent when a lead is captured', function () {
         'is_active' => true,
     ]);
 
-    $email = 'priya.' . \Illuminate\Support\Str::random(5) . '@example.com';
+    $email = 'priya.'.Str::random(5).'@example.com';
     app(LeadCaptureService::class)->processIncomingPayload($connector, [
         'full_name' => 'Priya Nair',
         'email' => $email,
-        'phone' => '+91 9' . rand(100000000, 999999999),
+        'phone' => '+91 9'.rand(100000000, 999999999),
     ]);
 
     Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send')
