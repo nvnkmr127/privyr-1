@@ -128,7 +128,6 @@ Breadcrumbs::for('contacts.organizations.edit', function (BreadcrumbTrail $trail
     $trail->push(trans('admin::app.contacts.organizations.edit.title'), route('admin.contacts.organizations.edit', $organization->id));
 });
 
-
 // Settings
 Breadcrumbs::for('settings', function (BreadcrumbTrail $trail) {
     $trail->parent('dashboard');
@@ -349,7 +348,6 @@ Breadcrumbs::for('settings.web_forms.edit', function (BreadcrumbTrail $trail, $w
     $trail->parent('settings.web_forms');
     $trail->push(trans('admin::app.settings.webforms.edit.title'), route('admin.settings.web_forms.edit', $webForm->id));
 });
-
 
 // Dashboard > Settings > Locations
 Breadcrumbs::for('settings.locations', function (BreadcrumbTrail $trail) {

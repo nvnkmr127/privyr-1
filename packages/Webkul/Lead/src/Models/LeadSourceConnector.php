@@ -48,9 +48,7 @@ class LeadSourceConnector extends Model
      * explicit workspace id resolved from the authenticated context — never from
      * raw browser input.
      */
-    public function scopeForWorkspace($query, $workspaceId)
-    {
-    }
+    public function scopeForWorkspace($query, $workspaceId) {}
 
     public function pipeline(): BelongsTo
     {

@@ -4,7 +4,6 @@ use Illuminate\Support\Str;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
-use Webkul\Moldable\Models\Workspace;
 
 /*
 |--------------------------------------------------------------------------
@@ -105,8 +104,8 @@ it('runs the test action as a dry run without persisting a lead', function () {
     $logsBefore = LeadCaptureLog::where('connector_id', $connector->id)->count();
 
     $response = $this->postJson(route('admin.lead_capture.integrations.test', $connector->id), [
-            'payload' => ['name' => 'Dry Run', 'email' => 'dry.run@example.com', 'phone' => '+1 555 9'],
-        ]);
+        'payload' => ['name' => 'Dry Run', 'email' => 'dry.run@example.com', 'phone' => '+1 555 9'],
+    ]);
 
     $response->assertOk()
         ->assertJsonPath('preview.dry_run', true)

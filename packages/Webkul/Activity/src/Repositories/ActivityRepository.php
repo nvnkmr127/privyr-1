@@ -44,7 +44,6 @@ class ActivityRepository extends Repository
             ]);
         }
 
-
         return $activity;
     }
 

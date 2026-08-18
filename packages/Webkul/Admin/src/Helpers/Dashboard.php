@@ -3,10 +3,8 @@
 namespace Webkul\Admin\Helpers;
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Webkul\Admin\Helpers\Reporting\Activity;
 use Webkul\Admin\Helpers\Reporting\Lead;
-
 
 class Dashboard
 {

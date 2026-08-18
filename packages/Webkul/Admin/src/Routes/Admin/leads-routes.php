@@ -6,7 +6,6 @@ use Webkul\Admin\Http\Controllers\Lead\EmailController;
 use Webkul\Admin\Http\Controllers\Lead\FacebookOAuthController;
 use Webkul\Admin\Http\Controllers\Lead\LeadConnectorController;
 use Webkul\Admin\Http\Controllers\Lead\LeadController;
-
 use Webkul\Admin\Http\Controllers\Lead\TagController;
 
 Route::controller(LeadConnectorController::class)->prefix('settings/lead-connectors')->group(function () {
@@ -66,7 +65,6 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
     Route::get('get/{pipeline_id?}', 'get')->name('admin.leads.get');
 
-
     Route::get('kanban/look-up', [LeadController::class, 'kanbanLookup'])->name('admin.leads.kanban.look_up');
 
     Route::controller(ActivityController::class)->prefix('{id}/activities')->group(function () {
@@ -84,6 +82,5 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
         Route::delete('', 'detach')->name('admin.leads.emails.detach');
     });
-
 
 });

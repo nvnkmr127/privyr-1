@@ -115,8 +115,6 @@ class LeadCaptureService
                 throw new \Exception('PERSON IS IN LEAD ATTRIBUTES IMMEDIATELY AFTER CREATE/UPDATE');
             }
 
-
-
             // Update Connector Statistics
             $connector->increment('captured_count');
             $connector->update(['last_received_at' => Carbon::now()]);

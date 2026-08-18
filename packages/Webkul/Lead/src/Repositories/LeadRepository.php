@@ -9,7 +9,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Attribute\Repositories\AttributeValueRepository;
 use Webkul\Core\Eloquent\Repository;
@@ -124,8 +123,6 @@ class LeadRepository extends Repository
             'entity_id' => $lead->id,
         ]));
 
-
-
         Event::dispatch('lead.create.after', $lead);
 
         return $lead;
@@ -192,8 +189,6 @@ class LeadRepository extends Repository
         $this->attributeValueRepository->save(array_merge($data, [
             'entity_id' => $lead->id,
         ]));
-
-
 
         return $lead;
     }
