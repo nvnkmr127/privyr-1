@@ -119,13 +119,7 @@ return [
         'route' => 'admin.settings.attributes.index',
         'sort' => 3,
         'icon-class' => '',
-    ], [
-        'key' => 'settings.automation.moldable_builder',
-        'name' => 'admin::app.layouts.moldable-builder',
-        'info' => 'admin::app.layouts.moldable-builder-info',
-        'route' => 'admin.moldable.builder.index',
-        'sort' => 0,
-        'icon-class' => 'icon-attribute',
+
     ], [
         'key' => 'settings.automation.attributes',
         'name' => 'admin::app.layouts.attributes',
@@ -211,13 +205,6 @@ return [
         'route' => 'admin.settings.tags.index',
         'sort' => 1,
         'icon-class' => 'icon-settings-tag',
-    ], [
-        'key' => 'settings.other_settings.warehouses',
-        'name' => 'admin::app.layouts.warehouses',
-        'info' => 'admin::app.layouts.warehouses-info',
-        'route' => 'admin.settings.warehouses.index',
-        'sort' => 2,
-        'icon-class' => 'icon-product',
     ],
 
     /**

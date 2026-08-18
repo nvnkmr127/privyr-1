@@ -12,6 +12,16 @@ it('renders lead attributes in a compact 2-column property grid', function () {
 
     $lead = Lead::first();
 
+    Attribute::where('code', 'test_custom_attribute')->delete();
+
+    Attribute::create([
+        'code' => 'test_custom_attribute',
+        'name' => 'Test Custom Attribute',
+        'type' => 'text',
+        'entity_type' => 'leads',
+        'is_user_defined' => 1,
+    ]);
+
     $response = $this->get(route('admin.leads.view', $lead->id));
 
     $response->assertOk()

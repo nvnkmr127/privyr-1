@@ -61,7 +61,6 @@ class Email extends Model implements EmailContract
         'message_id',
         'reference_ids',
         'reply',
-        'person_id',
         'parent_id',
         'lead_id',
         'created_at',

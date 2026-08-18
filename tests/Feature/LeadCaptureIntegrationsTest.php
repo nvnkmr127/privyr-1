@@ -100,13 +100,11 @@ it('serves a real embed loader script for active tokens and an inert one otherwi
 it('runs the test action as a dry run without persisting a lead', function () {
     $this->actingAs(getDefaultAdmin(), 'user');
 
-    $workspaceId = Workspace::first()->id;
-    $connector = makeConnector(['workspace_id' => $workspaceId]);
+    $connector = makeConnector();
     $leadsBefore = Lead::count();
     $logsBefore = LeadCaptureLog::where('connector_id', $connector->id)->count();
 
-    $response = $this->withHeader('X-Workspace-Id', (string) $workspaceId)
-        ->postJson(route('admin.lead_capture.integrations.test', $connector->id), [
+    $response = $this->postJson(route('admin.lead_capture.integrations.test', $connector->id), [
             'payload' => ['name' => 'Dry Run', 'email' => 'dry.run@example.com', 'phone' => '+1 555 9'],
         ]);
 

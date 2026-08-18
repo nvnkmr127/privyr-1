@@ -15,22 +15,16 @@ return new class extends Migration
     {
         Schema::table('leads', function (Blueprint $table) {
             $table->integer('user_id')->unsigned()->nullable()->change();
-            $table->integer('person_id')->unsigned()->nullable()->change();
             $table->integer('lead_source_id')->unsigned()->nullable()->change();
             $table->integer('lead_type_id')->unsigned()->nullable()->change();
 
             $table->dropForeign(['user_id']);
-            $table->dropForeign(['person_id']);
             $table->dropForeign(['lead_source_id']);
             $table->dropForeign(['lead_type_id']);
 
             $table->foreign('user_id')
                 ->references('id')->on('users')
                 ->onDelete('set null');
-
-            $table->foreign('person_id')
-                ->references('id')->on('persons')
-                ->onDelete('restrict');
 
             $table->foreign('lead_source_id')
                 ->references('id')->on('lead_sources')

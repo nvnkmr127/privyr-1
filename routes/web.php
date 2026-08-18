@@ -20,15 +20,12 @@ Route::post('/c/{token?}', [ShareableCaptureController::class, 'store'])->name('
 Route::middleware([Locale::class, Bouncer::class])
     ->prefix('admin')
     ->group(function () {
-        // Lead-capture integrations are tenant-scoped: moldable.workspace resolves
-        // the current workspace (tenant) from the authenticated session.
-        Route::middleware('moldable.workspace')->prefix('lead-capture/integrations')->group(function () {
+        Route::prefix('lead-capture/integrations')->group(function () {
             Route::get('', [LeadCaptureIntegrationController::class, 'index'])->name('admin.lead_capture.integrations');
             Route::post('', [LeadCaptureIntegrationController::class, 'store'])->name('admin.lead_capture.integrations.store');
             Route::post('{id}/test', [LeadCaptureIntegrationController::class, 'test'])->name('admin.lead_capture.integrations.test');
             Route::post('{id}/disconnect', [LeadCaptureIntegrationController::class, 'disconnect'])->name('admin.lead_capture.integrations.disconnect');
             Route::post('{id}/reconnect', [LeadCaptureIntegrationController::class, 'reconnect'])->name('admin.lead_capture.integrations.reconnect');
-            Route::post('switch-workspace', [LeadCaptureIntegrationController::class, 'switchWorkspace'])->name('admin.lead_capture.integrations.switch_workspace');
         });
 
         Route::prefix('settings/drip-sequences')->group(function () {

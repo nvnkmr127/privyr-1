@@ -54,10 +54,7 @@
             <!-- Total Leads Stats -->
             @include('admin::dashboard.index.total-leads')
 
-            <div class="flex gap-4 max-lg:flex-wrap">
-                <!-- Total Products -->
-                @include('admin::dashboard.index.top-selling-products')
-            </div>
+
 
             <!-- Pipeline Funnel -->
             @include('admin::dashboard.index.pipeline-funnel')

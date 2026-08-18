@@ -6,7 +6,7 @@ use Webkul\Admin\Http\Controllers\Lead\EmailController;
 use Webkul\Admin\Http\Controllers\Lead\FacebookOAuthController;
 use Webkul\Admin\Http\Controllers\Lead\LeadConnectorController;
 use Webkul\Admin\Http\Controllers\Lead\LeadController;
-use Webkul\Admin\Http\Controllers\Lead\QuoteController;
+
 use Webkul\Admin\Http\Controllers\Lead\TagController;
 
 Route::controller(LeadConnectorController::class)->prefix('settings/lead-connectors')->group(function () {
@@ -66,9 +66,6 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
     Route::get('get/{pipeline_id?}', 'get')->name('admin.leads.get');
 
-    Route::delete('product/{lead_id}', 'removeProduct')->name('admin.leads.product.remove');
-
-    Route::put('product/{lead_id}', 'addProduct')->name('admin.leads.product.add');
 
     Route::get('kanban/look-up', [LeadController::class, 'kanbanLookup'])->name('admin.leads.kanban.look_up');
 
@@ -88,9 +85,5 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
         Route::delete('', 'detach')->name('admin.leads.emails.detach');
     });
 
-    Route::controller(QuoteController::class)->prefix('quotes')->group(function () {
-        Route::post('{quote_id}/mail', 'mail')->name('admin.leads.quotes.mail');
 
-        Route::delete('{quote_id?}', 'delete')->name('admin.leads.quotes.delete');
-    });
 });

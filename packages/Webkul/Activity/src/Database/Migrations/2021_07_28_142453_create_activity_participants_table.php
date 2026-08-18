@@ -23,7 +23,6 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->integer('person_id')->nullable()->unsigned();
-            $table->foreign('person_id')->references('id')->on('persons')->onDelete('cascade');
         });
     }
 

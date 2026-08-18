@@ -14,12 +14,7 @@ use Webkul\Admin\Exceptions\Handler;
 use Webkul\Admin\Http\Middleware\Bouncer as BouncerMiddleware;
 use Webkul\Admin\Http\Middleware\Locale;
 use Webkul\Admin\Http\Middleware\SanitizeUrl;
-use Webkul\Contact\Models\Organization;
-use Webkul\Contact\Models\Person;
 use Webkul\Lead\Models\Lead;
-use Webkul\Product\Models\Product;
-use Webkul\Quote\Models\Quote;
-use Webkul\Warehouse\Models\Warehouse;
 
 class AdminServiceProvider extends ServiceProvider
 {
@@ -55,11 +50,6 @@ class AdminServiceProvider extends ServiceProvider
 
         Relation::morphMap([
             'leads' => Lead::class,
-            'organizations' => Organization::class,
-            'persons' => Person::class,
-            'products' => Product::class,
-            'quotes' => Quote::class,
-            'warehouses' => Warehouse::class,
         ]);
 
         $this->app->register(EventServiceProvider::class);

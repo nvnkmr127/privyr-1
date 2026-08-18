@@ -13,20 +13,32 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        Schema::table('leads', function (Blueprint $table) {
-            $table->dropForeign(['person_id']);
-            $table->dropColumn('person_id');
-        });
+        if (Schema::hasColumn('leads', 'person_id')) {
+            Schema::table('leads', function (Blueprint $table) {
+                if (Schema::hasTable('persons')) {
+                    $table->dropForeign(['person_id']);
+                }
+                $table->dropColumn('person_id');
+            });
+        }
 
-        Schema::table('quotes', function (Blueprint $table) {
-            $table->dropForeign(['person_id']);
-            $table->dropColumn('person_id');
-        });
+        if (Schema::hasTable('quotes') && Schema::hasColumn('quotes', 'person_id')) {
+            Schema::table('quotes', function (Blueprint $table) {
+                if (Schema::hasTable('persons')) {
+                    $table->dropForeign(['person_id']);
+                }
+                $table->dropColumn('person_id');
+            });
+        }
 
-        Schema::table('emails', function (Blueprint $table) {
-            $table->dropForeign(['person_id']);
-            $table->dropColumn('person_id');
-        });
+        if (Schema::hasColumn('emails', 'person_id')) {
+            Schema::table('emails', function (Blueprint $table) {
+                if (Schema::hasTable('persons')) {
+                    $table->dropForeign(['person_id']);
+                }
+                $table->dropColumn('person_id');
+            });
+        }
 
         Schema::dropIfExists('contact_export_batch_items');
         Schema::dropIfExists('person_activities');

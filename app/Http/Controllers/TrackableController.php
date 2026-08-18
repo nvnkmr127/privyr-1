@@ -39,12 +39,8 @@ class TrackableController extends Controller
             'type' => 'note',
             'comment' => "📄 🔥 Prospect opened shared brochure/catalogue (IP: {$ip})",
             'user_id' => $leadRecord->user_id ?? 1,
-            'is_done' => 1,
-        ]);
-
-        DB::table('lead_activities')->insert([
             'lead_id' => $leadId,
-            'activity_id' => $activity->id,
+            'is_done' => 1,
         ]);
 
         // Send instant Engagement Push Alert to assigned agent

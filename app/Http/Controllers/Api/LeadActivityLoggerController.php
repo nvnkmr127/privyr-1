@@ -36,12 +36,8 @@ class LeadActivityLoggerController extends Controller
             'type' => 'note',
             'comment' => $modeTag.$request->input('comment'),
             'user_id' => $leadRecord->user_id ?? 1,
-            'is_done' => 1,
-        ]);
-
-        DB::table('lead_activities')->insert([
             'lead_id' => $leadRecord->id,
-            'activity_id' => $activity->id,
+            'is_done' => 1,
         ]);
 
         return response()->json([

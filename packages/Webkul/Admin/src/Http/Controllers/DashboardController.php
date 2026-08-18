@@ -20,7 +20,6 @@ class DashboardController extends Controller
         'total-leads' => 'getTotalLeadsStats',
         'revenue-by-sources' => 'getLeadsStatsBySources',
         'revenue-by-types' => 'getLeadsStatsByTypes',
-        'top-selling-products' => 'getTopSellingProducts',
         'open-leads-by-states' => 'getOpenLeadsByStates',
         'pipeline-funnel' => 'getPipelineFunnel',
     ];

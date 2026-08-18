@@ -46,10 +46,9 @@ class LeadFollowUpSequenceService
 
             foreach ($steps as $stepId => $step) {
                 if ($createdDaysAgo >= $step['day_offset']) {
-                    $alreadyProcessed = DB::table('lead_activities')
-                        ->join('activities', 'activities.id', '=', 'lead_activities.activity_id')
-                        ->where('lead_activities.lead_id', $lead->id)
-                        ->where('activities.comment', 'like', "%[Sequence Step #{$stepId}]%")
+                    $alreadyProcessed = DB::table('activities')
+                        ->where('lead_id', $lead->id)
+                        ->where('comment', 'like', "%[Sequence Step #{$stepId}]%")
                         ->exists();
 
                     if (! $alreadyProcessed) {
@@ -74,8 +73,7 @@ class LeadFollowUpSequenceService
         $message = $this->templateService->parse($step['template'], $lead);
         $message = str_replace('{brochure_link}', $brochureLink, $message);
 
-        $person = DB::table('persons')->where('id', $lead->person_id)->first();
-        $phone = json_decode($person->contact_numbers ?? '[]', true)[0]['value'] ?? null;
+        $phone = json_decode($lead->contact_numbers ?? '[]', true)[0]['value'] ?? null;
 
         Log::info("Dispatching Sequence Step #{$stepId} ('{$step['name']}') for Lead #{$lead->id}");
 
@@ -87,12 +85,8 @@ class LeadFollowUpSequenceService
             'type' => 'note',
             'comment' => "🤖 [Sequence Step #{$stepId}] Sent: {$step['name']}\nMessage: {$message}",
             'user_id' => $lead->user_id ?? 1,
-            'is_done' => 1,
-        ]);
-
-        DB::table('lead_activities')->insert([
             'lead_id' => $lead->id,
-            'activity_id' => $activity->id,
+            'is_done' => 1,
         ]);
     }
 }

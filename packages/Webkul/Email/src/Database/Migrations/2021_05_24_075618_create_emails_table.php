@@ -32,7 +32,6 @@ return new class extends Migration
             $table->json('reference_ids')->nullable();
 
             $table->integer('person_id')->unsigned()->nullable();
-            $table->foreign('person_id')->references('id')->on('persons')->onDelete('set null');
 
             $table->integer('lead_id')->unsigned()->nullable();
             $table->foreign('lead_id')->references('id')->on('leads')->onDelete('set null');

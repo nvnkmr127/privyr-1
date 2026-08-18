@@ -18,24 +18,26 @@ return new class extends Migration
             $table->string('organization_name')->nullable()->after('contact_numbers');
         });
 
-        // Copy data from persons to leads
-        DB::table('leads')
-            ->join('persons', 'leads.person_id', '=', 'persons.id')
-            ->leftJoin('organizations', 'persons.organization_id', '=', 'organizations.id')
-            ->update([
-                'leads.person_name' => DB::raw('persons.name'),
-                'leads.emails' => DB::raw('persons.emails'),
-                'leads.contact_numbers' => DB::raw('persons.contact_numbers'),
-                'leads.organization_name' => DB::raw('organizations.name'),
-            ]);
+        // Copy data from persons to leads if table exists
+        if (Schema::hasTable('persons')) {
+            DB::table('leads')
+                ->join('persons', 'leads.person_id', '=', 'persons.id')
+                ->leftJoin('organizations', 'persons.organization_id', '=', 'organizations.id')
+                ->update([
+                    'leads.person_name' => DB::raw('persons.name'),
+                    'leads.emails' => DB::raw('persons.emails'),
+                    'leads.contact_numbers' => DB::raw('persons.contact_numbers'),
+                    'leads.organization_name' => DB::raw('organizations.name'),
+                ]);
 
-        // Migrate emails that have person_id but no lead_id
-        DB::statement('
-            UPDATE emails 
-            JOIN leads ON emails.person_id = leads.person_id 
-            SET emails.lead_id = leads.id 
-            WHERE emails.lead_id IS NULL AND emails.person_id IS NOT NULL
-        ');
+            // Migrate emails that have person_id but no lead_id
+            DB::statement('
+                UPDATE emails 
+                JOIN leads ON emails.person_id = leads.person_id 
+                SET emails.lead_id = leads.id 
+                WHERE emails.lead_id IS NULL AND emails.person_id IS NOT NULL
+            ');
+        }
     }
 
     /**

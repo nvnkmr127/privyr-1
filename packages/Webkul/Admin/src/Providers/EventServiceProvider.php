@@ -25,12 +25,6 @@ class EventServiceProvider extends ServiceProvider
             'Webkul\Admin\Listeners\Lead@handleStageActions',
         ],
 
-        'activity.create.after' => [
-            'Webkul\Admin\Listeners\Activity@afterUpdateOrCreate',
-        ],
 
-        'activity.update.after' => [
-            'Webkul\Admin\Listeners\Activity@afterUpdateOrCreate',
-        ],
     ];
 }

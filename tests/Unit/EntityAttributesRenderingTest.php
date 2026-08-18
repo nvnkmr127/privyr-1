@@ -4,6 +4,8 @@ use Webkul\Attribute\Models\Attribute;
 use Webkul\Lead\Models\Lead;
 
 test('MOLD-023: Lead custom attributes resolve correctly on Lead entity', function () {
+    Attribute::where('code', 'project_budget_test')->delete();
+
     $attribute = Attribute::create([
         'code' => 'project_budget_test',
         'name' => 'Project Budget Test',
