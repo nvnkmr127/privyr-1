@@ -4,7 +4,7 @@ namespace Webkul\Marketing\Helpers;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
-use Webkul\Contact\Repositories\PersonRepository;
+use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Marketing\Mail\CampaignMail;
 use Webkul\Marketing\Repositories\CampaignRepository;
 use Webkul\Marketing\Repositories\EventRepository;
@@ -20,7 +20,7 @@ class Campaign
     public function __construct(
         protected EventRepository $eventRepository,
         protected CampaignRepository $campaignRepository,
-        protected PersonRepository $personRepository,
+        protected LeadRepository $leadRepository,
     ) {}
 
     /**
@@ -40,16 +40,13 @@ class Campaign
             ->get();
 
         collect($campaigns)->each(function ($campaign) {
-            collect($this->getPersonsEmails())->each(fn ($email) => Mail::queue(new CampaignMail($email, $campaign)));
+            collect($this->getLeadsEmails())->each(fn ($email) => Mail::queue(new CampaignMail($email, $campaign)));
         });
     }
 
-    /**
-     * Get the email address.
-     */
-    private function getPersonsEmails(): array
+    private function getLeadsEmails(): array
     {
-        return $this->personRepository->pluck('emails')
+        return $this->leadRepository->pluck('emails')
             ->flatMap(fn ($emails) => collect($emails)->pluck('value'))
             ->all();
     }

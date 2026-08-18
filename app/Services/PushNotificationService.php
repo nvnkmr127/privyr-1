@@ -207,14 +207,10 @@ class PushNotificationService
      */
     protected function credentials(): ?array
     {
-        if ($this->loadedCredentials !== false) {
-            return $this->loadedCredentials ?: null;
-        }
-
         $path = config('services.push.credentials');
 
         if (! $path || ! is_file($path)) {
-            return $this->loadedCredentials = null;
+            return null;
         }
 
         $json = json_decode((string) file_get_contents($path), true);
@@ -222,12 +218,12 @@ class PushNotificationService
         if (! is_array($json) || empty($json['client_email']) || empty($json['private_key'])) {
             Log::error('FCM service-account file is missing client_email/private_key.');
 
-            return $this->loadedCredentials = null;
+            return null;
         }
 
         $json['token_uri'] = $json['token_uri'] ?? 'https://oauth2.googleapis.com/token';
 
-        return $this->loadedCredentials = $json;
+        return $json;
     }
 
     /**

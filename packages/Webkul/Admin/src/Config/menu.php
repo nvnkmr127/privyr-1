@@ -189,13 +189,7 @@ return [
         'route' => 'admin.settings.email_templates.index',
         'sort' => 4,
         'icon-class' => 'icon-mail',
-    ], [
-        'key' => 'settings.automation.google_contacts',
-        'name' => 'admin::app.layouts.google-contacts',
-        'info' => 'admin::app.layouts.google-contacts-info',
-        'route' => 'admin.settings.google_contacts.index',
-        'sort' => 5,
-        'icon-class' => 'icon-user',
+
     ], [
         'key' => 'settings.automation.data_transfer',
         'name' => 'admin::app.layouts.data_transfer',

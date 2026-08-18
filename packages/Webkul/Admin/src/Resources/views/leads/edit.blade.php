@@ -226,8 +226,57 @@
                         </div>
 
                         <div class="w-1/2 max-md:w-full">
-                            <!-- Contact Person Component -->
-                            @include('admin::leads.common.contact')
+                            <div class="grid grid-cols-2 gap-4">
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label class="required">
+                                        Contact Name
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="person_name"
+                                        rules="required"
+                                        v-model="lead.person_name"
+                                        placeholder="e.g. John Doe"
+                                    />
+                                    <x-admin::form.control-group.error control-name="person_name" />
+                                </x-admin::form.control-group>
+
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Organization Name
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="organization_name"
+                                        v-model="lead.organization_name"
+                                        placeholder="e.g. Acme Corp"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Emails (Comma separated)
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="emails"
+                                        :value="lead.emails ? lead.emails.join(', ') : ''"
+                                        placeholder="john@example.com"
+                                    />
+                                </x-admin::form.control-group>
+
+                                <x-admin::form.control-group>
+                                    <x-admin::form.control-group.label>
+                                        Contact Numbers (Comma separated)
+                                    </x-admin::form.control-group.label>
+                                    <x-admin::form.control-group.control
+                                        type="text"
+                                        name="contact_numbers"
+                                        :value="lead.contact_numbers ? lead.contact_numbers.join(', ') : ''"
+                                        placeholder="+1 234 567 8900"
+                                    />
+                                </x-admin::form.control-group>
+                            </div>
                         </div>
                     </div>
 
@@ -272,9 +321,6 @@
                         activeTab: 'lead-details',
                         
                         lead:  @json($lead),  
-
-                        person:  @json($lead->person),  
-
                         tabs: [
                             { id: 'lead-details', label: "@lang('admin::app.leads.edit.details')" },
                             { id: 'contact-person', label: "@lang('admin::app.leads.edit.contact-person')" },

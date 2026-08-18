@@ -24,8 +24,8 @@ class MetaConversionsApiService
             return false;
         }
 
-        $phone = collect($lead->person?->contact_numbers ?? [])->pluck('value')->filter()->first();
-        $email = collect($lead->person?->emails ?? [])->pluck('value')->filter()->first();
+        $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first();
+        $email = collect($lead->emails ?? [])->pluck('value')->filter()->first();
 
         $userData = [];
 

@@ -32,15 +32,7 @@ return [
         'repository' => 'Webkul\User\Repositories\UserRepository',
     ],
 
-    'organizations' => [
-        'name' => 'Organizations',
-        'repository' => 'Webkul\Contact\Repositories\OrganizationRepository',
-    ],
 
-    'persons' => [
-        'name' => 'Persons',
-        'repository' => 'Webkul\Contact\Repositories\PersonRepository',
-    ],
 
     'warehouses' => [
         'name' => 'Warehouses',

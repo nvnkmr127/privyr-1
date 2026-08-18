@@ -42,11 +42,9 @@ class WebForm extends FormRequest
      */
     public function rules()
     {
-        foreach (['leads', 'persons'] as $key => $entityType) {
+        foreach (['leads'] as $key => $entityType) {
             $attributes = $this->attributeRepository->scopeQuery(function ($query) use ($entityType) {
-                $attributeCodes = $entityType == 'persons'
-                    ? array_keys(request('persons') ?? [])
-                    : array_keys(request('leads') ?? []);
+                $attributeCodes = array_keys(request('leads') ?? []);
 
                 $query = $query->whereIn('code', $attributeCodes)
                     ->where('entity_type', $entityType);
@@ -107,7 +105,7 @@ class WebForm extends FormRequest
                         : $attribute->code
                     ], function ($field, $value, $fail) use ($attribute, $entityType) {
                         if (! $this->attributeValueRepository->isValueUnique(
-                            $entityType == 'persons' ? request('persons.id') : null,
+                            null,
                             $attribute->entity_type,
                             $attribute,
                             request($field)

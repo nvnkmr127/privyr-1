@@ -99,13 +99,15 @@ it('serves a real embed loader script for active tokens and an inert one otherwi
 it('runs the test action as a dry run without persisting a lead', function () {
     $this->actingAs(getDefaultAdmin(), 'user');
 
-    $connector = makeConnector();
+    $workspaceId = \Webkul\Moldable\Models\Workspace::first()->id;
+    $connector = makeConnector(['workspace_id' => $workspaceId]);
     $leadsBefore = Lead::count();
     $logsBefore = LeadCaptureLog::where('connector_id', $connector->id)->count();
 
-    $response = $this->postJson(route('admin.lead_capture.integrations.test', $connector->id), [
-        'payload' => ['name' => 'Dry Run', 'email' => 'dry.run@example.com', 'phone' => '+1 555 9'],
-    ]);
+    $response = $this->withHeader('X-Workspace-Id', (string) $workspaceId)
+        ->postJson(route('admin.lead_capture.integrations.test', $connector->id), [
+            'payload' => ['name' => 'Dry Run', 'email' => 'dry.run@example.com', 'phone' => '+1 555 9'],
+        ]);
 
     $response->assertOk()
         ->assertJsonPath('preview.dry_run', true)
@@ -132,7 +134,7 @@ it('routes webhook payloads to the correct connector in isolation', function () 
         ->and(LeadCaptureLog::where('connector_id', $b->id)->where('status', 'success')->count())->toBe(1);
 
     $aLog = LeadCaptureLog::where('connector_id', $a->id)->latest()->first();
-    expect(Lead::find($aLog->lead_id)->person->name)->toBe('Alice A');
+    expect(Lead::find($aLog->lead_id)->person_name)->toBe('Alice A');
 });
 
 it('rejects webhooks for an inactive connector', function () {

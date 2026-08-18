@@ -8,13 +8,11 @@ use Webkul\Activity\Providers\ActivityServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
 use Webkul\Attribute\Providers\AttributeServiceProvider;
 use Webkul\Automation\Providers\WorkflowServiceProvider;
-use Webkul\Contact\Providers\ContactServiceProvider;
 use Webkul\Core\Providers\CoreServiceProvider;
 use Webkul\DataGrid\Providers\DataGridServiceProvider;
 use Webkul\DataTransfer\Providers\DataTransferServiceProvider;
 use Webkul\Email\Providers\EmailServiceProvider;
 use Webkul\EmailTemplate\Providers\EmailTemplateServiceProvider;
-use Webkul\GoogleContact\Providers\GoogleContactServiceProvider;
 use Webkul\Installer\Providers\InstallerServiceProvider;
 use Webkul\Lead\Providers\LeadServiceProvider;
 use Webkul\Marketing\Providers\MarketingServiceProvider;
@@ -46,13 +44,11 @@ return [
     AdminServiceProvider::class,
     AttributeServiceProvider::class,
     WorkflowServiceProvider::class,
-    ContactServiceProvider::class,
     CoreServiceProvider::class,
     DataGridServiceProvider::class,
     DataTransferServiceProvider::class,
     EmailTemplateServiceProvider::class,
     EmailServiceProvider::class,
-    GoogleContactServiceProvider::class,
     MarketingServiceProvider::class,
     InstallerServiceProvider::class,
     LeadServiceProvider::class,

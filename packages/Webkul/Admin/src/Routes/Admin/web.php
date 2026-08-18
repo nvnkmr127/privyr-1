@@ -20,25 +20,12 @@ require 'mail-routes.php';
  */
 require 'settings-routes.php';
 
-/**
- * Products routes.
- */
-require 'products-routes.php';
-
-/**
- * Contacts routes.
- */
-require 'contacts-routes.php';
 
 /**
  * Activities routes.
  */
 require 'activities-routes.php';
 
-/**
- * Quotes routes.
- */
-require 'quote-routes.php';
 
 /**
  * Configuration routes.

@@ -5,7 +5,7 @@ namespace Webkul\Automation\Services;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Message;
-use Webkul\Contact\Repositories\PersonRepository;
+
 
 class WebhookService
 {
@@ -17,7 +17,7 @@ class WebhookService
     /**
      * Create a new webhook service instance.
      */
-    public function __construct(protected PersonRepository $personRepository)
+    public function __construct()
     {
         $this->client = new Client([
             'timeout' => 30,

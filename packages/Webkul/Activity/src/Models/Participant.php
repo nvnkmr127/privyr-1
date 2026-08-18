@@ -4,7 +4,6 @@ namespace Webkul\Activity\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Activity\Contracts\Participant as ParticipantContract;
-use Webkul\Contact\Models\PersonProxy;
 use Webkul\User\Models\UserProxy;
 
 class Participant extends Model implements ParticipantContract
@@ -13,7 +12,7 @@ class Participant extends Model implements ParticipantContract
 
     protected $table = 'activity_participants';
 
-    protected $with = ['user', 'person'];
+    protected $with = ['user'];
 
     /**
      * The attributes that are mass assignable.
@@ -40,13 +39,5 @@ class Participant extends Model implements ParticipantContract
     public function user()
     {
         return $this->belongsTo(UserProxy::modelClass());
-    }
-
-    /**
-     * Get the person that owns the participant.
-     */
-    public function person()
-    {
-        return $this->belongsTo(PersonProxy::modelClass());
     }
 }

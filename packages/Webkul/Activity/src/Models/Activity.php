@@ -86,14 +86,6 @@ class Activity extends Model implements ActivityContract
     }
 
     /**
-     * The Person that belong to the activity.
-     */
-    public function persons()
-    {
-        return $this->belongsToMany(PersonProxy::modelClass(), 'person_activities');
-    }
-
-    /**
      * The leads that belong to the activity.
      */
     public function products()

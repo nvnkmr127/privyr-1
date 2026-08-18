@@ -8,7 +8,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Webkul\Attribute\Models\Attribute;
 use Webkul\Attribute\Models\AttributeValue;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Contract\Repositories\Pipeline;
 use Webkul\DataGrid\DataGrid;
 use Webkul\Lead\Repositories\PipelineRepository;
@@ -72,16 +71,14 @@ class LeadDataGrid extends DataGrid
                 'lead_tags.tag_id as tag_id',
                 'users.id as user_id',
                 'users.name as sales_person',
-                'persons.id as person_id',
-                'persons.name as person_name',
-                'persons.contact_numbers as contact_numbers',
+                'leads.person_name as person_name',
+                'leads.contact_numbers as contact_numbers',
                 'tags.name as tag_name',
                 'lead_pipelines.rotten_days as pipeline_rotten_days',
                 'lead_pipeline_stages.code as stage_code',
                 DB::raw('CASE WHEN DATEDIFF(NOW(),'.$tablePrefix.'leads.created_at) >='.$tablePrefix.'lead_pipelines.rotten_days THEN 1 ELSE 0 END as rotten_lead'),
             )
             ->leftJoin('users', 'leads.user_id', '=', 'users.id')
-            ->leftJoin('persons', 'leads.person_id', '=', 'persons.id')
             ->leftJoin('lead_types', 'leads.lead_type_id', '=', 'lead_types.id')
             ->leftJoin('lead_pipeline_stages', 'leads.lead_pipeline_stage_id', '=', 'lead_pipeline_stages.id')
             ->leftJoin('lead_sources', 'leads.lead_source_id', '=', 'lead_sources.id')
@@ -133,7 +130,7 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('sales_person', 'users.name');
         $this->addFilter('lead_source_name', 'lead_sources.id');
         $this->addFilter('lead_type_name', 'lead_types.id');
-        $this->addFilter('person_name', 'persons.name');
+        $this->addFilter('person_name', 'leads.person_name');
         $this->addFilter('type', 'lead_pipeline_stages.code');
         $this->addFilter('stage', 'lead_pipeline_stages.id');
         $this->addFilter('tag_name', 'tags.name');
@@ -240,26 +237,9 @@ class LeadDataGrid extends DataGrid
             'index' => 'person_name',
             'label' => trans('admin::app.leads.index.datagrid.contact-person'),
             'type' => 'string',
-            'searchable' => false,
+            'searchable' => true,
             'sortable' => true,
             'filterable' => true,
-            'filterable_type' => 'searchable_dropdown',
-            'filterable_options' => [
-                'repository' => PersonRepository::class,
-                'column' => [
-                    'label' => 'name',
-                    'value' => 'name',
-                ],
-            ],
-            'closure' => function ($row) {
-                if (! $row->person_id) {
-                    return '--';
-                }
-
-                $route = route('admin.contacts.persons.view', $row->person_id);
-
-                return "<a class=\"text-brandColor transition-all hover:underline\" href='".$route."'>".$row->person_name.'</a>';
-            },
         ]);
 
         $this->addColumn([

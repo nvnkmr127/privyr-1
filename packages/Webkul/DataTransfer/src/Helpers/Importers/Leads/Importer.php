@@ -36,7 +36,6 @@ class Importer extends AbstractImporter
         'lost_reason',
         'closed_at',
         'user_id',
-        'person_id',
         'lead_source_id',
         'lead_type_id',
         'lead_pipeline_id',
@@ -177,11 +176,10 @@ class Importer extends AbstractImporter
          * Validate leads attributes.
          */
         $validator = Validator::make($rowData, [
-            ...$this->getValidationRules('leads|persons', $rowData),
+            ...$this->getValidationRules('leads', $rowData),
             'id' => 'numeric',
             'status' => 'sometimes|required|in:0,1',
             'user_id' => 'required|exists:users,id',
-            'person_id' => 'required|exists:persons,id',
             'lead_source_id' => 'required|exists:lead_sources,id',
             'lead_type_id' => 'required|exists:lead_types,id',
             'lead_pipeline_id' => 'required|exists:lead_pipelines,id',
@@ -241,9 +239,6 @@ class Importer extends AbstractImporter
             $attributes = $this->attributeRepository->scopeQuery(fn ($query) => $query->whereIn('code', array_keys($rowData))->where('entity_type', $entityType))->get();
 
             foreach ($attributes as $attribute) {
-                if ($entityType == 'persons') {
-                    $attribute->code = 'person.'.$attribute->code;
-                }
 
                 $validations = [];
 

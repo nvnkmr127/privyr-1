@@ -22,8 +22,7 @@
         "mpdf/mpdf": "^8.2",
         "prettus/l5-repository": "^3.0",
         "smalot/pdfparser": "^2.11",
-        "webklex/laravel-imap": "^6.0",
-        "krayin/laravel-moldable": "*"
+        "webklex/laravel-imap": "^6.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.14",
@@ -64,12 +63,8 @@
             "Webkul\\Marketing\\": "packages/Webkul/Marketing/src",
             "Webkul\\Installer\\": "packages/Webkul/Installer/src",
             "Webkul\\Lead\\": "packages/Webkul/Lead/src",
-            "Webkul\\Moldable\\": "packages/Webkul/Moldable/src",
-            "Webkul\\Product\\": "packages/Webkul/Product/src",
-            "Webkul\\Quote\\": "packages/Webkul/Quote/src",
             "Webkul\\Tag\\": "packages/Webkul/Tag/src",
             "Webkul\\User\\": "packages/Webkul/User/src",
-            "Webkul\\Warehouse\\": "packages/Webkul/Warehouse/src",
             "Webkul\\WebForm\\": "packages/Webkul/WebForm/src",
             "Webkul\\Automation\\": "packages/Webkul/Automation/src"
         }

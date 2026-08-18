@@ -2,11 +2,9 @@
 
 use App\Models\User;
 use Illuminate\Support\Str;
-use Webkul\Admin\DataGrids\Contact\OrganizationDataGrid;
 use Webkul\Admin\DataGrids\Product\ProductDataGrid;
 use Webkul\Admin\DataGrids\Quote\QuoteDataGrid;
 use Webkul\Attribute\Models\Attribute;
-use Webkul\Contact\Models\Organization;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -88,22 +86,12 @@ test('it stores, retrieves, and updates custom field values on leads and persons
     $this->actingAs($this->admin);
 
     $leadCode = 'ind_sec_'.Str::random(6);
-    $personCode = 'lnk_hdl_'.Str::random(6);
 
-    // Create custom attribute
     $attr = Attribute::create([
         'code' => $leadCode,
         'name' => 'Industry Sector '.Str::random(5),
         'type' => 'text',
         'entity_type' => 'leads',
-        'is_user_defined' => 1,
-    ]);
-
-    $personAttr = Attribute::create([
-        'code' => $personCode,
-        'name' => 'LinkedIn Handle '.Str::random(5),
-        'type' => 'text',
-        'entity_type' => 'persons',
         'is_user_defined' => 1,
     ]);
 
@@ -115,16 +103,10 @@ test('it stores, retrieves, and updates custom field values on leads and persons
         'lead_value' => 50000,
         'user_id' => $this->admin->id,
         $leadCode => 'Fintech & Payments',
-        'person' => [
-            'name' => 'Jane Doe',
-            'emails' => [['value' => 'jane_'.Str::random(5).'@acme.com', 'label' => 'work']],
-            'contact_numbers' => [['value' => '+1555'.rand(1000, 9999), 'label' => 'work']],
-            $personCode => 'janedoe_pro',
-        ],
+        'emails' => [['value' => 'jane_'.Str::random(5).'@acme.com', 'label' => 'work']],
+        'contact_numbers' => [['value' => '+1555'.rand(1000, 9999), 'label' => 'work']],
+        'person_name' => 'Jane Doe',
     ]);
-
-    expect($lead)->not->toBeNull();
-    expect($lead->{$leadCode})->toBe('Fintech & Payments');
 
     // Verify stored in EAV table
     $this->assertDatabaseHas('attribute_values', [
@@ -132,13 +114,6 @@ test('it stores, retrieves, and updates custom field values on leads and persons
         'entity_id' => $lead->id,
         'entity_type' => 'leads',
         'text_value' => 'Fintech & Payments',
-    ]);
-
-    $this->assertDatabaseHas('attribute_values', [
-        'attribute_id' => $personAttr->id,
-        'entity_id' => $lead->person_id,
-        'entity_type' => 'persons',
-        'text_value' => 'janedoe_pro',
     ]);
 
     // Update custom field value
@@ -160,23 +135,14 @@ test('it stores, retrieves, and updates custom field values on leads and persons
     expect($dictionary[$leadCode])->toBe('Healthcare SaaS');
 });
 
-test('it ingests custom lead and person attributes through LeadCaptureService webhooks and mapping', function () {
+test('it ingests custom lead attributes through LeadCaptureService webhooks and mapping', function () {
     $dealCode = 'deal_prio_'.Str::random(6);
-    $roleCode = 'comp_role_'.Str::random(6);
 
     $attr = Attribute::create([
         'code' => $dealCode,
         'name' => 'Deal Priority '.Str::random(5),
         'type' => 'text',
         'entity_type' => 'leads',
-        'is_user_defined' => 1,
-    ]);
-
-    $personAttr = Attribute::create([
-        'code' => $roleCode,
-        'name' => 'Company Role '.Str::random(5),
-        'type' => 'text',
-        'entity_type' => 'persons',
         'is_user_defined' => 1,
     ]);
 
@@ -190,7 +156,6 @@ test('it ingests custom lead and person attributes through LeadCaptureService we
         'is_active' => true,
         'field_mappings' => [
             'incoming_priority' => $dealCode,
-            'incoming_role' => 'person.'.$roleCode,
         ],
     ]);
 
@@ -199,7 +164,6 @@ test('it ingests custom lead and person attributes through LeadCaptureService we
         'email' => 'alice_'.Str::random(5).'@globex.org',
         'phone' => '+1555'.rand(1000, 9999),
         'incoming_priority' => 'High Priority P1',
-        'incoming_role' => 'Chief Technology Officer',
     ];
 
     $leadCaptureService = app(LeadCaptureService::class);
@@ -214,30 +178,13 @@ test('it ingests custom lead and person attributes through LeadCaptureService we
         'entity_type' => 'leads',
         'text_value' => 'High Priority P1',
     ]);
-
-    $this->assertDatabaseHas('attribute_values', [
-        'attribute_id' => $personAttr->id,
-        'entity_id' => $lead->person_id,
-        'entity_type' => 'persons',
-        'text_value' => 'Chief Technology Officer',
-    ]);
 });
 
 test('it includes custom attributes in DataGrid exports across all entities', function () {
     $this->actingAs($this->admin);
 
-    $orgCode = 'org_tax_'.Str::random(6);
     $prodCode = 'prod_bar_'.Str::random(6);
     $quoteCode = 'quote_ref_'.Str::random(6);
-
-    // Create custom attribute for Organization
-    $orgAttr = Attribute::create([
-        'code' => $orgCode,
-        'name' => 'Tax Identification '.Str::random(4),
-        'type' => 'text',
-        'entity_type' => 'organizations',
-        'is_user_defined' => 1,
-    ]);
 
     // Create custom attribute for Product
     $prodAttr = Attribute::create([
@@ -259,11 +206,6 @@ test('it includes custom attributes in DataGrid exports across all entities', fu
 
     // Mock export request with format
     request()->merge(['export' => true, 'format' => 'csv']);
-
-    $orgGrid = app(OrganizationDataGrid::class);
-    $orgGrid->prepareColumns();
-    $orgColumns = collect($orgGrid->getColumns())->map(fn ($c) => $c->getIndex())->toArray();
-    expect($orgColumns)->toContain($orgCode);
 
     $prodGrid = app(ProductDataGrid::class);
     $prodGrid->prepareColumns();

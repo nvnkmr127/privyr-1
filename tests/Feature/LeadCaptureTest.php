@@ -43,7 +43,7 @@ it('processes incoming webhook payload and auto maps fields to create lead and p
 
     expect($lead)->not->toBeNull()
         ->and($lead->title)->toContain('Industrial Machinery')
-        ->and($lead->person->name)->toBe('Rajesh Sharma');
+        ->and($lead->person_name)->toBe('Rajesh Sharma');
 
     $this->assertDatabaseHas('lead_capture_logs', [
         'connector_id' => $connector->id,

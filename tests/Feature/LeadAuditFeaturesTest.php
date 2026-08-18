@@ -1,7 +1,6 @@
 <?php
 
 use Webkul\Activity\Models\Activity;
-use Webkul\Contact\Models\Person;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Source;
@@ -18,11 +17,9 @@ beforeEach(function () {
     $this->source = Source::first() ?? Source::create(['name' => 'Direct']);
     $this->type = Type::first() ?? Type::create(['name' => 'Demo']);
 
-    $this->person = Person::create([
-        'name' => 'Test Person',
-        'emails' => [['value' => 'test@example.com', 'label' => 'work']],
-        'contact_numbers' => [['value' => '1234567890', 'label' => 'work']],
-    ]);
+    $this->person_name = 'Test Person';
+    $this->emails = [['value' => 'test@example.com', 'label' => 'work']];
+    $this->contact_numbers = [['value' => '1234567890', 'label' => 'work']];
 });
 
 test('it duplicates a lead', function () {
@@ -30,7 +27,9 @@ test('it duplicates a lead', function () {
         'title' => 'Original Lead',
         'lead_value' => 500,
         'user_id' => $this->admin->id,
-        'person_id' => $this->person->id,
+        'person_name' => $this->person_name,
+        'emails' => $this->emails,
+        'contact_numbers' => $this->contact_numbers,
         'lead_source_id' => $this->source->id,
         'lead_type_id' => $this->type->id,
         'lead_pipeline_id' => $this->pipeline->id,
@@ -51,7 +50,9 @@ test('it merges two leads correctly', function () {
         'title' => 'Primary Lead',
         'lead_value' => 0,
         'user_id' => $this->admin->id,
-        'person_id' => $this->person->id,
+        'person_name' => $this->person_name,
+        'emails' => $this->emails,
+        'contact_numbers' => $this->contact_numbers,
         'lead_source_id' => $this->source->id,
         'lead_type_id' => $this->type->id,
         'lead_pipeline_id' => $this->pipeline->id,
@@ -63,7 +64,9 @@ test('it merges two leads correctly', function () {
         'lead_value' => 750,
         'description' => 'Target Description',
         'user_id' => $this->admin->id,
-        'person_id' => $this->person->id,
+        'person_name' => $this->person_name,
+        'emails' => $this->emails,
+        'contact_numbers' => $this->contact_numbers,
         'lead_source_id' => $this->source->id,
         'lead_type_id' => $this->type->id,
         'lead_pipeline_id' => $this->pipeline->id,
@@ -92,7 +95,9 @@ test('it automatically calculates lead score', function () {
         'title' => 'Scored Lead',
         'lead_value' => 100,
         'user_id' => $this->admin->id,
-        'person_id' => $this->person->id,
+        'person_name' => $this->person_name,
+        'emails' => $this->emails,
+        'contact_numbers' => $this->contact_numbers,
         'lead_source_id' => $this->source->id,
         'lead_type_id' => $this->type->id,
         'lead_pipeline_id' => $this->pipeline->id,

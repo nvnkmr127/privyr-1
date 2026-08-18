@@ -57,9 +57,6 @@
             <div class="flex gap-4 max-lg:flex-wrap">
                 <!-- Total Products -->
                 @include('admin::dashboard.index.top-selling-products')
-
-                <!-- Total Persons -->
-                @include('admin::dashboard.index.top-persons')
             </div>
 
             <!-- Pipeline Funnel -->

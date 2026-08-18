@@ -2,7 +2,6 @@
 
 use Carbon\Carbon;
 use Webkul\Activity\Models\Activity;
-use Webkul\Contact\Models\Person;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Source;
@@ -50,17 +49,12 @@ it('Scenario 2 & 3 & 4: handles leads with 20, 50, and 100+ custom fields with p
 });
 
 it('Scenario 5 & 6: handles extremely long field labels and values without grid overflow', function () {
-    $person = Person::create([
-        'name' => 'Dr. Alexander Bartholomew Montgomery-Cunningham III of Greater Metropolitan Industries',
-        'job_title' => 'Executive Vice President of Global Strategic Multi-Disciplinary Cloud Solutions Architecture',
-        'emails' => [['label' => 'work', 'value' => 'alexander.bartholomew.montgomery-cunningham.iii@very-long-enterprise-corporate-domain-name.example.co.uk']],
-        'contact_numbers' => [['label' => 'mobile', 'value' => '+44 20 7946 0999 ext 88492']],
-    ]);
-
     $lead = Lead::create([
         'title' => 'Comprehensive Global Digital Transformation and Multi-Cloud Modernization Initiative for Enterprise Logistics Infrastructure 2026-2030',
         'description' => str_repeat('Extremely detailed enterprise scope documentation with extensive terms, conditions, SLAs, compliance requirements, security assessments, SOC2 audits, and infrastructure migration checklists. ', 15),
-        'person_id' => $person->id,
+        'person_name' => 'Dr. Alexander Bartholomew Montgomery-Cunningham III of Greater Metropolitan Industries',
+        'emails' => [['label' => 'work', 'value' => 'alexander.bartholomew.montgomery-cunningham.iii@very-long-enterprise-corporate-domain-name.example.co.uk']],
+        'contact_numbers' => [['label' => 'mobile', 'value' => '+44 20 7946 0999 ext 88492']],
         'user_id' => $this->admin->id,
         'lead_pipeline_id' => $this->pipeline->id,
         'lead_pipeline_stage_id' => $this->stage->id,
@@ -136,15 +130,11 @@ it('Scenario 10: handles zero activities with clean empty state placeholder', fu
 });
 
 it('Scenario 11 & 12: handles long lead name and long email address in header without breaking layout', function () {
-    $person = Person::create([
-        'name' => 'Bartholomew Hieronymus Wolfeschlegelsteinhausenbergerdorff',
-        'emails' => [['label' => 'work', 'value' => 'bartholomew.hieronymus.wolfeschlegelsteinhausenbergerdorff@international-conglomerate-enterprise.example.org']],
-        'contact_numbers' => [['label' => 'work', 'value' => '+1 800 555 0199 4488']],
-    ]);
-
     $lead = Lead::create([
         'title' => 'Supercalifragilisticexpialidocious Enterprise Platform License Agreement for Global Infrastructure Modernization & AI Acceleration',
-        'person_id' => $person->id,
+        'person_name' => 'Bartholomew Hieronymus Wolfeschlegelsteinhausenbergerdorff',
+        'emails' => [['label' => 'work', 'value' => 'bartholomew.hieronymus.wolfeschlegelsteinhausenbergerdorff@international-conglomerate-enterprise.example.org']],
+        'contact_numbers' => [['label' => 'work', 'value' => '+1 800 555 0199 4488']],
         'user_id' => $this->admin->id,
         'lead_pipeline_id' => $this->pipeline->id,
         'lead_pipeline_stage_id' => $this->stage->id,

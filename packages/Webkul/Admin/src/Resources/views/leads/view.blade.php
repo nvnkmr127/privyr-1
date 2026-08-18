@@ -30,11 +30,6 @@
                 <div class="rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
                     @include ('admin::leads.view.attributes')
                 </div>
-
-                <!-- Contact Person Card -->
-                <div class="rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
-                    @include ('admin::leads.view.person')
-                </div>
             </div>
 
             {!! view_render_event('admin.leads.view.left.after', ['lead' => $lead]) !!}

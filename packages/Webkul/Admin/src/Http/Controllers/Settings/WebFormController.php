@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Attribute\Repositories\AttributeRepository;
-use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
@@ -26,7 +25,6 @@ class WebFormController extends Controller
     public function __construct(
         protected AttributeRepository $attributeRepository,
         protected WebFormRepository $webFormRepository,
-        protected PersonRepository $personRepository,
         protected LeadRepository $leadRepository,
         protected PipelineRepository $pipelineRepository,
         protected SourceRepository $sourceRepository,
@@ -60,8 +58,8 @@ class WebFormController extends Controller
 
         foreach ($tempAttributes as $attribute) {
             if (
-                $attribute->entity_type == 'persons'
-                && in_array($attribute->code, ['name', 'emails', 'contact_numbers'])
+                $attribute->entity_type == 'leads'
+                && in_array($attribute->code, ['person_name', 'emails', 'contact_numbers'])
             ) {
                 $attributes['default'][] = $attribute;
             } else {
