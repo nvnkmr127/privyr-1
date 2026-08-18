@@ -51,12 +51,12 @@
                 method="PUT"
                 class="inline-flex"
             >
-                <input type="hidden" name="is_qualified" value="{{ $lead->is_qualified ? 0 : 1 }}" />
+                <input type="hidden" name="qualification_status" value="{{ $lead->qualification_status === 'qualified' ? 'unqualified' : 'qualified' }}" />
                 <button
                     type="submit"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold transition {{ $lead->is_qualified ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-slate-700 hover:bg-slate-50' }}"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold transition {{ $lead->qualification_status === 'qualified' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-slate-700 hover:bg-slate-50' }}"
                 >
-                    <span>{{ $lead->is_qualified ? 'Qualified ✓' : 'Qualify Lead' }}</span>
+                    <span>{{ $lead->qualification_status === 'qualified' ? 'Qualified ✓' : 'Qualify Lead' }}</span>
                 </button>
             </x-admin::form>
 
@@ -118,7 +118,7 @@
                     </span>
 
                     <!-- Qualification Badge -->
-                    @if ($lead->is_qualified)
+                    @if ($lead->qualification_status === 'qualified')
                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800 shrink-0">
                             Qualified
                         </span>

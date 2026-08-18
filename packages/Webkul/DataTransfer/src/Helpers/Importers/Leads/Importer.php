@@ -40,6 +40,15 @@ class Importer extends AbstractImporter
         'lead_pipeline_id',
         'lead_pipeline_stage_id',
         'expected_close_date',
+        'person_name',
+        'emails',
+        'contact_numbers',
+        'organization_name',
+        'lead_score',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'location',
     ];
 
     /**
@@ -149,25 +158,6 @@ class Importer extends AbstractImporter
             return true;
         }
 
-        if (! empty($rowData['product'])) {
-            $product = $this->parseProducts($rowData['product']);
-
-            $validator = Validator::make($product, [
-                'id' => 'required|exists:products,id',
-                'price' => 'required',
-                'quantity' => 'required',
-            ]);
-
-            if ($validator->fails()) {
-                $failedAttributes = $validator->failed();
-
-                foreach ($validator->errors()->getMessages() as $attributeCode => $message) {
-                    $errorCode = array_key_first($failedAttributes[$attributeCode] ?? []);
-
-                    $this->skipRow($rowNumber, $errorCode, $attributeCode, current($message));
-                }
-            }
-        }
 
         /**
          * Validate leads attributes.
@@ -194,35 +184,6 @@ class Importer extends AbstractImporter
         }
 
         return ! $this->errorHelper->isRowInvalid($rowNumber);
-    }
-
-    /**
-     * Prepare row data for lead product.
-     */
-    protected function parseProducts(?string $products): array
-    {
-        $productData = [];
-
-        $productArray = explode(',', $products);
-
-        foreach ($productArray as $product) {
-            if (empty($product)) {
-                continue;
-            }
-
-            [$key, $value] = explode('=', $product);
-
-            $productData[$key] = $value;
-        }
-
-        if (
-            isset($productData['price'])
-            && isset($productData['quantity'])
-        ) {
-            $productData['amount'] = $productData['price'] * $productData['quantity'];
-        }
-
-        return $productData;
     }
 
     /**
@@ -392,6 +353,14 @@ class Importer extends AbstractImporter
              * to the leads table here.
              */
             $native = Arr::only($rowData, $this->getEntityColumns());
+
+            if (isset($native['emails']) && is_string($native['emails'])) {
+                $native['emails'] = json_encode([['label' => 'work', 'value' => $native['emails']]]);
+            }
+
+            if (isset($native['contact_numbers']) && is_string($native['contact_numbers'])) {
+                $native['contact_numbers'] = json_encode([['label' => 'work', 'value' => $native['contact_numbers']]]);
+            }
 
             if (isset($rowData['id'])) {
                 $leads['update'][$rowData['id']] = $native;

@@ -52,7 +52,9 @@ class Lead extends Model implements LeadContract
         'utm_medium',
         'utm_campaign',
         'location',
-        'is_qualified',
+        'qualification_status',
+        'next_action',
+        'follow_up_owner_id',
     ];
 
     /**
@@ -65,7 +67,6 @@ class Lead extends Model implements LeadContract
         'expected_close_date' => 'date:D M d, Y',
         'is_unread' => 'boolean',
         'is_archived' => 'boolean',
-        'is_qualified' => 'boolean',
         'last_contacted_at' => 'datetime',
         'next_follow_up_at' => 'datetime',
         'emails' => 'array',
@@ -90,6 +91,40 @@ class Lead extends Model implements LeadContract
     }
 
     /**
+     * Get the user responsible for the next follow-up.
+     */
+    public function followUpOwner(): BelongsTo
+    {
+        return $this->belongsTo(UserProxy::modelClass(), 'follow_up_owner_id');
+    }
+
+    /**
+     * Compute follow-up state dynamically
+     */
+    public function getFollowUpStateAttribute(): string
+    {
+        if ($this->next_follow_up_at) {
+            if ($this->next_follow_up_at->isPast() && !$this->next_follow_up_at->isToday()) {
+                return 'Overdue';
+            }
+            if ($this->next_follow_up_at->isToday()) {
+                return 'Due Today';
+            }
+            return 'Upcoming';
+        }
+
+        if ($this->is_unread || is_null($this->last_contacted_at)) {
+            return 'Needs Attention';
+        }
+
+        if ($this->last_contacted_at && $this->last_contacted_at->diffInDays(Carbon::now()) > 14) {
+            return 'Stale';
+        }
+
+        return 'No Next Action';
+    }
+
+    /**
      * Get the type that owns the lead.
      */
     public function type(): BelongsTo
@@ -103,6 +138,26 @@ class Lead extends Model implements LeadContract
     public function source(): BelongsTo
     {
         return $this->belongsTo(SourceProxy::modelClass(), 'lead_source_id');
+    }
+
+    /**
+     * Get the nurture enrollments for this lead.
+     */
+    public function nurtureEnrollments(): HasMany
+    {
+        return $this->hasMany(LeadNurtureEnrollment::class, 'lead_id');
+    }
+
+    /**
+     * Get active nurture status.
+     */
+    public function getActiveNurtureStatusAttribute(): ?string
+    {
+        $activeEnrollment = $this->nurtureEnrollments()->where('status', 'active')->first();
+        if ($activeEnrollment) {
+            return "Active in: " . ($activeEnrollment->sequence->name ?? 'Sequence');
+        }
+        return null;
     }
 
     /**
@@ -127,6 +182,30 @@ class Lead extends Model implements LeadContract
     public function activities(): HasMany
     {
         return $this->hasMany(ActivityProxy::modelClass());
+    }
+
+    /**
+     * Get the qualifications.
+     */
+    public function qualifications(): HasMany
+    {
+        return $this->hasMany(LeadQualificationProxy::modelClass());
+    }
+
+    /**
+     * Get the assignments.
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(LeadAssignmentProxy::modelClass());
+    }
+
+    /**
+     * Get the latest qualification.
+     */
+    public function latestQualification()
+    {
+        return $this->hasOne(LeadQualificationProxy::modelClass())->latestOfMany();
     }
 
     /**
@@ -371,7 +450,7 @@ class Lead extends Model implements LeadContract
         if ($this->activities()->count() > 0) {
             $score += 20;
         }
-        if ($this->is_qualified) {
+        if ($this->qualification_status === 'qualified') {
             $score += 20;
         }
 

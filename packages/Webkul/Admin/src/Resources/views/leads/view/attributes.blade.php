@@ -237,9 +237,11 @@
                                                 <form action="{{ route('admin.leads.attributes.update', $lead->id) }}" method="POST" onchange="this.submit()">
                                                     @csrf
                                                     @method('PUT')
-                                                    <select name="is_qualified" class="bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer">
-                                                        <option value="0" {{ !$lead->is_qualified ? 'selected' : '' }}>Unqualified</option>
-                                                        <option value="1" {{ $lead->is_qualified ? 'selected' : '' }}>Qualified</option>
+                                                    <select name="qualification_status" class="bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer">
+                                                        <option value="" {{ !$lead->qualification_status ? 'selected' : '' }}>None</option>
+                                                        <option value="unqualified" {{ $lead->qualification_status === 'unqualified' ? 'selected' : '' }}>Unqualified</option>
+                                                        <option value="qualified" {{ $lead->qualification_status === 'qualified' ? 'selected' : '' }}>Qualified</option>
+                                                        <option value="disqualified" {{ $lead->qualification_status === 'disqualified' ? 'selected' : '' }}>Disqualified</option>
                                                     </select>
                                                 </form>
                                             </div>

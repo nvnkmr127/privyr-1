@@ -1,0 +1,29 @@
+<?php
+
+namespace Webkul\Lead\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Webkul\Lead\Contracts\LeadAssignmentRule as LeadAssignmentRuleContract;
+
+class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
+{
+    protected $table = 'lead_assignment_rules';
+
+    protected $fillable = [
+        'name',
+        'type',
+        'status',
+        'sort_order',
+    ];
+
+    public function conditions()
+    {
+        return $this->hasMany(LeadAssignmentRuleConditionProxy::modelClass(), 'rule_id');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(\Webkul\User\Models\UserProxy::modelClass(), 'lead_assignment_rule_users', 'rule_id', 'user_id')
+            ->withPivot('weight', 'last_assigned_at');
+    }
+}

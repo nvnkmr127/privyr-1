@@ -142,3 +142,34 @@ it('rejects webhooks for an inactive connector', function () {
         'name' => 'Nobody', 'email' => 'no@example.com',
     ])->assertStatus(404);
 });
+
+it('extracts UTM parameters, location, and assigns lead_source_id when capturing lead', function () {
+    $leadSource = Webkul\Lead\Models\Source::create(['name' => 'Ad Campaign Source']);
+
+    $connector = makeConnector([
+        'name' => 'Campaign Tracker',
+        'lead_source_id' => $leadSource->id,
+    ]);
+
+    $response = $this->postJson(route('api.v1.lead_capture.webhook', ['token' => $connector->webhook_token]), [
+        'name' => 'Charlie C',
+        'email' => 'charlie.'.Str::random(4).'@example.com',
+        'phone' => '+1 555 3',
+        'utm_source' => 'facebook',
+        'utm_medium' => 'cpc',
+        'utm_campaign' => 'summer_sale',
+        'location' => 'New York, NY',
+    ]);
+
+    $response->assertStatus(201);
+
+    $log = LeadCaptureLog::where('connector_id', $connector->id)->latest()->first();
+    $lead = Lead::find($log->lead_id);
+
+    expect($lead->person_name)->toBe('Charlie C')
+        ->and($lead->utm_source)->toBe('facebook')
+        ->and($lead->utm_medium)->toBe('cpc')
+        ->and($lead->utm_campaign)->toBe('summer_sale')
+        ->and($lead->location)->toBe('New York, NY')
+        ->and($lead->lead_source_id)->toBe($leadSource->id);
+});
