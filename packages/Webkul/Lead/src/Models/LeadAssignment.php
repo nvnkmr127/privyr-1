@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webkul\Activity\Repositories\ActivityRepository;
 use Webkul\Lead\Contracts\LeadAssignment as LeadAssignmentContract;
 use Webkul\User\Models\UserProxy;
 
@@ -41,8 +42,8 @@ class LeadAssignment extends Model implements LeadAssignmentContract
     protected static function booted()
     {
         static::created(function ($model) {
-            $activityRepo = app(\Webkul\Activity\Repositories\ActivityRepository::class);
-            
+            $activityRepo = app(ActivityRepository::class);
+
             $assignedToName = $model->assignedTo ? $model->assignedTo->name : 'System';
             $assignedByName = $model->assignedBy ? $model->assignedBy->name : 'System';
 

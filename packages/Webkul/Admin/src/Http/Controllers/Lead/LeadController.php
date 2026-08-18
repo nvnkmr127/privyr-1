@@ -22,11 +22,13 @@ use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\DataGrid\ColumnTypes\Date as DateColumn;
 use Webkul\DataGrid\Enums\DateRangeOptionEnum;
 use Webkul\Lead\Helpers\MagicAI;
+use Webkul\Lead\Repositories\LeadAssignmentRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\Lead\Repositories\StageRepository;
 use Webkul\Lead\Repositories\TypeRepository;
+use Webkul\Lead\Services\LeadFollowUpService;
 use Webkul\Lead\Services\MagicAIService;
 use Webkul\Tag\Repositories\TagRepository;
 use Webkul\User\Repositories\UserRepository;
@@ -208,12 +210,12 @@ class LeadController extends Controller
                         $previousOwner = $lead->user_id;
                         $lead->update(['user_id' => $userId]);
 
-                        app(\Webkul\Lead\Repositories\LeadAssignmentRepository::class)->create([
+                        app(LeadAssignmentRepository::class)->create([
                             'lead_id' => $lead->id,
                             'assigned_to' => $userId,
                             'assigned_by' => auth()->check() ? auth()->id() : null,
                             'previous_owner' => $previousOwner,
-                            'reason' => 'Bulk Reassignment'
+                            'reason' => 'Bulk Reassignment',
                         ]);
                     }
                 }
@@ -1024,7 +1026,7 @@ class LeadController extends Controller
             'owner_id' => 'nullable|exists:users,id',
         ]);
 
-        app(\Webkul\Lead\Services\LeadFollowUpService::class)->schedule(
+        app(LeadFollowUpService::class)->schedule(
             $lead,
             request('next_action'),
             request('date'),
@@ -1048,7 +1050,7 @@ class LeadController extends Controller
             'date' => 'required|date',
         ]);
 
-        app(\Webkul\Lead\Services\LeadFollowUpService::class)->snooze($lead, request('date'));
+        app(LeadFollowUpService::class)->snooze($lead, request('date'));
 
         session()->flash('success', 'Follow-up snoozed successfully.');
 
@@ -1063,7 +1065,7 @@ class LeadController extends Controller
         $lead = $this->leadRepository->findOrFail($id);
         $this->preventUnauthorizedAccess($lead->user_id);
 
-        app(\Webkul\Lead\Services\LeadFollowUpService::class)->complete($lead, request('note', ''));
+        app(LeadFollowUpService::class)->complete($lead, request('note', ''));
 
         session()->flash('success', 'Follow-up completed successfully.');
 

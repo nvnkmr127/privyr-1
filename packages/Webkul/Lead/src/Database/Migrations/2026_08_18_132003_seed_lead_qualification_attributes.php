@@ -1,8 +1,7 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $now = \Carbon\Carbon::now();
+        $now = Carbon::now();
 
         $attributes = [
             [
@@ -140,7 +139,7 @@ return new class extends Migration
             'timeline',
             'intent',
             'decision_maker',
-            'qualification_checklist'
+            'qualification_checklist',
         ])->delete();
     }
 };

@@ -1,8 +1,8 @@
 <?php
 
+use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadQualification;
-use Webkul\Activity\Models\Activity;
 
 it('updates qualification status and logs activity', function () {
     $this->loginAsAdmin();

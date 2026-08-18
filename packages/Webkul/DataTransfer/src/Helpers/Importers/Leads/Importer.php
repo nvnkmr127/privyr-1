@@ -158,7 +158,6 @@ class Importer extends AbstractImporter
             return true;
         }
 
-
         /**
          * Validate leads attributes.
          */

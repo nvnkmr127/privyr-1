@@ -19,7 +19,7 @@ class LeadNurtureEngine
             ->where('status', 'active')
             ->where(function ($query) {
                 $query->whereNull('resume_at')
-                      ->orWhere('resume_at', '<=', Carbon::now());
+                    ->orWhere('resume_at', '<=', Carbon::now());
             })
             ->get();
 
@@ -35,12 +35,14 @@ class LeadNurtureEngine
     {
         if (! $enrollment->lead || ! $enrollment->sequence) {
             $enrollment->update(['status' => 'failed']);
+
             return;
         }
 
         // Check Stop Condition
         if ($this->meetsStopCondition($enrollment->lead, $enrollment->sequence->stop_condition)) {
             $enrollment->update(['status' => 'stopped']);
+
             return;
         }
 

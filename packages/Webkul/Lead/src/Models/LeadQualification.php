@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webkul\Activity\Repositories\ActivityRepository;
 use Webkul\Lead\Contracts\LeadQualification as LeadQualificationContract;
 use Webkul\User\Models\UserProxy;
 
@@ -30,10 +31,10 @@ class LeadQualification extends Model implements LeadQualificationContract
     protected static function booted()
     {
         static::created(function ($model) {
-            $activityRepo = app(\Webkul\Activity\Repositories\ActivityRepository::class);
+            $activityRepo = app(ActivityRepository::class);
             $statusLabel = ucfirst($model->status);
             $title = trans('admin::app.activities.qualification-updated', ['status' => $statusLabel]);
-            
+
             // Provide a fallback if the translation is missing
             if ($title === 'admin::app.activities.qualification-updated') {
                 $title = "Lead Qualification updated to: {$statusLabel}";

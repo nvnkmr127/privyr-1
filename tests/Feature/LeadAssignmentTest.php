@@ -1,11 +1,11 @@
 <?php
 
-use Webkul\Lead\Models\Lead;
+use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\LeadAssignment;
 use Webkul\Lead\Models\LeadAssignmentRule;
 use Webkul\Lead\Models\LeadAssignmentRuleCondition;
+use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\User\Models\User;
-use Webkul\Activity\Models\Activity;
 
 beforeEach(function () {
     LeadAssignmentRule::query()->delete();
@@ -16,7 +16,7 @@ it('logs manual assignment and updates timeline', function () {
     $user1 = User::create(['name' => 'User 1', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
     $user2 = User::create(['name' => 'User 2', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
 
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'title' => 'Manual Lead',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,
@@ -26,7 +26,7 @@ it('logs manual assignment and updates timeline', function () {
 
     // Initial manual assignment
     expect($lead->user_id)->toBe($user1->id);
-    
+
     $assignment = LeadAssignment::where('lead_id', $lead->id)->latest('id')->first();
     expect($assignment)->not->toBeNull()
         ->and($assignment->assigned_to)->toBe($user1->id)
@@ -38,8 +38,8 @@ it('logs manual assignment and updates timeline', function () {
         ->and($activity->title)->toContain('assigned to');
 
     // Reassignment
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->update(['entity_type' => 'leads', 'user_id' => $user2->id], $lead->id);
-    
+    $lead = app(LeadRepository::class)->update(['entity_type' => 'leads', 'user_id' => $user2->id], $lead->id);
+
     $assignment2 = LeadAssignment::where('lead_id', $lead->id)->latest('id')->first();
     expect($assignment2)->not->toBeNull()
         ->and($assignment2->assigned_to)->toBe($user2->id)
@@ -51,7 +51,7 @@ it('triggers fallback assignment when no rules match', function () {
     $this->loginAsAdmin();
     $admin = User::orderBy('id')->first();
 
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'title' => 'Auto Lead',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,
@@ -59,7 +59,7 @@ it('triggers fallback assignment when no rules match', function () {
     ]);
 
     expect($lead->user_id)->toBe($admin->id);
-    
+
     $assignment = LeadAssignment::where('lead_id', $lead->id)->latest('id')->first();
     expect($assignment)->not->toBeNull()
         ->and($assignment->reason)->toBe('Fallback Assignment');
@@ -85,7 +85,7 @@ it('executes direct rule assignment based on conditions', function () {
 
     $rule->users()->attach($user1->id);
 
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'title' => 'FB Lead',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,
@@ -94,7 +94,7 @@ it('executes direct rule assignment based on conditions', function () {
     ]);
 
     expect($lead->user_id)->toBe($user1->id);
-    
+
     $assignment = LeadAssignment::where('lead_id', $lead->id)->latest('id')->first();
     expect($assignment)->not->toBeNull()
         ->and($assignment->assigned_to)->toBe($user1->id)
@@ -117,7 +117,7 @@ it('executes round robin assignment', function () {
     $rule->users()->attach($user1->id, ['last_assigned_at' => now()->subDays(2)]);
     $rule->users()->attach($user2->id, ['last_assigned_at' => now()->subDays(1)]);
 
-    $lead1 = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead1 = app(LeadRepository::class)->create([
         'title' => 'RR Lead 1',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,
@@ -127,7 +127,7 @@ it('executes round robin assignment', function () {
     // Should assign to user1 because their last_assigned_at is older
     expect($lead1->user_id)->toBe($user1->id);
 
-    $lead2 = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead2 = app(LeadRepository::class)->create([
         'title' => 'RR Lead 2',
         'entity_type' => 'leads',
         'lead_pipeline_id' => 1,

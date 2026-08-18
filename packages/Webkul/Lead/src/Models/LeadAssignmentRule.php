@@ -4,6 +4,7 @@ namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Lead\Contracts\LeadAssignmentRule as LeadAssignmentRuleContract;
+use Webkul\User\Models\UserProxy;
 
 class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
 {
@@ -23,7 +24,7 @@ class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
 
     public function users()
     {
-        return $this->belongsToMany(\Webkul\User\Models\UserProxy::modelClass(), 'lead_assignment_rule_users', 'rule_id', 'user_id')
+        return $this->belongsToMany(UserProxy::modelClass(), 'lead_assignment_rule_users', 'rule_id', 'user_id')
             ->withPivot('weight', 'last_assigned_at');
     }
 }
