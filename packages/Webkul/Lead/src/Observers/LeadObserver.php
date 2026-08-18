@@ -2,8 +2,11 @@
 
 namespace Webkul\Lead\Observers;
 
-use Webkul\Lead\Models\Lead;
+use Carbon\Carbon;
 use Webkul\Activity\Services\SystemActivityLogger;
+use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Repositories\StageRepository;
+use Webkul\User\Repositories\UserRepository;
 
 class LeadObserver
 {
@@ -30,9 +33,9 @@ class LeadObserver
 
         // Stage Change
         if (array_key_exists('lead_pipeline_stage_id', $changes)) {
-            $oldStage = app(\Webkul\Lead\Repositories\StageRepository::class)->find($original['lead_pipeline_stage_id'])?->name ?? 'Unknown';
-            $newStage = app(\Webkul\Lead\Repositories\StageRepository::class)->find($changes['lead_pipeline_stage_id'])?->name ?? 'Unknown';
-            
+            $oldStage = app(StageRepository::class)->find($original['lead_pipeline_stage_id'])?->name ?? 'Unknown';
+            $newStage = app(StageRepository::class)->find($changes['lead_pipeline_stage_id'])?->name ?? 'Unknown';
+
             $logger->log($lead, 'Stage Changed', [
                 'event' => 'stage_change',
                 'old' => $oldStage,
@@ -42,9 +45,9 @@ class LeadObserver
 
         // Owner Change
         if (array_key_exists('user_id', $changes)) {
-            $oldUser = $original['user_id'] ? app(\Webkul\User\Repositories\UserRepository::class)->find($original['user_id'])?->name : 'Unassigned';
-            $newUser = $changes['user_id'] ? app(\Webkul\User\Repositories\UserRepository::class)->find($changes['user_id'])?->name : 'Unassigned';
-            
+            $oldUser = $original['user_id'] ? app(UserRepository::class)->find($original['user_id'])?->name : 'Unassigned';
+            $newUser = $changes['user_id'] ? app(UserRepository::class)->find($changes['user_id'])?->name : 'Unassigned';
+
             $logger->log($lead, 'Owner Changed', [
                 'event' => 'owner_change',
                 'old' => $oldUser,
@@ -78,8 +81,8 @@ class LeadObserver
 
         // Expected Close Date Change
         if (array_key_exists('expected_close_date', $changes)) {
-            $oldDate = $original['expected_close_date'] ? \Carbon\Carbon::parse($original['expected_close_date'])->format('M d, Y') : 'None';
-            $newDate = $changes['expected_close_date'] ? \Carbon\Carbon::parse($changes['expected_close_date'])->format('M d, Y') : 'None';
+            $oldDate = $original['expected_close_date'] ? Carbon::parse($original['expected_close_date'])->format('M d, Y') : 'None';
+            $newDate = $changes['expected_close_date'] ? Carbon::parse($changes['expected_close_date'])->format('M d, Y') : 'None';
 
             $logger->log($lead, 'Expected Close Date Changed', [
                 'event' => 'close_date_change',
@@ -87,7 +90,7 @@ class LeadObserver
                 'new' => $newDate,
             ]);
         }
-        
+
         // Value Change
         if (array_key_exists('lead_value', $changes)) {
             $oldVal = $original['lead_value'] ?? 0;

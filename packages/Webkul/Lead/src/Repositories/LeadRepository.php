@@ -14,6 +14,7 @@ use Webkul\Attribute\Repositories\AttributeValueRepository;
 use Webkul\Core\Eloquent\Repository;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Services\LeadAssignmentService;
+use Webkul\Lead\Services\LeadScoringEngine;
 use Webkul\User\Models\UserProxy;
 
 class LeadRepository extends Repository
@@ -170,7 +171,7 @@ class LeadRepository extends Repository
             ]);
         }
         // Evaluate Lead Score
-        app(\Webkul\Lead\Services\LeadScoringEngine::class)->evaluateLead($lead);
+        app(LeadScoringEngine::class)->evaluateLead($lead);
 
         return $lead;
     }
@@ -251,7 +252,7 @@ class LeadRepository extends Repository
             $this->attributeValueRepository->save(array_merge($data, [
                 'entity_id' => $lead->id,
             ]), $attributes);
-            app(\Webkul\Lead\Services\LeadScoringEngine::class)->evaluateLead($lead);
+            app(LeadScoringEngine::class)->evaluateLead($lead);
 
             return $lead;
         }
@@ -260,7 +261,7 @@ class LeadRepository extends Repository
             'entity_id' => $lead->id,
         ]));
 
-        app(\Webkul\Lead\Services\LeadScoringEngine::class)->evaluateLead($lead);
+        app(LeadScoringEngine::class)->evaluateLead($lead);
 
         return $lead;
     }
@@ -311,25 +312,25 @@ class LeadRepository extends Repository
             case 'needs_contact':
                 $query->where(function ($q) {
                     $q->where('is_unread', true)
-                      ->orWhereNull('last_contacted_at');
+                        ->orWhereNull('last_contacted_at');
                 });
                 break;
             case 'due_today':
                 $query->whereNotNull('next_follow_up_at')
-                      ->whereDate('next_follow_up_at', '=', \Carbon\Carbon::today());
+                    ->whereDate('next_follow_up_at', '=', Carbon::today());
                 break;
             case 'hot':
                 $query->whereIn('priority', ['high', 'urgent']);
                 break;
             case 'no_next_action':
                 $query->whereNull('next_follow_up_at')
-                      ->whereNull('next_action');
+                    ->whereNull('next_action');
                 break;
             case 'qualified':
                 $query->where('qualification_status', 'qualified');
                 break;
             case 'stage_changed':
-                $query->whereDate('updated_at', '>=', \Carbon\Carbon::today());
+                $query->whereDate('updated_at', '>=', Carbon::today());
                 break;
             case 'waiting_for_response':
                 $query->where('is_unread', false)->whereNotNull('last_contacted_at');

@@ -24,7 +24,7 @@ class LeadScoringEngine
                     'lead_id' => $lead->id,
                     'rule_id' => $rule->id,
                     'points' => $rule->points,
-                    'reason' => "{$rule->name} (" . ($rule->points > 0 ? '+' : '') . "{$rule->points})",
+                    'reason' => "{$rule->name} (".($rule->points > 0 ? '+' : '')."{$rule->points})",
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

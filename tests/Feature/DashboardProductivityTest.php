@@ -1,14 +1,15 @@
 <?php
 
-use Webkul\Lead\Models\Lead;
-use Webkul\Admin\Helpers\LeadProductivityDashboard;
 use Carbon\Carbon;
+use Webkul\Admin\Helpers\LeadProductivityDashboard;
+use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\User\Models\User;
 
 it('calculates productivity metrics correctly', function () {
     $this->loginAsAdmin();
     $user = User::orderBy('id')->first();
-    $repo = app(\Webkul\Lead\Repositories\LeadRepository::class);
+    $repo = app(LeadRepository::class);
 
     // 1. New Lead (created today)
     $repo->create(['title' => 'New', 'entity_type' => 'leads', 'lead_pipeline_id' => 1, 'lead_pipeline_stage_id' => 1, 'created_at' => Carbon::today()]);

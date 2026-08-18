@@ -3,6 +3,7 @@
 namespace Webkul\Admin\Helpers;
 
 use Carbon\Carbon;
+use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Repositories\LeadRepository;
 
 class LeadProductivityDashboard
@@ -18,12 +19,12 @@ class LeadProductivityDashboard
     {
         // 1. New Leads (arrived today)
         $newLeadsCount = $this->leadRepository->findWhere([
-            ['created_at', '>=', Carbon::today()]
+            ['created_at', '>=', Carbon::today()],
         ])->count();
 
         // 2. Unassigned
         $unassignedCount = $this->leadRepository->findWhere([
-            'user_id' => null
+            'user_id' => null,
         ])->count();
 
         // 3. Needs first contact (unread or no contact)
@@ -46,20 +47,20 @@ class LeadProductivityDashboard
 
         // 9. Qualified
         $qualifiedCount = $this->leadRepository->findWhere([
-            'qualification_status' => 'qualified'
+            'qualification_status' => 'qualified',
         ])->count();
 
-        // 10. Stage changed today (Optional, using a basic check on updated_at for now, 
+        // 10. Stage changed today (Optional, using a basic check on updated_at for now,
         // true implementation would require activity history check, which we can approximate)
         // Here we approximate as updated today and stage is not "new"
         $stageChangedToday = $this->leadRepository->findWhere([
-            ['updated_at', '>=', Carbon::today()]
+            ['updated_at', '>=', Carbon::today()],
         ])->count();
 
         // 11. Waiting for response
         $waitingCount = $this->leadRepository->findWhere([
             'is_unread' => false,
-            ['last_contacted_at', '!=', null]
+            ['last_contacted_at', '!=', null],
         ])->count();
 
         return [
@@ -88,7 +89,7 @@ class LeadProductivityDashboard
             return collect();
         }
 
-        return app(\Webkul\Lead\Models\Lead::class)
+        return app(Lead::class)
             ->whereNotNull('next_action')
             ->whereNotNull('next_follow_up_at')
             ->where('follow_up_owner_id', $userId)

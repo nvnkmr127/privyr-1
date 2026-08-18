@@ -12,7 +12,7 @@ class SystemActivityLogger
      */
     public function log(Lead $lead, string $title, array $additionalData = [], ?string $comment = null): Activity
     {
-        $activity = new Activity();
+        $activity = new Activity;
         $activity->type = 'system';
         $activity->title = $title;
         $activity->comment = $comment;

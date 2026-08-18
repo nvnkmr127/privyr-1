@@ -2,11 +2,12 @@
 
 use Carbon\Carbon;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Services\LeadAnalyticsService;
 
 it('calculates lead analytics correctly', function () {
     $this->loginAsAdmin();
-    $repo = app(\Webkul\Lead\Repositories\LeadRepository::class);
+    $repo = app(LeadRepository::class);
 
     // Create won lead
     $lead1 = $repo->create([
@@ -43,7 +44,7 @@ it('calculates lead analytics correctly', function () {
     expect($metrics['total_leads'])->toBeGreaterThanOrEqual(2);
     expect($metrics['qualified_leads'])->toBeGreaterThanOrEqual(1);
     expect($metrics['unqualified_leads'])->toBeGreaterThanOrEqual(1);
-    
+
     // We can't strictly assert the exact numbers if the DB has other leads,
     // but we can assert the structure and that it calculated correctly.
     expect(array_key_exists('conversion_rate', $metrics))->toBeTrue();
@@ -53,7 +54,7 @@ it('calculates lead analytics correctly', function () {
     expect(array_key_exists('aging_leads_avg_days', $metrics))->toBeTrue();
     expect(array_key_exists('score_distribution', $metrics))->toBeTrue();
     expect(array_key_exists('avg_response_time_hours', $metrics))->toBeTrue();
-    
+
     // Check score distribution contains our leads
     $scores = $metrics['score_distribution'];
     expect($scores['81-100'])->toBeGreaterThanOrEqual(1); // lead1

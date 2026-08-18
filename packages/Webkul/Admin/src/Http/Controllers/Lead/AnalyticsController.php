@@ -3,6 +3,7 @@
 namespace Webkul\Admin\Http\Controllers\Lead;
 
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Lead\Services\LeadAnalyticsService;
 
@@ -13,14 +14,12 @@ class AnalyticsController extends Controller
      *
      * @return void
      */
-    public function __construct(protected LeadAnalyticsService $analyticsService)
-    {
-    }
+    public function __construct(protected LeadAnalyticsService $analyticsService) {}
 
     /**
      * Display the analytics dashboard.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index(Request $request)
     {

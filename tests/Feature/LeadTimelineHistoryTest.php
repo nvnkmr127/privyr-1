@@ -3,11 +3,11 @@
 use Carbon\Carbon;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\Stage;
-use Webkul\Activity\Models\Activity;
+use Webkul\Lead\Repositories\LeadRepository;
 
 it('logs system events correctly via observers', function () {
     $this->loginAsAdmin();
-    $repo = app(\Webkul\Lead\Repositories\LeadRepository::class);
+    $repo = app(LeadRepository::class);
 
     // Create a lead
     $lead = $repo->create([
@@ -31,14 +31,14 @@ it('logs system events correctly via observers', function () {
 
     // Refresh
     $lead->refresh();
-    
+
     // Direct DB update to trigger score change observer since Engine overrides
     $lead->lead_score = 99;
     $lead->save();
 
     // The observer should have created system activities
     $systemActivities = $lead->activities()->where('type', 'system')->get();
-    
+
     expect($systemActivities->count())->toBeGreaterThanOrEqual(1);
 
     $titles = $systemActivities->pluck('title')->toArray();
@@ -51,11 +51,11 @@ it('logs system events correctly via observers', function () {
 
     // Test the timeline formatter
     $timeline = $lead->getChronologicalTimeline();
-    
+
     $systemEvents = $timeline->where('type', 'activity_system');
-    
+
     expect($systemEvents->count())->toBeGreaterThanOrEqual(6);
-    
+
     $stageEvent = $systemEvents->firstWhere('title', 'Stage Changed');
     expect($stageEvent['description'])->toContain('Changed from');
 });

@@ -56,7 +56,7 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::post('nurture/stop/{id}', 'stopNurture')->name('admin.leads.nurture.stop');
 
     Route::post('follow-up/complete/{id}', 'completeFollowUp')->name('admin.leads.follow_up.complete');
-    
+
     Route::post('follow-up/snooze/{id}', 'snoozeFollowUp')->name('admin.leads.follow_up.snooze');
 
     Route::put('stage/edit/{id}', 'updateStage')->name('admin.leads.stage.update');

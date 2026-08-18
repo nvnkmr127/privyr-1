@@ -2,7 +2,6 @@
 
 namespace Webkul\Lead\Services;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Webkul\Lead\Models\Lead;
 
@@ -25,18 +24,19 @@ class LeadAnalyticsService
         // 1. Acquisition & Conversion
         $qualified = $baseLeads->where('qualification_status', 'qualified')->count();
         $unqualified = $baseLeads->where('qualification_status', 'unqualified')->count();
-        
+
         $wonStageIds = DB::table('lead_pipeline_stages')->where('code', 'won')->pluck('id')->toArray();
         $lostStageIds = DB::table('lead_pipeline_stages')->where('code', 'lost')->pluck('id')->toArray();
-        
+
         $wonLeads = $baseLeads->whereIn('lead_pipeline_stage_id', $wonStageIds)->count();
         $lostLeads = $baseLeads->whereIn('lead_pipeline_stage_id', $lostStageIds)->count();
-        
+
         $conversionRate = $totalLeads > 0 ? round(($wonLeads / $totalLeads) * 100, 1) : 0;
 
         // Breakdown by Source
         $leadsBySource = $baseLeads->groupBy('lead_source_id')->map(function ($group) {
             $sourceName = $group->first()->source?->name ?? 'Direct/Unknown';
+
             return [
                 'name' => $sourceName,
                 'count' => $group->count(),
@@ -47,6 +47,7 @@ class LeadAnalyticsService
         // Breakdown by Pipeline
         $leadsByPipeline = $baseLeads->groupBy('lead_pipeline_id')->map(function ($group) {
             $pipelineName = $group->first()->pipeline?->name ?? 'Default';
+
             return [
                 'name' => $pipelineName,
                 'count' => $group->count(),
@@ -55,12 +56,14 @@ class LeadAnalyticsService
         })->sortByDesc('count')->values()->toArray();
 
         // 2. Pipeline & Health
-        $staleLeads = $baseLeads->filter(function($lead) {
+        $staleLeads = $baseLeads->filter(function ($lead) {
             return $lead->health_state === 'stale';
         })->count();
 
-        $agingLeadsAvg = $totalLeads > 0 
-            ? round($baseLeads->avg(function($lead) { return $lead->created_at->diffInDays(now()); }), 1)
+        $agingLeadsAvg = $totalLeads > 0
+            ? round($baseLeads->avg(function ($lead) {
+                return $lead->created_at->diffInDays(now());
+            }), 1)
             : 0;
 
         // Score Distribution (0-20, 21-40, 41-60, 61-80, 81-100)
@@ -77,7 +80,7 @@ class LeadAnalyticsService
         // Assignment time (time from creation to first owner assigned)
         $totalResponseHours = 0;
         $respondedLeadsCount = 0;
-        
+
         foreach ($baseLeads as $lead) {
             $firstActivity = $lead->activities()->where('type', '!=', 'system')->orderBy('created_at', 'asc')->first();
             if ($firstActivity) {
@@ -89,13 +92,14 @@ class LeadAnalyticsService
         $avgResponseTimeHours = $respondedLeadsCount > 0 ? round($totalResponseHours / $respondedLeadsCount, 1) : 0;
 
         // Overdue follow-ups
-        $overdueFollowups = $baseLeads->filter(function($lead) {
+        $overdueFollowups = $baseLeads->filter(function ($lead) {
             return $lead->follow_up_state === 'Overdue';
         })->count();
 
         // 4. Team Performance
         $leadsByOwner = $baseLeads->groupBy('user_id')->map(function ($group) {
             $ownerName = $group->first()->user?->name ?? 'Unassigned';
+
             return [
                 'name' => $ownerName,
                 'count' => $group->count(),
