@@ -45,11 +45,6 @@
                 </div>
 
                 <!-- Searched Results -->
-                <template v-if="activeTab == 'products'">
-                    <template v-if="isLoading">
-                        <x-admin::shimmer.header.mega-search.products />
-                    </template>
-
                     <template v-else>
                         <div class="grid max-h-[400px] overflow-y-auto">
                             <template v-for="product in searchedResults.products">
@@ -165,11 +160,6 @@
                     </template>
                 </template>
 
-                <template v-if="activeTab == 'persons'">
-                    <template v-if="isLoading">
-                        <x-admin::shimmer.header.mega-search.persons />
-                    </template>
-
                     <template v-else>
                         <div class="grid max-h-[400px] overflow-y-auto">
                             <template v-for="person in searchedResults.persons">
@@ -215,11 +205,6 @@
                         </div>
                     </template>
                 </template>
-
-                <template v-if="activeTab == 'quotes'">
-                    <template v-if="isLoading">
-                        <x-admin::shimmer.header.mega-search.quotes />
-                    </template>
 
                     <template v-else>
                         <div class="grid max-h-[400px] overflow-y-auto">
@@ -371,23 +356,9 @@
                                     search: 'user.name',
                                     searchFields: 'user.name:like',
                                 },
-                                {
-                                    search: 'person.name',
-                                    searchFields: 'person.name:like',
-                                },
                             ],
                         },
 
-                        quotes: {
-                            key: 'quotes',
-                            title: "@lang('admin::app.components.layouts.header.mega-search.tabs.quotes')",
-                            is_active: false,
-                            endpoint: "{{ route('admin.quotes.search') }}",
-                            query_params: [
-                                {
-                                    search: 'subject',
-                                    searchFields: 'subject:like',
-                                },
                                 {
                                     search: 'description',
                                     searchFields: 'description:like',
@@ -396,23 +367,9 @@
                                     search: 'user.name',
                                     searchFields: 'user.name:like',
                                 },
-                                {
-                                    search: 'person.name',
-                                    searchFields: 'person.name:like',
-                                },
                             ],
                         },
 
-                        products: {
-                            key: 'products',
-                            title: "@lang('admin::app.components.layouts.header.mega-search.tabs.products')",
-                            is_active: false,
-                            endpoint: "{{ route('admin.products.search') }}",
-                            query_params: [
-                                {
-                                    search: 'name',
-                                    searchFields: 'name:like',
-                                },
                                 {
                                     search: 'sku',
                                     searchFields: 'sku:like',
@@ -424,16 +381,6 @@
                             ],
                         },
 
-                        persons: {
-                            key: 'persons',
-                            title: "@lang('admin::app.components.layouts.header.mega-search.tabs.persons')",
-                            is_active: false,
-                            endpoint: "{{ route('admin.contacts.persons.search') }}",
-                            query_params: [
-                                {
-                                    search: 'name',
-                                    searchFields: 'name:like',
-                                },
                                 {
                                     search: 'job_title',
                                     searchFields: 'job_title:like',
