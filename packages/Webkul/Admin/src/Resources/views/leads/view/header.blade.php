@@ -60,6 +60,23 @@
                 </button>
             </x-admin::form>
 
+            <!-- Stop Nurture -->
+            @if ($lead->active_nurture_status)
+                <x-admin::form
+                    :action="route('admin.leads.nurture.stop', $lead->id)"
+                    method="POST"
+                    class="inline-flex"
+                >
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 transition dark:border-red-800 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-900/50"
+                        title="Stop active nurture sequence"
+                    >
+                        <span>Stop Nurture</span>
+                    </button>
+                </x-admin::form>
+            @endif
+
             <!-- Duplicate Lead -->
             <a
                 href="{{ route('admin.leads.duplicate', $lead->id) }}"
@@ -112,10 +129,48 @@
                         </span>
                     @endif
 
-                    <!-- Score Badge -->
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/60 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800 shrink-0" title="Automatically calculated based on lead details completeness, activities and state.">
-                        Score: {{ $lead->lead_score ?? 0 }}
+                    <!-- Health State Badge -->
+                    @php
+                        $healthState = $lead->health_state;
+                        $healthColor = match($healthState) {
+                            'hot' => 'bg-orange-50 text-orange-700 border-orange-200/60 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800',
+                            'warm' => 'bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+                            'cold' => 'bg-blue-50 text-blue-700 border-blue-200/60 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
+                            'at_risk' => 'bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800',
+                            'stale' => 'bg-slate-100 text-slate-700 border-slate-300/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
+                            default => 'bg-slate-50 text-slate-700 border-slate-200/60',
+                        };
+                        $healthLabels = [
+                            'hot' => 'Hot', 'warm' => 'Warm', 'cold' => 'Cold', 'at_risk' => 'At Risk', 'stale' => 'Stale'
+                        ];
+                    @endphp
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border shrink-0 {{ $healthColor }}">
+                        <i class="fa-solid fa-heart-pulse mr-1"></i> {{ $healthLabels[$healthState] ?? 'Unknown' }}
                     </span>
+
+                    <!-- Score Badge with Popover -->
+                    <div class="relative group inline-block shrink-0">
+                        <span class="inline-flex cursor-help items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200/60 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                            Score: {{ $lead->lead_score ?? 0 }}
+                        </span>
+                        
+                        <!-- Popover -->
+                        <div class="absolute left-0 top-full mt-2 w-64 rounded-lg bg-white p-3 shadow-lg ring-1 ring-slate-900/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 dark:bg-gray-800 dark:ring-white/10">
+                            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 dark:text-gray-400">Score Reasons</h4>
+                            <div class="space-y-1">
+                                @forelse($lead->scoreLogs as $log)
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-slate-700 dark:text-gray-300">{{ str_replace(strstr($log->reason, ' ('), '', $log->reason) }}</span>
+                                        <span class="font-medium {{ $log->points > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                            {{ $log->points > 0 ? '+' : '' }}{{ $log->points }}
+                                        </span>
+                                    </div>
+                                @empty
+                                    <div class="text-sm text-slate-500 dark:text-gray-400 italic">No active scoring rules matched.</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Qualification Badge -->
                     @if ($lead->qualification_status === 'qualified')
@@ -123,6 +178,26 @@
                             Qualified
                         </span>
                     @endif
+
+                    <!-- Nurture Badge -->
+                    @if ($nurtureStatus = $lead->active_nurture_status)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/60 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 shrink-0">
+                            <i class="fa-solid fa-bolt mr-1"></i> {{ $nurtureStatus }}
+                        </span>
+                    @endif
+
+                    <!-- FollowUp State Badge -->
+                    @php
+                        $fuState = $lead->follow_up_state;
+                        $fuColor = match($fuState) {
+                            'Overdue', 'Needs Attention', 'Stale' => 'bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800',
+                            'Due Today' => 'bg-blue-50 text-blue-700 border-blue-200/60 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
+                            default => 'bg-slate-100 text-slate-700 border-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+                        };
+                    @endphp
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border shrink-0 {{ $fuColor }}">
+                        {{ $fuState }}
+                    </span>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-0.5 min-w-0">
@@ -146,6 +221,41 @@
         <!-- Quick Action Triggers (WhatsApp, Call, SMS, Brochure, Note, Activity, File) -->
         <div class="flex flex-wrap items-center gap-1.5 shrink-0">
             {!! view_render_event('admin.leads.view.actions.before', ['lead' => $lead]) !!}
+
+            @if ($lead->next_action)
+                <!-- Complete Follow-up -->
+                <x-admin::form
+                    :action="route('admin.leads.follow_up.complete', $lead->id)"
+                    method="POST"
+                    class="inline-flex"
+                >
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-300"
+                        title="Complete active follow-up action"
+                    >
+                        <i class="fa-solid fa-check"></i>
+                        <span>Complete Action</span>
+                    </button>
+                </x-admin::form>
+
+                <!-- Snooze Follow-up -->
+                <x-admin::form
+                    :action="route('admin.leads.follow_up.snooze', $lead->id)"
+                    method="POST"
+                    class="inline-flex"
+                >
+                    <input type="hidden" name="date" value="{{ \Carbon\Carbon::now()->addDay()->format('Y-m-d H:i:s') }}" />
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                        title="Snooze for 1 day"
+                    >
+                        <i class="fa-regular fa-clock"></i>
+                        <span>Snooze</span>
+                    </button>
+                </x-admin::form>
+            @endif
 
             @if ($phone)
                 <!-- One-Tap WhatsApp -->

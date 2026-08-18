@@ -15,6 +15,8 @@ class LeadServiceProvider extends ServiceProvider
     public function boot(Router $router)
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+
+        \Webkul\Lead\Models\Lead::observe(\Webkul\Lead\Observers\LeadObserver::class);
     }
 
     /**

@@ -24,7 +24,7 @@ return [
     ], [
         'key' => 'analytics',
         'name' => 'Analytics & Reports',
-        'route' => 'admin.analytics.reports',
+        'route' => 'admin.analytics.index',
         'sort' => 3,
         'icon-class' => 'icon-activity',
     ],

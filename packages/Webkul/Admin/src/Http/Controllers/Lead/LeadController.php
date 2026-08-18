@@ -1071,4 +1071,23 @@ class LeadController extends Controller
 
         return redirect()->back();
     }
+
+    /**
+     * Stop the active nurture sequence.
+     */
+    public function stopNurture(int $id)
+    {
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        $activeEnrollment = $lead->nurtureEnrollments()->where('status', 'active')->first();
+        if ($activeEnrollment) {
+            $activeEnrollment->update(['status' => 'stopped']);
+            session()->flash('success', 'Nurture sequence stopped successfully.');
+        } else {
+            session()->flash('error', 'Lead is not active in any nurture sequence.');
+        }
+
+        return redirect()->back();
+    }
 }

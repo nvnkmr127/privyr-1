@@ -1,175 +1,110 @@
 <x-admin::layouts>
     <x-slot:title>
-        {{ menu()->getLabel('dashboard', 'admin::app.dashboard.index.title') }}
+        Lead Productivity Workspace
     </x-slot>
 
     <!-- Head Details Section -->
-    {!! view_render_event('admin.dashboard.index.header.before') !!}
-
     <div class="mb-5 flex items-center justify-between gap-4 max-sm:flex-wrap">
-        {!! view_render_event('admin.dashboard.index.header.left.before') !!}
-
         <div class="grid gap-1.5">
-            <p class="text-xl font-bold text-gray-800 dark:text-white">
-                {{ menu()->getLabel('dashboard', 'admin::app.dashboard.index.title') }}
-            </p>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+                TODAY
+            </h1>
+            <p class="text-sm text-slate-500">Your daily lead productivity overview</p>
         </div>
-
-        {!! view_render_event('admin.dashboard.index.header.left.after') !!}
-
-        <!-- Actions -->
-        {!! view_render_event('admin.dashboard.index.header.right.before') !!}
-
-        <v-dashboard-filters>
-            <!-- Shimmer -->
-            <div class="flex gap-1.5">
-                @if ($pipelines->count() > 1)
-                    <div class="light-shimmer-bg dark:shimmer h-[39px] w-[160px] rounded-md"></div>
-                @endif
-
-                <div class="light-shimmer-bg dark:shimmer h-[39px] w-[140px] rounded-md"></div>
-                <div class="light-shimmer-bg dark:shimmer h-[39px] w-[140px] rounded-md"></div>
-            </div>
-        </v-dashboard-filters>
-
-        {!! view_render_event('admin.dashboard.index.header.right.after') !!}
     </div>
 
-    {!! view_render_event('admin.dashboard.index.header.after') !!}
+    <!-- Metric Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
+        @php
+            $cards = [
+                ['label' => 'New Leads', 'value' => $metrics['new_leads'], 'color' => 'emerald', 'preset' => 'new'],
+                ['label' => 'Unassigned', 'value' => $metrics['unassigned'], 'color' => 'slate', 'preset' => 'unassigned'],
+                ['label' => 'Needs Contact', 'value' => $metrics['needs_contact'], 'color' => 'rose', 'preset' => 'needs_contact'],
+                ['label' => 'Due Today', 'value' => $metrics['due_today'], 'color' => 'blue', 'preset' => 'due_today'],
+                ['label' => 'Overdue', 'value' => $metrics['overdue'], 'color' => 'rose', 'preset' => 'overdue_follow_ups'],
+                ['label' => 'Hot Leads', 'value' => $metrics['hot'], 'color' => 'orange', 'preset' => 'hot'],
+                ['label' => 'No Next Action', 'value' => $metrics['no_next_action'], 'color' => 'slate', 'preset' => 'no_next_action'],
+                ['label' => 'Stale', 'value' => $metrics['stale'], 'color' => 'slate', 'preset' => 'stale'],
+                ['label' => 'Qualified', 'value' => $metrics['qualified'], 'color' => 'indigo', 'preset' => 'qualified'],
+                ['label' => 'Waiting Response', 'value' => $metrics['waiting_for_response'], 'color' => 'amber', 'preset' => 'waiting_for_response'],
+                ['label' => 'Stage Changed', 'value' => $metrics['stage_changed'], 'color' => 'purple', 'preset' => 'stage_changed'],
+            ];
+        @endphp
 
-    <!-- Body Component -->
-    {!! view_render_event('admin.dashboard.index.content.before') !!}
-
-    <div class="mt-3.5 flex gap-4 max-xl:flex-wrap">
-        <!-- Left Section -->
-        {!! view_render_event('admin.dashboard.index.content.left.before') !!}
-
-        <div class="flex flex-1 flex-col gap-4 max-xl:flex-auto">
-            <!-- Revenue Stats -->
-            @include('admin::dashboard.index.revenue')
-
-            <!-- Over All Stats -->
-            @include('admin::dashboard.index.over-all')
-
-            <!-- Total Leads Stats -->
-            @include('admin::dashboard.index.total-leads')
-
-
-
-            <!-- Pipeline Funnel -->
-            @include('admin::dashboard.index.pipeline-funnel')
-        </div>
-
-        {!! view_render_event('admin.dashboard.index.content.left.after') !!}
-
-        <!-- Right Section -->
-        {!! view_render_event('admin.dashboard.index.content.right.before') !!}
-
-        <div class="flex w-[378px] max-w-full flex-col gap-4 max-sm:w-full">
-            <!-- Revenue by Types -->
-            @include('admin::dashboard.index.open-leads-by-states')
-
-            <!-- Revenue by Sources -->
-            @include('admin::dashboard.index.revenue-by-sources')
-
-            <!-- Revenue by Types -->
-            @include('admin::dashboard.index.revenue-by-types')
-        </div>
-
-        {!! view_render_event('admin.dashboard.index.content.left.after') !!}
+        @foreach($cards as $card)
+            <a href="{{ route('admin.leads.inbox', ['preset' => $card['preset']]) }}" class="flex flex-col p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition dark:bg-gray-900 dark:border-gray-800 dark:hover:bg-gray-800">
+                <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">{{ $card['label'] }}</span>
+                <span class="text-3xl font-bold text-{{ $card['color'] }}-600 dark:text-{{ $card['color'] }}-400">{{ $card['value'] }}</span>
+            </a>
+        @endforeach
     </div>
 
-    {!! view_render_event('admin.dashboard.index.content.after') !!}
+    <!-- My Next Actions -->
+    <div class="mb-5 flex items-center justify-between gap-4 max-sm:flex-wrap">
+        <div class="grid gap-1.5">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+                MY NEXT ACTIONS
+            </h2>
+        </div>
+    </div>
 
-    @pushOnce('scripts')
-
-        <script
-            type="module"
-            src="{{ vite()->asset('js/chart.js') }}"
-        >
-        </script>
-
-        <script
-            type="module"
-            src="https://cdn.jsdelivr.net/npm/chartjs-chart-funnel@4.2.1/build/index.umd.min.js"
-        >
-        </script>
-
-        <script
-            type="text/x-template"
-            id="v-dashboard-filters-template"
-        >
-            {!! view_render_event('admin.dashboard.index.date_filters.before') !!}
-
-            <div class="flex gap-1.5">
-                @if ($pipelines->count() > 1)
-                    <!-- Pipeline Selector -->
-                    <select
-                        class="custom-select flex min-h-[39px] w-[160px] rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-normal text-gray-600 transition-all hover:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400"
-                        v-model="filters.pipeline_id"
-                    >
-                        @foreach ($pipelines as $pipeline)
-                            <option value="{{ $pipeline->id }}">{{ $pipeline->name }}</option>
-                        @endforeach
-                    </select>
-                @endif
-
-                <x-admin::flat-picker.date
-                    class="!w-[140px]"
-                    ::allow-input="false"
-                    ::max-date="filters.end"
-                >
-                    <input
-                        class="flex min-h-[39px] w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 transition-all hover:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400"
-                        v-model="filters.start"
-                        placeholder="@lang('admin::app.dashboard.index.start-date')"
-                    />
-                </x-admin::flat-picker.date>
-
-                <x-admin::flat-picker.date
-                    class="!w-[140px]"
-                    ::allow-input="false"
-                    ::max-date="filters.end"
-                >
-                    <input
-                        class="flex min-h-[39px] w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 transition-all hover:border-gray-400 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-400"
-                        v-model="filters.end"
-                        placeholder="@lang('admin::app.dashboard.index.end-date')"
-                    />
-                </x-admin::flat-picker.date>
-            </div>
-
-            {!! view_render_event('admin.dashboard.index.date_filters.after') !!}
-        </script>
-
-        <script type="module">
-            app.component('v-dashboard-filters', {
-                template: '#v-dashboard-filters-template',
-
-                data() {
-                    return {
-                        filters: {
-                            channel: '',
-
-                            pipeline_id: "{{ $defaultPipeline?->id }}",
-
-                            start: "{{ $startDate->format('Y-m-d') }}",
-
-                            end: "{{ $endDate->format('Y-m-d') }}",
-                        }
-                    }
-                },
-
-                watch: {
-                    filters: {
-                        handler() {
-                            this.$emitter.emit('reporting-filter-updated', this.filters);
-                        },
-
-                        deep: true
-                    }
-                },
-            });
-        </script>
-    @endPushOnce
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 overflow-hidden mb-8">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50 dark:bg-gray-800/50 text-slate-500 border-b border-slate-200 dark:border-gray-800">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Lead</th>
+                        <th class="px-4 py-3 font-semibold">Action</th>
+                        <th class="px-4 py-3 font-semibold">Due Date</th>
+                        <th class="px-4 py-3 font-semibold">Priority</th>
+                        <th class="px-4 py-3 font-semibold text-right"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-gray-800">
+                    @forelse($nextActions as $actionLead)
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-gray-800/20 transition">
+                            <td class="px-4 py-3">
+                                <a href="{{ route('admin.leads.view', $actionLead->id) }}" class="font-semibold text-blue-600 hover:underline">
+                                    {{ $actionLead->title }}
+                                </a>
+                            </td>
+                            <td class="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">
+                                {{ $actionLead->next_action }}
+                            </td>
+                            <td class="px-4 py-3">
+                                @if(\Carbon\Carbon::parse($actionLead->next_follow_up_at)->isPast() && !\Carbon\Carbon::parse($actionLead->next_follow_up_at)->isToday())
+                                    <span class="text-rose-600 font-semibold">{{ \Carbon\Carbon::parse($actionLead->next_follow_up_at)->format('M d, Y h:i A') }} (Overdue)</span>
+                                @else
+                                    <span class="text-blue-600 font-semibold">{{ \Carbon\Carbon::parse($actionLead->next_follow_up_at)->format('M d, Y h:i A') }} (Today)</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                @if($actionLead->priority === 'urgent' || $actionLead->priority === 'high')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-rose-50 text-rose-700">{{ ucfirst($actionLead->priority) }}</span>
+                                @elseif($actionLead->priority === 'medium')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700">{{ ucfirst($actionLead->priority) }}</span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-100 text-slate-700">{{ ucfirst($actionLead->priority ?? 'None') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <form action="{{ route('admin.leads.follow_up.complete', $actionLead->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition">
+                                        <i class="fa-solid fa-check"></i> Complete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-slate-400">
+                                No upcoming actions assigned to you!
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </x-admin::layouts>
