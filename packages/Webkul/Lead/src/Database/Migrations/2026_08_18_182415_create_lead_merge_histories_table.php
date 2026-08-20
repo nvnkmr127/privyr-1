@@ -21,10 +21,10 @@ return new class extends Migration
             $table->foreign('merged_lead_id')->references('id')->on('leads')->onDelete('cascade');
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            
+
             $table->json('merged_data')->nullable(); // Store which fields were moved/selected
             $table->text('merge_reason')->nullable();
-            
+
             $table->timestamps();
         });
     }

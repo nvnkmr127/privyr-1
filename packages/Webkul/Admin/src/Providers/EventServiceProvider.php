@@ -3,6 +3,7 @@
 namespace Webkul\Admin\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Webkul\Activity\Listeners\LeadTimelineEventSubscriber;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -33,6 +34,6 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $subscribe = [
-        \Webkul\Activity\Listeners\LeadTimelineEventSubscriber::class,
+        LeadTimelineEventSubscriber::class,
     ];
 }

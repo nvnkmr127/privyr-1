@@ -15,18 +15,18 @@ return new class extends Migration
     {
         Schema::create('lead_status_histories', function (Blueprint $table) {
             $table->increments('id');
-            
+
             $table->integer('lead_id')->unsigned();
             $table->foreign('lead_id')->references('id')->on('leads')->onDelete('cascade');
-            
+
             $table->string('previous_status')->nullable();
             $table->string('new_status');
-            
+
             $table->integer('user_id')->unsigned()->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
-            
+
             $table->text('reason')->nullable();
-            
+
             $table->timestamps();
         });
     }

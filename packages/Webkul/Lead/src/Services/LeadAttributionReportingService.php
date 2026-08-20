@@ -2,8 +2,8 @@
 
 namespace Webkul\Lead\Services;
 
-use Webkul\Lead\Repositories\LeadRepository;
 use Illuminate\Support\Facades\DB;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class LeadAttributionReportingService
 {
@@ -27,15 +27,15 @@ class LeadAttributionReportingService
 
         $results = [];
         foreach ($query as $row) {
-            $total = (int)$row->total_leads;
-            $qualified = (int)$row->qualified_leads;
-            $converted = (int)$row->converted_leads;
-            
+            $total = (int) $row->total_leads;
+            $qualified = (int) $row->qualified_leads;
+            $converted = (int) $row->converted_leads;
+
             $results[$row->$field] = [
                 'total_leads' => $total,
                 'qualified_leads' => $qualified,
                 'converted_leads' => $converted,
-                'lost_leads' => (int)$row->lost_leads,
+                'lost_leads' => (int) $row->lost_leads,
                 'qualification_rate' => $total > 0 ? round(($qualified / $total) * 100, 2) : 0,
                 'conversion_rate' => $total > 0 ? round(($converted / $total) * 100, 2) : 0,
             ];

@@ -4,9 +4,9 @@ namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Webkul\Attribute\Models\AttributeOptionProxy;
 use Webkul\Lead\Contracts\LeadNurtureHistory as LeadNurtureHistoryContract;
 use Webkul\User\Models\UserProxy;
-use Webkul\Attribute\Models\AttributeOptionProxy;
 
 class LeadNurtureHistory extends Model implements LeadNurtureHistoryContract
 {

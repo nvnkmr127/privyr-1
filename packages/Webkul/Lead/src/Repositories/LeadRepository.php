@@ -14,8 +14,8 @@ use Webkul\Attribute\Repositories\AttributeValueRepository;
 use Webkul\Core\Eloquent\Repository;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Services\LeadAssignmentService;
+use Webkul\Lead\Services\LeadDuplicateService;
 use Webkul\Lead\Services\LeadScoringEngine;
-use Webkul\User\Models\UserProxy;
 
 class LeadRepository extends Repository
 {
@@ -115,11 +115,11 @@ class LeadRepository extends Repository
 
         // Normalize Email and Phone
         if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
-            $data['normalized_primary_email'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
+            $data['normalized_primary_email'] = app(LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
         $lead = parent::create(array_merge([
@@ -142,7 +142,7 @@ class LeadRepository extends Repository
             ]);
 
             Event::dispatch('lead.qualification.started', $lead);
-            
+
             if ($lead->qualification_status === 'qualified') {
                 Event::dispatch('lead.qualification.qualified', $lead);
             } elseif ($lead->qualification_status === 'disqualified') {
@@ -199,11 +199,11 @@ class LeadRepository extends Repository
 
         // Normalize Email and Phone
         if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
-            $data['normalized_primary_email'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
+            $data['normalized_primary_email'] = app(LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
         // Prevent direct manipulation of lifecycle fields
@@ -227,18 +227,18 @@ class LeadRepository extends Repository
             ]);
 
             // Dispatch specific events
-            if (empty($originalLead->qualification_status) && !empty($lead->qualification_status)) {
+            if (empty($originalLead->qualification_status) && ! empty($lead->qualification_status)) {
                 Event::dispatch('lead.qualification.started', $lead);
             }
-            
+
             if ($lead->qualification_status === 'qualified') {
                 Event::dispatch('lead.qualification.qualified', $lead);
             } elseif ($lead->qualification_status === 'disqualified') {
                 Event::dispatch('lead.qualification.disqualified', $lead);
             } elseif ($lead->qualification_status === 'unqualified' && in_array($originalLead->qualification_status ?? null, ['qualified', 'disqualified'])) {
-                 Event::dispatch('lead.qualification.reopened', $lead);
+                Event::dispatch('lead.qualification.reopened', $lead);
             }
-            
+
             Event::dispatch('lead.qualification.updated', $lead);
         }
 

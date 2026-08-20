@@ -1,13 +1,11 @@
 <?php
 
-use Carbon\Carbon;
 use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
 use Webkul\User\Models\User;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\postJson;
-use function Pest\Laravel\putJson;
 
 beforeEach(function () {
     $this->user = User::first() ?? User::create([
@@ -86,7 +84,7 @@ it('can detect overdue follow-ups', function () {
         'status' => 'pending',
         'schedule_from' => now()->subDays(1),
     ]);
-    
+
     $upcomingActivity = Activity::create([
         'title' => 'Upcoming Activity',
         'type' => 'call',

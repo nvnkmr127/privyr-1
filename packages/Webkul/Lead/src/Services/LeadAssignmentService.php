@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadAssignmentRule;
 use Webkul\Lead\Repositories\LeadAssignmentRepository;
@@ -29,9 +30,9 @@ class LeadAssignmentService
         ]);
 
         if ($previousOwner || $previousGroup) {
-            \Illuminate\Support\Facades\Event::dispatch('lead.reassigned', $lead);
+            Event::dispatch('lead.reassigned', $lead);
         } else {
-            \Illuminate\Support\Facades\Event::dispatch('lead.assigned', $lead);
+            Event::dispatch('lead.assigned', $lead);
         }
 
         return true;
@@ -56,7 +57,7 @@ class LeadAssignmentService
             'reason' => 'Unassigned manually',
         ]);
 
-        \Illuminate\Support\Facades\Event::dispatch('lead.unassigned', $lead);
+        Event::dispatch('lead.unassigned', $lead);
 
         return true;
     }
@@ -195,9 +196,9 @@ class LeadAssignmentService
             ]);
 
             if ($previousOwner || $previousGroup) {
-                \Illuminate\Support\Facades\Event::dispatch('lead.reassigned', $lead);
+                Event::dispatch('lead.reassigned', $lead);
             } else {
-                \Illuminate\Support\Facades\Event::dispatch('lead.assigned', $lead);
+                Event::dispatch('lead.assigned', $lead);
             }
 
             return true;

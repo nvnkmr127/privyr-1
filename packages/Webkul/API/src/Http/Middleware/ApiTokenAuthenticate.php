@@ -2,10 +2,10 @@
 
 namespace Webkul\API\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Webkul\API\Repositories\ApiCredentialRepository;
-use Carbon\Carbon;
 
 class ApiTokenAuthenticate
 {
@@ -19,8 +19,6 @@ class ApiTokenAuthenticate
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @param  string|null  $permission
      * @return mixed
      */

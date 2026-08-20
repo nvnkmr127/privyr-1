@@ -2,10 +2,10 @@
 
 namespace Webkul\Activity\Listeners;
 
+use Illuminate\Events\Dispatcher;
 use Webkul\Activity\Services\SystemActivityLogger;
-use Webkul\Lead\Models\Lead;
-use Webkul\User\Models\User;
 use Webkul\Attribute\Models\AttributeOption;
+use Webkul\Lead\Models\Lead;
 
 class LeadTimelineEventSubscriber
 {
@@ -25,7 +25,7 @@ class LeadTimelineEventSubscriber
     {
         $lead = $event;
         $userName = $lead->user ? $lead->user->name : 'Unassigned';
-        
+
         $this->systemActivityLogger->log(
             $lead,
             'Lead assigned',
@@ -40,7 +40,7 @@ class LeadTimelineEventSubscriber
     public function handleLeadStatusChanged($lead)
     {
         $statusName = $lead->status;
-        
+
         $this->systemActivityLogger->log(
             $lead,
             'Status changed',
@@ -55,7 +55,7 @@ class LeadTimelineEventSubscriber
     public function handleLeadStageChanged($lead)
     {
         $stageName = $lead->stage ? $lead->stage->name : 'Unknown';
-        
+
         $this->systemActivityLogger->log(
             $lead,
             'Stage changed',
@@ -73,7 +73,7 @@ class LeadTimelineEventSubscriber
             $lead,
             'Lead qualified',
             ['old' => ['label' => 'Unqualified'], 'new' => ['label' => 'Qualified']],
-            "Lead was marked as Qualified"
+            'Lead was marked as Qualified'
         );
     }
 
@@ -100,14 +100,14 @@ class LeadTimelineEventSubscriber
             $lead,
             'Nurturing completed',
             ['old' => ['label' => 'Nurturing'], 'new' => ['label' => 'Completed']],
-            "Lead exited Nurturing."
+            'Lead exited Nurturing.'
         );
     }
 
     /**
      * Register the listeners for the subscriber.
      *
-     * @param  \Illuminate\Events\Dispatcher  $events
+     * @param  Dispatcher  $events
      * @return void
      */
     public function subscribe($events)

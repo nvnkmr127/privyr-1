@@ -36,7 +36,7 @@ class ActivityObserver
         // We use finding the lead to avoid triggering other observers unnecessarily if possible,
         // but we want to save it so timestamps update.
         $lead = Lead::find($activity->lead_id);
-        
+
         if (! $lead) {
             return;
         }
@@ -56,7 +56,7 @@ class ActivityObserver
         }
 
         if ($leadModified) {
-            // Use saveQuietly to prevent LeadObserver from logging this as a generic update, 
+            // Use saveQuietly to prevent LeadObserver from logging this as a generic update,
             // since the Activity itself is already the log of the action.
             $lead->saveQuietly();
         }

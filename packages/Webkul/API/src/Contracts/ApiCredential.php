@@ -2,6 +2,4 @@
 
 namespace Webkul\API\Contracts;
 
-interface ApiCredential
-{
-}
+interface ApiCredential {}

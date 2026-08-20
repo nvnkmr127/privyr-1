@@ -3,8 +3,8 @@
 namespace Webkul\Admin\Http\Controllers\Settings;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Event;
+use Illuminate\View\View;
 use Webkul\Admin\DataGrids\Settings\LeadAssignmentRuleDataGrid;
 use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Lead\Repositories\LeadAssignmentRuleRepository;
@@ -16,9 +16,7 @@ class LeadAssignmentRuleController extends Controller
      *
      * @return void
      */
-    public function __construct(protected LeadAssignmentRuleRepository $leadAssignmentRuleRepository)
-    {
-    }
+    public function __construct(protected LeadAssignmentRuleRepository $leadAssignmentRuleRepository) {}
 
     /**
      * Display a listing of the resource.
@@ -46,12 +44,12 @@ class LeadAssignmentRuleController extends Controller
     public function store(): JsonResponse|RedirectResponse
     {
         $this->validate(request(), [
-            'name'            => 'required',
-            'condition_type'  => 'required|in:and,or',
-            'conditions'      => 'required',
+            'name' => 'required',
+            'condition_type' => 'required|in:and,or',
+            'conditions' => 'required',
             'assignment_type' => 'required|in:user,team',
-            'entity_id'       => 'required|integer',
-            'sort_order'      => 'required|integer',
+            'entity_id' => 'required|integer',
+            'sort_order' => 'required|integer',
         ]);
 
         $data = request()->all();
@@ -84,6 +82,7 @@ class LeadAssignmentRuleController extends Controller
         Event::dispatch('settings.lead_assignment_rules.create.after', $rule);
 
         session()->flash('success', 'Lead Assignment Rule created successfully.');
+
         return redirect()->route('admin.settings.lead_assignment_rules.index');
     }
 
@@ -93,11 +92,11 @@ class LeadAssignmentRuleController extends Controller
     public function edit(int $id): View|JsonResponse
     {
         $rule = $this->leadAssignmentRuleRepository->findOrFail($id);
-        
+
         $rule->condition_type = $rule->type;
         $rule->is_active = $rule->status;
         $rule->conditions_json = $rule->conditions;
-        
+
         if ($rule->users->count() > 0) {
             $rule->assignment_type = 'user';
             $rule->entity_id = $rule->users->first()->id;
@@ -115,12 +114,12 @@ class LeadAssignmentRuleController extends Controller
     public function update(int $id): JsonResponse|RedirectResponse
     {
         $this->validate(request(), [
-            'name'            => 'required',
-            'condition_type'  => 'required|in:and,or',
-            'conditions'      => 'required',
+            'name' => 'required',
+            'condition_type' => 'required|in:and,or',
+            'conditions' => 'required',
             'assignment_type' => 'required|in:user,team',
-            'entity_id'       => 'required|integer',
-            'sort_order'      => 'required|integer',
+            'entity_id' => 'required|integer',
+            'sort_order' => 'required|integer',
         ]);
 
         $data = request()->all();
@@ -156,6 +155,7 @@ class LeadAssignmentRuleController extends Controller
         Event::dispatch('settings.lead_assignment_rules.update.after', $rule);
 
         session()->flash('success', 'Lead Assignment Rule updated successfully.');
+
         return redirect()->route('admin.settings.lead_assignment_rules.index');
     }
 

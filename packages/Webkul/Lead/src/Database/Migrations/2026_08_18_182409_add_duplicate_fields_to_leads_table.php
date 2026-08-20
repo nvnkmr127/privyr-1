@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('duplicate_status')->default('clean')->index();
             $table->integer('duplicate_of_id')->unsigned()->nullable();
             $table->foreign('duplicate_of_id')->references('id')->on('leads')->nullOnDelete();
-            
+
             $table->boolean('is_merged')->default(false)->index();
             $table->integer('merged_into_id')->unsigned()->nullable();
             $table->foreign('merged_into_id')->references('id')->on('leads')->nullOnDelete();
@@ -38,7 +38,7 @@ return new class extends Migration
                 'duplicate_status',
                 'duplicate_of_id',
                 'is_merged',
-                'merged_into_id'
+                'merged_into_id',
             ]);
         });
     }

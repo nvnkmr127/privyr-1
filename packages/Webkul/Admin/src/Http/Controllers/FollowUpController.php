@@ -2,9 +2,12 @@
 
 namespace Webkul\Admin\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\View\View;
 use Webkul\Activity\Repositories\ActivityRepository;
+use Webkul\Admin\DataGrids\FollowUpDataGrid;
 use Webkul\Lead\Repositories\LeadRepository;
 
 class FollowUpController extends Controller
@@ -17,18 +20,17 @@ class FollowUpController extends Controller
     public function __construct(
         protected ActivityRepository $activityRepository,
         protected LeadRepository $leadRepository
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index()
     {
         if (request()->ajax()) {
-            return app(\Webkul\Admin\DataGrids\FollowUpDataGrid::class)->toJson();
+            return app(FollowUpDataGrid::class)->toJson();
         }
 
         return view('admin::follow-ups.index');
@@ -37,17 +39,16 @@ class FollowUpController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function store(Request $request)
     {
         $this->validate($request, [
-            'type'          => 'required',
-            'lead_id'       => 'required|exists:leads,id',
-            'title'         => 'required',
+            'type' => 'required',
+            'lead_id' => 'required|exists:leads,id',
+            'title' => 'required',
             'schedule_from' => 'required|date',
-            'schedule_to'   => 'nullable|date|after_or_equal:schedule_from',
+            'schedule_to' => 'nullable|date|after_or_equal:schedule_from',
         ]);
 
         Event::dispatch('followup.create.before');
@@ -62,22 +63,21 @@ class FollowUpController extends Controller
 
         return response()->json([
             'message' => trans('admin::app.follow-ups.create-success'),
-            'data'    => $followUp,
+            'data' => $followUp,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'type'          => 'required',
-            'title'         => 'required',
+            'type' => 'required',
+            'title' => 'required',
             'schedule_from' => 'required|date',
         ]);
 
@@ -89,7 +89,7 @@ class FollowUpController extends Controller
 
         return response()->json([
             'message' => trans('admin::app.follow-ups.update-success'),
-            'data'    => $followUp,
+            'data' => $followUp,
         ]);
     }
 
@@ -97,14 +97,14 @@ class FollowUpController extends Controller
      * Mark the follow up as completed.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function complete($id)
     {
         Event::dispatch('followup.complete.before', $id);
 
         $followUp = $this->activityRepository->findOrFail($id);
-        
+
         if ($followUp->status === 'completed') {
             return response()->json([
                 'message' => trans('admin::app.follow-ups.already-completed'),
@@ -112,9 +112,9 @@ class FollowUpController extends Controller
         }
 
         $followUp->update([
-            'status'          => 'completed',
-            'is_done'         => 1, // for backward compatibility
-            'completed_at'    => now(),
+            'status' => 'completed',
+            'is_done' => 1, // for backward compatibility
+            'completed_at' => now(),
             'completed_by_id' => auth()->user()->id,
         ]);
 
@@ -122,7 +122,7 @@ class FollowUpController extends Controller
 
         return response()->json([
             'message' => trans('admin::app.follow-ups.complete-success'),
-            'data'    => $followUp,
+            'data' => $followUp,
         ]);
     }
 
@@ -130,7 +130,7 @@ class FollowUpController extends Controller
      * Cancel the follow up.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function cancel($id)
     {
@@ -152,22 +152,21 @@ class FollowUpController extends Controller
 
         return response()->json([
             'message' => trans('admin::app.follow-ups.cancel-success'),
-            'data'    => $followUp,
+            'data' => $followUp,
         ]);
     }
 
     /**
      * Reschedule the follow up.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function reschedule(Request $request, $id)
     {
         $this->validate($request, [
             'schedule_from' => 'required|date',
-            'schedule_to'   => 'nullable|date|after_or_equal:schedule_from',
+            'schedule_to' => 'nullable|date|after_or_equal:schedule_from',
         ]);
 
         Event::dispatch('followup.reschedule.before', $id);
@@ -182,14 +181,14 @@ class FollowUpController extends Controller
 
         $followUp->update([
             'schedule_from' => $request->schedule_from,
-            'schedule_to'   => $request->schedule_to,
+            'schedule_to' => $request->schedule_to,
         ]);
 
         Event::dispatch('followup.reschedule.after', $followUp);
 
         return response()->json([
             'message' => trans('admin::app.follow-ups.reschedule-success'),
-            'data'    => $followUp,
+            'data' => $followUp,
         ]);
     }
 
@@ -197,7 +196,7 @@ class FollowUpController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function destroy($id)
     {

@@ -1,9 +1,9 @@
 <?php
 
+use Tests\TestCase;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadAudit;
 use Webkul\User\Models\User;
-use Tests\TestCase;
 
 uses(TestCase::class);
 
@@ -49,7 +49,7 @@ it('prevents audit records from being updated', function () {
     $lead = Lead::factory()->create();
     $audit = LeadAudit::where('lead_id', $lead->id)->first();
 
-    $this->expectException(\Exception::class);
+    $this->expectException(Exception::class);
     $this->expectExceptionMessage('Audit records cannot be modified.');
 
     $audit->update(['source' => 'Hacked']);
@@ -59,7 +59,7 @@ it('prevents audit records from being deleted', function () {
     $lead = Lead::factory()->create();
     $audit = LeadAudit::where('lead_id', $lead->id)->first();
 
-    $this->expectException(\Exception::class);
+    $this->expectException(Exception::class);
     $this->expectExceptionMessage('Audit records cannot be deleted.');
 
     $audit->delete();
@@ -73,7 +73,7 @@ it('can fetch audit history via api if authorized', function () {
     $lead = Lead::factory()->create();
 
     $response = $this->getJson(route('admin.leads.audits.index', $lead->id));
-    
+
     $response->assertStatus(200);
     $response->assertJsonStructure(['data', 'meta']);
 });
@@ -84,6 +84,6 @@ it('forbids fetching audit history if unauthorized', function () {
     $lead = Lead::factory()->create();
 
     $response = $this->getJson(route('admin.leads.audits.index', $lead->id));
-    
+
     $response->assertStatus(403);
 });

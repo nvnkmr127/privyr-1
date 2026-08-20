@@ -28,10 +28,10 @@ class DashboardController extends Controller
     public function index(DashboardFilterRequest $request)
     {
         $filters = $request->validated();
-        
+
         // Include new leads list for the dashboard if needed, or rely on existing routes for full grids.
         // We will fetch new and unassigned leads for the quick views.
-        
+
         $newLeads = $this->leadRepository->getInboxLeads('new', null, $filters, 5);
         $unassignedLeads = $this->leadRepository->getInboxLeads('unassigned', null, $filters, 5);
 

@@ -2,11 +2,11 @@
 
 namespace Webkul\Admin\Http\Controllers\Lead;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Webkul\Lead\Repositories\LeadRepository;
+use Illuminate\Routing\Controller;
+use Illuminate\View\View;
 use Webkul\Lead\Repositories\LeadAuditRepository;
-use Webkul\Admin\DataGrids\Lead\LeadAuditDataGrid;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class AuditController extends Controller
 {
@@ -20,14 +20,13 @@ class AuditController extends Controller
     public function __construct(
         protected LeadRepository $leadRepository,
         protected LeadAuditRepository $leadAuditRepository
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
      *
      * @param  int  $id
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index($id)
     {
@@ -48,9 +47,9 @@ class AuditController extends Controller
             'data' => $audits->items(),
             'meta' => [
                 'current_page' => $audits->currentPage(),
-                'last_page'    => $audits->lastPage(),
-                'total'        => $audits->total(),
-            ]
+                'last_page' => $audits->lastPage(),
+                'total' => $audits->total(),
+            ],
         ]);
     }
 }

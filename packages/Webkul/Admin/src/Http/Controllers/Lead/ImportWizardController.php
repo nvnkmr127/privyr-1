@@ -3,13 +3,11 @@
 namespace Webkul\Admin\Http\Controllers\Lead;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Webkul\Admin\Http\Controllers\Controller;
-use Webkul\Lead\Services\LeadImportService;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
-use Illuminate\Support\Facades\Validator;
+use Webkul\Lead\Services\LeadImportService;
 
 class ImportWizardController extends Controller
 {
@@ -46,22 +44,22 @@ class ImportWizardController extends Controller
         ]);
 
         $file = $request->file('file');
-        
+
         // Simple security check for content
         $content = file_get_contents($file->getRealPath());
         if (str_contains($content, '<?php')) {
             return response()->json(['message' => 'Invalid file content.'], 400);
         }
 
-        $path = $file->storeAs('imports/leads', time() . '_' . $file->getClientOriginalName());
+        $path = $file->storeAs('imports/leads', time().'_'.$file->getClientOriginalName());
 
-        $result = $this->leadImportService->analyzeFile(storage_path('app/' . $path));
+        $result = $this->leadImportService->analyzeFile(storage_path('app/'.$path));
 
         return response()->json([
             'file_path' => $path,
             'headers' => $result['headers'],
             'preview_rows' => $result['preview_rows'],
-            'total_rows' => $result['total_rows']
+            'total_rows' => $result['total_rows'],
         ]);
     }
 
@@ -76,9 +74,9 @@ class ImportWizardController extends Controller
             'settings' => 'required|array',
         ]);
 
-        $fullPath = storage_path('app/' . $data['file_path']);
-        
-        if (!file_exists($fullPath)) {
+        $fullPath = storage_path('app/'.$data['file_path']);
+
+        if (! file_exists($fullPath)) {
             return response()->json(['message' => 'File not found.'], 404);
         }
 
@@ -98,14 +96,14 @@ class ImportWizardController extends Controller
             'settings' => 'required|array',
         ]);
 
-        $fullPath = storage_path('app/' . $data['file_path']);
+        $fullPath = storage_path('app/'.$data['file_path']);
 
         try {
             $importBatchId = $this->leadImportService->dispatchImportJob($fullPath, $data['mapping'], $data['settings'], auth()->id());
 
             return response()->json([
                 'message' => 'Import started successfully.',
-                'batch_id' => $importBatchId
+                'batch_id' => $importBatchId,
             ]);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
@@ -118,7 +116,7 @@ class ImportWizardController extends Controller
     public function status($id)
     {
         $status = $this->leadImportService->getBatchStatus($id);
-        
+
         return response()->json($status);
     }
 }

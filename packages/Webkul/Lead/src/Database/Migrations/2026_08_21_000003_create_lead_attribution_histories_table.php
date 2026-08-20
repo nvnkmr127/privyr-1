@@ -17,7 +17,7 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('lead_id')->unsigned();
             $table->integer('lead_source_id')->unsigned()->nullable();
-            
+
             $table->string('origin')->nullable();
             $table->string('campaign')->nullable();
             $table->string('medium')->nullable();

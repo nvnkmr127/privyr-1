@@ -26,9 +26,9 @@ class DashboardFilterRequest extends FormRequest
         return [
             'date_range' => 'nullable|string|in:today,yesterday,last_7_days,last_30_days,custom',
             'start_date' => 'nullable|date|required_if:date_range,custom',
-            'end_date'   => 'nullable|date|required_if:date_range,custom|after_or_equal:start_date',
-            'user_id'    => 'nullable|integer|exists:users,id',
-            'source_id'  => 'nullable|integer|exists:lead_sources,id',
+            'end_date' => 'nullable|date|required_if:date_range,custom|after_or_equal:start_date',
+            'user_id' => 'nullable|integer|exists:users,id',
+            'source_id' => 'nullable|integer|exists:lead_sources,id',
         ];
     }
 }

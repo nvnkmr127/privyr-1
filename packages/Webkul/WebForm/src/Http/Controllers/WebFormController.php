@@ -4,7 +4,6 @@ namespace Webkul\WebForm\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Lead\Contracts\LeadIngestionService;
@@ -55,9 +54,9 @@ class WebFormController extends Controller
 
         if ($webForm->create_lead) {
             $data = request('leads') ?? [];
-            
+
             $data['status'] = 1;
-            
+
             // Set Pipeline
             $pipeline = $webForm->lead_pipeline_id
                 ? $this->pipelineRepository->find($webForm->lead_pipeline_id)
@@ -74,10 +73,10 @@ class WebFormController extends Controller
             $data['title'] = request('leads.title') ?: 'Lead From Web Form';
             $data['lead_value'] = request('leads.lead_value') ?: 0;
             $data['lead_type_id'] = request('leads.lead_type_id') ?: $this->typeRepository->first()?->id;
-            
+
             // Determine source
             $sourceId = request('leads.lead_source_id');
-            if (!$sourceId) {
+            if (! $sourceId) {
                 $source = $this->sourceRepository->findOneByField('name', 'Web Form') ?? $this->sourceRepository->first();
                 $sourceId = $source?->id;
             }

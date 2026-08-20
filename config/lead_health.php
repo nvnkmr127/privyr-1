@@ -16,7 +16,7 @@ return [
     'inactivity' => [
         // Number of days without any meaningful activity before a Lead is considered "Inactive"
         'inactive_days' => 14,
-        
+
         // Number of days without activity before a Lead "Needs Attention"
         'needs_attention_days' => 7,
     ],
@@ -30,7 +30,7 @@ return [
         // Grace period in hours before a missed follow-up becomes "Overdue"
         'grace_period_hours' => 24,
     ],
-    
+
     'batch_size' => 100, // For the evaluation command
 
 ];

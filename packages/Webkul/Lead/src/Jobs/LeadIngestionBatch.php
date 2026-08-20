@@ -7,10 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Webkul\DataTransfer\Models\Import;
-use Webkul\DataTransfer\Repositories\ImportRepository;
 use Webkul\DataTransfer\Repositories\ImportBatchRepository;
+use Webkul\DataTransfer\Repositories\ImportRepository;
 use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Exceptions\LeadIngestionException;
 use Webkul\Lead\Services\LeadIngestionService;
@@ -35,21 +34,23 @@ class LeadIngestionBatch implements ShouldQueue
         LeadIngestionService $ingestionService
     ) {
         $import = $importRepository->find($this->importId);
-        
-        if (!$import) return;
+
+        if (! $import) {
+            return;
+        }
 
         $importRepository->update(['state' => Import::STATE_PROCESSING], $import->id);
 
         $batches = $importBatchRepository->findWhere([
             'import_id' => $import->id,
-            'state' => Import::STATE_PENDING
+            'state' => Import::STATE_PENDING,
         ]);
 
         $summary = $import->summary ?? ['created' => 0, 'updated' => 0, 'failed' => 0, 'duplicates' => 0];
 
         foreach ($batches as $batch) {
             $data = is_string($batch->data) ? json_decode($batch->data, true) : $batch->data;
-            
+
             $batchSuccess = 0;
             $batchFailed = 0;
             $errors = [];
@@ -61,7 +62,7 @@ class LeadIngestionBatch implements ShouldQueue
 
                     // Handle blank values if updating
                     if (($settings['duplicate_action'] ?? '') === 'update' && empty($settings['overwrite_blank'])) {
-                        $row = array_filter($row, function($value) {
+                        $row = array_filter($row, function ($value) {
                             return $value !== null && $value !== '';
                         });
                     }
@@ -75,16 +76,16 @@ class LeadIngestionBatch implements ShouldQueue
                         connectorId: 'local_import',
                         externalId: $row['external_id'] ?? null,
                     );
-                    
+
                     // Assign override logic
-                    if (($settings['assignment'] ?? '') === 'user' && !empty($settings['assign_to_user'])) {
+                    if (($settings['assignment'] ?? '') === 'user' && ! empty($settings['assign_to_user'])) {
                         $payload->leadData['user_id'] = $settings['assign_to_user'];
-                    } elseif (($settings['assignment'] ?? '') === 'team' && !empty($settings['assign_to_team'])) {
+                    } elseif (($settings['assignment'] ?? '') === 'team' && ! empty($settings['assign_to_team'])) {
                         $payload->leadData['group_id'] = $settings['assign_to_team'];
                     }
 
                     // Source override
-                    if (!empty($settings['source'])) {
+                    if (! empty($settings['source'])) {
                         $payload->sourceId = $settings['source'];
                     }
 
@@ -98,7 +99,7 @@ class LeadIngestionBatch implements ShouldQueue
 
                     // Process via Ingestion Service
                     $result = $ingestionService->ingest($payload);
-                    
+
                     if ($result->wasRecentlyCreated) {
                         $summary['created']++;
                     } else {
@@ -112,12 +113,12 @@ class LeadIngestionBatch implements ShouldQueue
                         $errors[] = "Row {$rowIndex}: Duplicate lead.";
                     } else {
                         $summary['failed']++;
-                        $errors[] = "Row {$rowIndex}: " . $e->getMessage();
+                        $errors[] = "Row {$rowIndex}: ".$e->getMessage();
                     }
                     $batchFailed++;
                 } catch (\Exception $e) {
                     $summary['failed']++;
-                    $errors[] = "Row {$rowIndex}: " . $e->getMessage();
+                    $errors[] = "Row {$rowIndex}: ".$e->getMessage();
                     $batchFailed++;
                 }
             }
@@ -128,10 +129,10 @@ class LeadIngestionBatch implements ShouldQueue
                 'summary' => [
                     'success' => $batchSuccess,
                     'failed' => $batchFailed,
-                    'errors' => $errors
-                ]
+                    'errors' => $errors,
+                ],
             ], $batch->id);
-            
+
             // Update master summary periodically
             $importRepository->update(['summary' => $summary], $import->id);
         }
@@ -139,7 +140,7 @@ class LeadIngestionBatch implements ShouldQueue
         // Finish Import
         $importRepository->update([
             'state' => Import::STATE_PROCESSED,
-            'summary' => $summary
+            'summary' => $summary,
         ], $import->id);
     }
 }

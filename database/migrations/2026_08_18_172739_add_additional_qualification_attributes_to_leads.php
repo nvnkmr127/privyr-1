@@ -17,35 +17,35 @@ return new class extends Migration
 
         DB::table('attributes')->insert([
             [
-                'code'            => 'qualification_notes',
-                'name'            => 'Qualification Notes',
-                'type'            => 'textarea',
-                'entity_type'     => 'leads',
-                'lookup_type'     => null,
-                'validation'      => null,
-                'sort_order'      => '17',
-                'is_required'     => '0',
-                'is_unique'       => '0',
-                'quick_add'       => '0',
+                'code' => 'qualification_notes',
+                'name' => 'Qualification Notes',
+                'type' => 'textarea',
+                'entity_type' => 'leads',
+                'lookup_type' => null,
+                'validation' => null,
+                'sort_order' => '17',
+                'is_required' => '0',
+                'is_unique' => '0',
+                'quick_add' => '0',
                 'is_user_defined' => '0',
-                'created_at'      => $now,
-                'updated_at'      => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'code'            => 'disqualification_reason',
-                'name'            => 'Disqualification Reason',
-                'type'            => 'select',
-                'entity_type'     => 'leads',
-                'lookup_type'     => null,
-                'validation'      => null,
-                'sort_order'      => '18',
-                'is_required'     => '0',
-                'is_unique'       => '0',
-                'quick_add'       => '0',
+                'code' => 'disqualification_reason',
+                'name' => 'Disqualification Reason',
+                'type' => 'select',
+                'entity_type' => 'leads',
+                'lookup_type' => null,
+                'validation' => null,
+                'sort_order' => '18',
+                'is_required' => '0',
+                'is_unique' => '0',
+                'quick_add' => '0',
                 'is_user_defined' => '0',
-                'created_at'      => $now,
-                'updated_at'      => $now,
-            ]
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ]);
 
         // Insert options for disqualification_reason
@@ -61,14 +61,14 @@ return new class extends Migration
                 'Duplicate',
                 'Invalid lead',
                 'Competitor',
-                'Other'
+                'Other',
             ];
 
             foreach ($options as $index => $option) {
                 DB::table('attribute_options')->insert([
-                    'name'         => $option,
+                    'name' => $option,
                     'attribute_id' => $attribute->id,
-                    'sort_order'   => $index + 1,
+                    'sort_order' => $index + 1,
                 ]);
             }
         }

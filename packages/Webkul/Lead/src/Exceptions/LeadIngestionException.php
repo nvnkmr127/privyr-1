@@ -15,7 +15,7 @@ class LeadIngestionException extends Exception
     {
         return new self($message, 422);
     }
-    
+
     public static function rejection(string $message = 'Lead rejected'): self
     {
         return new self($message, 406);

@@ -6,6 +6,8 @@ use Konekt\Concord\ConcordServiceProvider;
 use Prettus\Repository\Providers\RepositoryServiceProvider;
 use Webkul\Activity\Providers\ActivityServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
+use Webkul\API\Providers\ApiServiceProvider;
+use Webkul\API\Providers\ModuleServiceProvider;
 use Webkul\Attribute\Providers\AttributeServiceProvider;
 use Webkul\Automation\Providers\WorkflowServiceProvider;
 use Webkul\Core\Providers\CoreServiceProvider;
@@ -23,8 +25,6 @@ use Webkul\Tag\Providers\TagServiceProvider;
 use Webkul\User\Providers\UserServiceProvider;
 use Webkul\Warehouse\Providers\WarehouseServiceProvider;
 use Webkul\WebForm\Providers\WebFormServiceProvider;
-use Webkul\API\Providers\ApiServiceProvider;
-use Webkul\API\Providers\ModuleServiceProvider;
 
 return [
     /*

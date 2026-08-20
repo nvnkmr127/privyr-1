@@ -6,6 +6,7 @@ use Webkul\Admin\Http\Controllers\Settings\DataTransfer\ImportController;
 use Webkul\Admin\Http\Controllers\Settings\EmailTemplateController;
 use Webkul\Admin\Http\Controllers\Settings\GoogleContactController;
 use Webkul\Admin\Http\Controllers\Settings\GroupController;
+use Webkul\Admin\Http\Controllers\Settings\LeadAssignmentRuleController;
 use Webkul\Admin\Http\Controllers\Settings\Marketing\CampaignsController;
 use Webkul\Admin\Http\Controllers\Settings\Marketing\EventController;
 use Webkul\Admin\Http\Controllers\Settings\PipelineController;
@@ -131,7 +132,7 @@ Route::prefix('settings')->group(function () {
     /**
      * Lead Assignment Rules Routes.
      */
-    Route::controller(\Webkul\Admin\Http\Controllers\Settings\LeadAssignmentRuleController::class)->prefix('lead-assignment-rules')->group(function () {
+    Route::controller(LeadAssignmentRuleController::class)->prefix('lead-assignment-rules')->group(function () {
         Route::get('', 'index')->name('admin.settings.lead_assignment_rules.index');
 
         Route::get('create', 'create')->name('admin.settings.lead_assignment_rules.create');

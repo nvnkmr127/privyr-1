@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Services\Analytics\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
+use Webkul\Lead\Services\LeadVisibilityService;
 
 trait AclFilteringTrait
 {
@@ -12,9 +13,11 @@ trait AclFilteringTrait
     protected function applyAclFiltering(Builder $query, string $userIdColumn = 'leads.user_id'): Builder
     {
         $user = auth()->user();
-        if (! $user) return $query;
+        if (! $user) {
+            return $query;
+        }
 
-        $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+        $visibilityService = app(LeadVisibilityService::class);
         $userIds = $visibilityService->getVisibleUserIds($user);
 
         if ($userIds !== null) {

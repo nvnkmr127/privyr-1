@@ -25,6 +25,9 @@ Route::controller(LeadConnectorController::class)->prefix('settings/lead-connect
 // package's Front/web.php (no admin auth), so external platforms can reach them.
 
 use Webkul\Admin\Http\Controllers\Lead\AnalyticsController;
+use Webkul\Admin\Http\Controllers\Lead\AuditController;
+use Webkul\Admin\Http\Controllers\Lead\BulkActionController;
+use Webkul\Admin\Http\Controllers\Lead\ImportWizardController;
 
 Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics.index');
 
@@ -43,14 +46,14 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
     Route::post('inbox/bulk', 'bulkAction')->name('admin.leads.inbox.bulk');
 
-    Route::post('bulk', [\Webkul\Admin\Http\Controllers\Lead\BulkActionController::class, 'execute'])->name('admin.leads.bulk');
+    Route::post('bulk', [BulkActionController::class, 'execute'])->name('admin.leads.bulk');
 
     // Import Routes
-    Route::get('import', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'index'])->name('admin.leads.import');
-    Route::post('import/upload', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'upload'])->name('admin.leads.import.upload');
-    Route::post('import/validate', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'validateMapping'])->name('admin.leads.import.validate');
-    Route::post('import/process', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'process'])->name('admin.leads.import.process');
-    Route::get('import/status/{id}', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'status'])->name('admin.leads.import.status');
+    Route::get('import', [ImportWizardController::class, 'index'])->name('admin.leads.import');
+    Route::post('import/upload', [ImportWizardController::class, 'upload'])->name('admin.leads.import.upload');
+    Route::post('import/validate', [ImportWizardController::class, 'validateMapping'])->name('admin.leads.import.validate');
+    Route::post('import/process', [ImportWizardController::class, 'process'])->name('admin.leads.import.process');
+    Route::get('import/status/{id}', [ImportWizardController::class, 'status'])->name('admin.leads.import.status');
 
     Route::get('create', 'create')->name('admin.leads.create');
 
@@ -73,7 +76,7 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::post('follow-up/snooze/{id}', 'snoozeFollowUp')->name('admin.leads.follow_up.snooze');
 
     Route::put('stage/edit/{id}', 'updateStage')->name('admin.leads.stage.update');
-    
+
     Route::put('status/edit/{id}', 'updateStatus')->name('admin.leads.status.update');
 
     Route::get('search', 'search')->name('admin.leads.search');
@@ -112,7 +115,7 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
         Route::delete('', 'detach')->name('admin.leads.emails.detach');
     });
 
-    Route::controller(\Webkul\Admin\Http\Controllers\Lead\AuditController::class)->prefix('{id}/audits')->group(function () {
+    Route::controller(AuditController::class)->prefix('{id}/audits')->group(function () {
         Route::get('', 'index')->name('admin.leads.audits.index');
     });
 

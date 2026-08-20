@@ -5,6 +5,7 @@ namespace Webkul\Lead\Models;
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Activity\Repositories\ActivityRepository;
 use Webkul\Lead\Contracts\LeadAssignment as LeadAssignmentContract;
+use Webkul\User\Models\GroupProxy;
 use Webkul\User\Models\UserProxy;
 
 class LeadAssignment extends Model implements LeadAssignmentContract
@@ -43,12 +44,12 @@ class LeadAssignment extends Model implements LeadAssignmentContract
 
     public function assignedGroup()
     {
-        return $this->belongsTo(\Webkul\User\Models\GroupProxy::modelClass(), 'assigned_group_id');
+        return $this->belongsTo(GroupProxy::modelClass(), 'assigned_group_id');
     }
 
     public function previousGroup()
     {
-        return $this->belongsTo(\Webkul\User\Models\GroupProxy::modelClass(), 'previous_group_id');
+        return $this->belongsTo(GroupProxy::modelClass(), 'previous_group_id');
     }
 
     protected static function booted()
@@ -56,7 +57,7 @@ class LeadAssignment extends Model implements LeadAssignmentContract
         static::created(function ($model) {
             $activityRepo = app(ActivityRepository::class);
 
-            $assignedToName = $model->assignedTo ? $model->assignedTo->name : ($model->assignedGroup ? $model->assignedGroup->name . ' (Team)' : 'System');
+            $assignedToName = $model->assignedTo ? $model->assignedTo->name : ($model->assignedGroup ? $model->assignedGroup->name.' (Team)' : 'System');
             $assignedByName = $model->assignedBy ? $model->assignedBy->name : 'System';
 
             $title = "Lead assigned to {$assignedToName} by {$assignedByName}";

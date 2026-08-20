@@ -22,9 +22,7 @@ class LeadVisibilityService
      * Get the list of User IDs whose leads the current user is permitted to see/access.
      * If null is returned, it means the user has 'global' access (no user_id filter needed).
      *
-     * @param User $user
-     * @param string $action Optional action parameter for future fine-grained scope overrides
-     * @return array|null
+     * @param  string  $action  Optional action parameter for future fine-grained scope overrides
      */
     public function getVisibleUserIds(User $user, string $action = 'view'): ?array
     {
@@ -41,11 +39,8 @@ class LeadVisibilityService
 
     /**
      * Check if a specific user can access a specific lead.
-     * 
-     * @param User $user
-     * @param Lead $lead
-     * @param string $action Optional action
-     * @return bool
+     *
+     * @param  string  $action  Optional action
      */
     public function canAccessLead(User $user, Lead $lead, string $action = 'view'): bool
     {
@@ -56,13 +51,14 @@ class LeadVisibilityService
         }
 
         if (! $lead->user_id) {
-             if ($lead->group_id && $user->view_permission == 'group') {
-                 $userGroupIds = $user->groups()->pluck('id')->toArray();
-                 if (in_array($lead->group_id, $userGroupIds)) {
-                     return true;
-                 }
-             }
-             return false;
+            if ($lead->group_id && $user->view_permission == 'group') {
+                $userGroupIds = $user->groups()->pluck('id')->toArray();
+                if (in_array($lead->group_id, $userGroupIds)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         return in_array($lead->user_id, $visibleUserIds);

@@ -17,9 +17,9 @@ class LeadPipelineAnalyticsService
     public function getMetrics(string $startDate, string $endDate, ?int $userId = null): array
     {
         $query = Lead::query();
-        
+
         $this->applyDateFiltering($query, $startDate, $endDate, 'leads.created_at');
-        
+
         if ($userId) {
             $query->where('leads.user_id', $userId);
         } else {

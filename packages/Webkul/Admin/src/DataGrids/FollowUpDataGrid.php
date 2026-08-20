@@ -2,6 +2,7 @@
 
 namespace Webkul\Admin\DataGrids;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Webkul\DataGrid\DataGrid;
 
@@ -10,7 +11,7 @@ class FollowUpDataGrid extends DataGrid
     /**
      * Prepare query builder.
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return Builder
      */
     public function prepareQueryBuilder()
     {
@@ -60,62 +61,62 @@ class FollowUpDataGrid extends DataGrid
     public function prepareColumns()
     {
         $this->addColumn([
-            'index'      => 'title',
-            'label'      => trans('admin::app.datagrid.title'),
-            'type'       => 'string',
+            'index' => 'title',
+            'label' => trans('admin::app.datagrid.title'),
+            'type' => 'string',
             'searchable' => true,
-            'sortable'   => true,
-            'closure'    => function ($row) {
-                return '<a href="' . route('admin.leads.view', $row->lead_id) . '">' . $row->title . '</a>';
+            'sortable' => true,
+            'closure' => function ($row) {
+                return '<a href="'.route('admin.leads.view', $row->lead_id).'">'.$row->title.'</a>';
             },
         ]);
 
         $this->addColumn([
-            'index'      => 'lead_title',
-            'label'      => trans('admin::app.datagrid.lead'),
-            'type'       => 'string',
+            'index' => 'lead_title',
+            'label' => trans('admin::app.datagrid.lead'),
+            'type' => 'string',
             'searchable' => true,
-            'sortable'   => true,
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'      => 'type',
-            'label'      => trans('admin::app.datagrid.type'),
-            'type'       => 'string',
+            'index' => 'type',
+            'label' => trans('admin::app.datagrid.type'),
+            'type' => 'string',
             'searchable' => true,
-            'sortable'   => true,
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'      => 'status',
-            'label'      => trans('admin::app.datagrid.status'),
-            'type'       => 'string',
+            'index' => 'status',
+            'label' => trans('admin::app.datagrid.status'),
+            'type' => 'string',
             'searchable' => true,
-            'sortable'   => true,
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'      => 'priority',
-            'label'      => trans('admin::app.datagrid.priority'),
-            'type'       => 'string',
+            'index' => 'priority',
+            'label' => trans('admin::app.datagrid.priority'),
+            'type' => 'string',
             'searchable' => true,
-            'sortable'   => true,
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'      => 'schedule_from',
-            'label'      => trans('admin::app.datagrid.schedule_from'),
-            'type'       => 'datetime',
+            'index' => 'schedule_from',
+            'label' => trans('admin::app.datagrid.schedule_from'),
+            'type' => 'datetime',
             'searchable' => true,
-            'sortable'   => true,
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'      => 'user_name',
-            'label'      => trans('admin::app.datagrid.user'),
-            'type'       => 'string',
+            'index' => 'user_name',
+            'label' => trans('admin::app.datagrid.user'),
+            'type' => 'string',
             'searchable' => true,
-            'sortable'   => true,
+            'sortable' => true,
         ]);
     }
 
@@ -127,17 +128,17 @@ class FollowUpDataGrid extends DataGrid
     public function prepareActions()
     {
         $this->addAction([
-            'title'  => trans('admin::app.datagrid.edit'),
+            'title' => trans('admin::app.datagrid.edit'),
             'method' => 'GET',
-            'route'  => 'admin.activities.edit',
-            'icon'   => 'icon-edit',
+            'route' => 'admin.activities.edit',
+            'icon' => 'icon-edit',
         ]);
 
         $this->addAction([
-            'title'  => trans('admin::app.datagrid.delete'),
+            'title' => trans('admin::app.datagrid.delete'),
             'method' => 'DELETE',
-            'route'  => 'admin.follow_ups.destroy',
-            'icon'   => 'icon-delete',
+            'route' => 'admin.follow_ups.destroy',
+            'icon' => 'icon-delete',
         ]);
     }
 }

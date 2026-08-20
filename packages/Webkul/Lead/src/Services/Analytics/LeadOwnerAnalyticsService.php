@@ -17,15 +17,15 @@ class LeadOwnerAnalyticsService
     public function getMetrics(string $startDate, string $endDate): array
     {
         $query = Lead::query();
-        
+
         $this->applyDateFiltering($query, $startDate, $endDate, 'leads.created_at');
         $this->applyAclFiltering($query); // Scoped to users they can see
 
         $wonStageIds = DB::table('lead_pipeline_stages')->where('code', 'won')->pluck('id')->toArray();
         $lostStageIds = DB::table('lead_pipeline_stages')->where('code', 'lost')->pluck('id')->toArray();
-        
-        $wonStagesCsv = !empty($wonStageIds) ? implode(',', $wonStageIds) : '0';
-        $lostStagesCsv = !empty($lostStageIds) ? implode(',', $lostStageIds) : '0';
+
+        $wonStagesCsv = ! empty($wonStageIds) ? implode(',', $wonStageIds) : '0';
+        $lostStagesCsv = ! empty($lostStageIds) ? implode(',', $lostStageIds) : '0';
 
         $now = now()->toDateTimeString();
 

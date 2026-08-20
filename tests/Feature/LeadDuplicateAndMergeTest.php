@@ -1,6 +1,8 @@
 <?php
 
+use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\LeadMergeHistory;
 use Webkul\Lead\Services\LeadDuplicateService;
 use Webkul\Lead\Services\LeadMergeService;
 
@@ -28,7 +30,7 @@ it('detects exact phone duplicates', function () {
     ]);
 
     $incoming = [
-        'person' => ['contact_numbers' => '+1 (555) 123-4567']
+        'person' => ['contact_numbers' => '+1 (555) 123-4567'],
     ];
 
     $result = $this->duplicateService->detect($incoming, 'manual');
@@ -46,7 +48,7 @@ it('detects exact email duplicates', function () {
     ]);
 
     $incoming = [
-        'person' => ['emails' => 'Test@Example.com']
+        'person' => ['emails' => 'Test@Example.com'],
     ];
 
     $result = $this->duplicateService->detect($incoming, 'manual');
@@ -65,7 +67,7 @@ it('detects external id matches', function () {
     ]);
 
     $incoming = [
-        'person' => ['name' => 'John Doe']
+        'person' => ['name' => 'John Doe'],
     ];
 
     $result = $this->duplicateService->detect($incoming, 'meta', '12345');
@@ -82,7 +84,7 @@ it('ignores name-only matches', function () {
     ]);
 
     $incoming = [
-        'person' => ['name' => 'John Doe']
+        'person' => ['name' => 'John Doe'],
     ];
 
     $result = $this->duplicateService->detect($incoming, 'manual');
@@ -100,10 +102,10 @@ it('merges leads correctly and transfers activities', function () {
         'lead_value' => 500,
         'description' => 'Test description',
     ]);
-    
+
     // Assign an activity to the merged lead
-    $activity = \Webkul\Activity\Models\Activity::factory()->create([
-        'lead_id' => $merged->id
+    $activity = Activity::factory()->create([
+        'lead_id' => $merged->id,
     ]);
 
     $this->mergeService->merge($surviving->id, $merged->id, [
@@ -127,14 +129,14 @@ it('merges leads correctly and transfers activities', function () {
     expect($merged->duplicate_status)->toBe('confirmed_duplicate');
 
     // Verify history recorded
-    $history = \Webkul\Lead\Models\LeadMergeHistory::first();
+    $history = LeadMergeHistory::first();
     expect($history->surviving_lead_id)->toBe($surviving->id);
     expect($history->merged_lead_id)->toBe($merged->id);
 });
 
 it('prevents invalid merges', function () {
     $surviving = Lead::factory()->create();
-    
-    expect(fn() => $this->mergeService->merge($surviving->id, $surviving->id, [], 1))
+
+    expect(fn () => $this->mergeService->merge($surviving->id, $surviving->id, [], 1))
         ->toThrow(Exception::class, 'A lead cannot be merged into itself.');
 });

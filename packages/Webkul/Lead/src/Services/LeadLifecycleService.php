@@ -14,17 +14,21 @@ class LeadLifecycleService
      * Valid Lead Statuses
      */
     const STATUS_OPEN = 'Open';
+
     const STATUS_WORKING = 'Working';
+
     const STATUS_NURTURING = 'Nurturing';
+
     const STATUS_CONVERTED = 'Converted';
+
     const STATUS_LOST = 'Lost';
+
     const STATUS_JUNK = 'Junk';
 
     public function __construct(
         protected LeadRepository $leadRepository,
         protected LeadStatusHistoryRepository $leadStatusHistoryRepository
-    ) {
-    }
+    ) {}
 
     /**
      * Get valid statuses.
@@ -44,16 +48,11 @@ class LeadLifecycleService
     /**
      * Update Lead Status and record history/events.
      *
-     * @param Lead $lead
-     * @param string $newStatus
-     * @param string|null $reason
-     * @param int|null $userId
-     * @return bool
      * @throws \Exception
      */
     public function changeStatus(Lead $lead, string $newStatus, ?string $reason = null, ?int $userId = null): bool
     {
-        if (!in_array($newStatus, $this->getValidStatuses())) {
+        if (! in_array($newStatus, $this->getValidStatuses())) {
             throw new \InvalidArgumentException("Invalid lead status: {$newStatus}");
         }
 
@@ -86,10 +85,10 @@ class LeadLifecycleService
         // since LeadRepository might have its own logic. But using Repository is preferred.
         // We will temporarily unguard or just update what's needed.
         // It's better to update using eloquent or repository carefully.
-        
+
         // Before updating, save the current state for event
         $previousStatus = $lead->status;
-        
+
         // Update Lead
         $lead->update($updateData);
 
@@ -119,7 +118,7 @@ class LeadLifecycleService
     {
         // Converted Leads cannot silently be reopened
         if ($current === self::STATUS_CONVERTED) {
-            throw new \Exception("A converted lead cannot change its status automatically. It must be explicitly handled if at all.");
+            throw new \Exception('A converted lead cannot change its status automatically. It must be explicitly handled if at all.');
         }
 
         // Lost or Junk can only go back to working if explicitly reopened (we handle this as allowed but caller must explicitly do it)
@@ -133,23 +132,23 @@ class LeadLifecycleService
     public function reopenLead(Lead $lead, ?string $reason = null, ?int $userId = null): bool
     {
         $current = $lead->status;
-        
-        if (!in_array($current, [self::STATUS_LOST, self::STATUS_JUNK])) {
-            throw new \Exception("Only Lost or Junk leads can be reopened.");
+
+        if (! in_array($current, [self::STATUS_LOST, self::STATUS_JUNK])) {
+            throw new \Exception('Only Lost or Junk leads can be reopened.');
         }
 
         // Reopening usually sets it back to Working
         $success = $this->changeStatus($lead, self::STATUS_WORKING, $reason, $userId);
-        
+
         if ($success) {
             Event::dispatch('lead.status.reopened', [
                 'lead' => $lead,
                 'previous_status' => $current,
                 'user_id' => $userId ?? (auth()->check() ? auth()->id() : null),
-                'timestamp' => Carbon::now()
+                'timestamp' => Carbon::now(),
             ]);
         }
-        
+
         return $success;
     }
 

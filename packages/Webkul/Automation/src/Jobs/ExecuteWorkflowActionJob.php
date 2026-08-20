@@ -2,21 +2,22 @@
 
 namespace Webkul\Automation\Jobs;
 
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Webkul\Automation\Models\WorkflowExecutionProxy;
-use Webkul\Automation\Models\WorkflowProxy;
-use Exception;
 
 class ExecuteWorkflowActionJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $workflow;
+
     public $entity;
+
     public $eventName;
 
     public $tries = 3;
@@ -24,9 +25,9 @@ class ExecuteWorkflowActionJob implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param mixed $workflow
-     * @param mixed $entity
-     * @param string $eventName
+     * @param  mixed  $workflow
+     * @param  mixed  $entity
+     * @param  string  $eventName
      */
     public function __construct($workflow, $entity, $eventName)
     {
@@ -58,7 +59,7 @@ class ExecuteWorkflowActionJob implements ShouldQueue
         );
 
         // If execution is already completed, it's a duplicate event, exit early.
-        if ($execution->status === 'completed' && !$execution->wasRecentlyCreated) {
+        if ($execution->status === 'completed' && ! $execution->wasRecentlyCreated) {
             return;
         }
 
@@ -68,28 +69,29 @@ class ExecuteWorkflowActionJob implements ShouldQueue
             $execution->update([
                 'status' => 'failed',
                 'error' => 'Automation loop detected (execution depth > 3).',
-                'completed_at' => now()
+                'completed_at' => now(),
             ]);
+
             return;
         }
         session()->put('automation_execution_depth', $executionDepth + 1);
 
         try {
             $workflowEntity = app(config('workflows.trigger_entities.'.$this->workflow->entity_type.'.class'));
-            
+
             // Execute the actions
             $workflowEntity->executeActions($this->workflow, $this->entity);
 
             $execution->update([
                 'status' => 'completed',
-                'completed_at' => now()
+                'completed_at' => now(),
             ]);
         } catch (Exception $e) {
             $execution->update([
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'retry_count' => $this->attempts(),
-                'completed_at' => now()
+                'completed_at' => now(),
             ]);
 
             throw $e;
@@ -103,6 +105,6 @@ class ExecuteWorkflowActionJob implements ShouldQueue
      */
     protected function generateIdempotencyKey()
     {
-        return md5($this->workflow->id . '_' . $this->entity->id . '_' . $this->eventName);
+        return md5($this->workflow->id.'_'.$this->entity->id.'_'.$this->eventName);
     }
 }

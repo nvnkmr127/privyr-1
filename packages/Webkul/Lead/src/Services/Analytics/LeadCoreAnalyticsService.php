@@ -17,9 +17,9 @@ class LeadCoreAnalyticsService
     public function getMetrics(string $startDate, string $endDate, ?int $userId = null): array
     {
         $query = Lead::query();
-        
+
         $this->applyDateFiltering($query, $startDate, $endDate, 'leads.created_at');
-        
+
         if ($userId) {
             $query->where('leads.user_id', $userId);
         } else {
@@ -31,15 +31,15 @@ class LeadCoreAnalyticsService
         $lostStageIds = DB::table('lead_pipeline_stages')->where('code', 'lost')->pluck('id')->toArray();
 
         // Convert arrays to comma separated for raw query if not empty, otherwise use '0' to avoid SQL syntax errors
-        $wonStagesCsv = !empty($wonStageIds) ? implode(',', $wonStageIds) : '0';
-        $lostStagesCsv = !empty($lostStageIds) ? implode(',', $lostStageIds) : '0';
+        $wonStagesCsv = ! empty($wonStageIds) ? implode(',', $wonStageIds) : '0';
+        $lostStagesCsv = ! empty($lostStageIds) ? implode(',', $lostStageIds) : '0';
 
         $selects = [
             'COUNT(leads.id) as total_leads',
             'SUM(CASE WHEN leads.qualification_status = \'qualified\' THEN 1 ELSE 0 END) as qualified_leads',
             'SUM(CASE WHEN leads.qualification_status = \'unqualified\' THEN 1 ELSE 0 END) as unqualified_leads',
-            'SUM(CASE WHEN leads.lead_pipeline_stage_id IN (' . $wonStagesCsv . ') THEN 1 ELSE 0 END) as won_leads',
-            'SUM(CASE WHEN leads.lead_pipeline_stage_id IN (' . $lostStagesCsv . ') THEN 1 ELSE 0 END) as lost_leads',
+            'SUM(CASE WHEN leads.lead_pipeline_stage_id IN ('.$wonStagesCsv.') THEN 1 ELSE 0 END) as won_leads',
+            'SUM(CASE WHEN leads.lead_pipeline_stage_id IN ('.$lostStagesCsv.') THEN 1 ELSE 0 END) as lost_leads',
             'SUM(CASE WHEN leads.status = \'Nurturing\' THEN 1 ELSE 0 END) as nurturing_leads',
             'SUM(CASE WHEN leads.junk_reason IS NOT NULL THEN 1 ELSE 0 END) as junk_leads',
             'SUM(CASE WHEN leads.user_id IS NULL THEN 1 ELSE 0 END) as unassigned_leads',
@@ -57,13 +57,12 @@ class LeadCoreAnalyticsService
         $needsAttentionThreshold = now()->subDays($needsAttentionDays)->toDateTimeString();
 
         $selects[] = "SUM(CASE WHEN leads.status != 'Nurturing' AND (leads.last_activity_at <= '{$inactiveThreshold}' OR (leads.last_activity_at IS NULL AND leads.created_at <= '{$inactiveThreshold}')) THEN 1 ELSE 0 END) as inactive_leads";
-        
+
         $selects[] = "SUM(CASE WHEN leads.status != 'Nurturing' AND (leads.last_activity_at <= '{$needsAttentionThreshold}' OR (leads.last_activity_at IS NULL AND leads.created_at <= '{$needsAttentionThreshold}')) AND (leads.last_activity_at > '{$inactiveThreshold}' OR (leads.last_activity_at IS NULL AND leads.created_at > '{$inactiveThreshold}')) THEN 1 ELSE 0 END) as needs_attention_leads";
 
         // SQL Calculation for Follow up overdue
         $now = now()->toDateTimeString();
         $selects[] = "SUM(CASE WHEN leads.next_follow_up_at IS NOT NULL AND leads.next_follow_up_at < '{$now}' THEN 1 ELSE 0 END) as overdue_followups";
-
 
         $query->selectRaw(implode(', ', $selects));
 
