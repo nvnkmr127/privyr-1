@@ -337,6 +337,25 @@
                                                 </form>
                                             </div>
                                         </div>
+                                        <!-- Origin -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Ingestion Origin
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                {{ $lead->origin ?? '--' }}
+                                            </div>
+                                        </div>
+
+                                        <!-- Campaign -->
+                                        <div class="flex flex-col min-w-0 bg-slate-50/60 dark:bg-gray-800/30 p-2.5 rounded-xl border border-slate-100/90 dark:border-gray-800/80 transition hover:bg-slate-50 dark:hover:bg-gray-800/60">
+                                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5 truncate">
+                                                Campaign
+                                            </span>
+                                            <div class="min-w-0 break-words font-semibold text-xs text-slate-800 dark:text-slate-200 py-1">
+                                                {{ $lead->campaign ?? '--' }}
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
 

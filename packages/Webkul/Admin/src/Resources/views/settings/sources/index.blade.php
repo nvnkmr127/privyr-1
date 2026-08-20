@@ -196,7 +196,6 @@
 
                             {!! view_render_event('admin.settings.sources.index.form.name.before') !!}
 
-                            <!-- Name -->
                             <x-admin::form.control-group>
                                 <x-admin::form.control-group.label class="required">
                                     @lang('admin::app.settings.sources.index.create.name')
@@ -212,6 +211,50 @@
                                 />
 
                                 <x-admin::form.control-group.error control-name="name" />
+                            </x-admin::form.control-group>
+
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Active
+                                </x-admin::form.control-group.label>
+
+                                <x-admin::form.control-group.control
+                                    type="switch"
+                                    name="is_active"
+                                    :value="1"
+                                />
+                            </x-admin::form.control-group>
+
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Default Pipeline
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="select"
+                                    id="default_lead_pipeline_id"
+                                    name="default_lead_pipeline_id"
+                                >
+                                    <option value="">None</option>
+                                    @foreach($pipelines as $pipeline)
+                                        <option value="{{ $pipeline->id }}">{{ $pipeline->name }}</option>
+                                    @endforeach
+                                </x-admin::form.control-group.control>
+                            </x-admin::form.control-group>
+
+                            <x-admin::form.control-group>
+                                <x-admin::form.control-group.label>
+                                    Default User
+                                </x-admin::form.control-group.label>
+                                <x-admin::form.control-group.control
+                                    type="select"
+                                    id="default_user_id"
+                                    name="default_user_id"
+                                >
+                                    <option value="">None</option>
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                    @endforeach
+                                </x-admin::form.control-group.control>
                             </x-admin::form.control-group>
 
                             {!! view_render_event('admin.settings.sources.index.form.name.after') !!}

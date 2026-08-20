@@ -5,11 +5,22 @@ namespace Webkul\Lead\Observers;
 use Carbon\Carbon;
 use Webkul\Activity\Services\SystemActivityLogger;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\LeadStageHistoryProxy;
 use Webkul\Lead\Repositories\StageRepository;
 use Webkul\User\Repositories\UserRepository;
 
 class LeadObserver
 {
+    /**
+     * Handle the Lead "creating" event.
+     */
+    public function creating(Lead $lead): void
+    {
+        if (! $lead->stage_changed_at) {
+            $lead->stage_changed_at = Carbon::now();
+        }
+    }
+
     /**
      * Handle the Lead "created" event.
      */
@@ -19,6 +30,16 @@ class LeadObserver
         $logger->log($lead, 'Lead Created', [
             'event' => 'lead_created',
         ]);
+    }
+
+    /**
+     * Handle the Lead "updating" event.
+     */
+    public function updating(Lead $lead): void
+    {
+        if ($lead->isDirty('lead_pipeline_stage_id')) {
+            $lead->stage_changed_at = Carbon::now();
+        }
     }
 
     /**
@@ -40,6 +61,15 @@ class LeadObserver
                 'event' => 'stage_change',
                 'old' => $oldStage,
                 'new' => $newStage,
+            ]);
+
+            // Create Stage History
+            LeadStageHistoryProxy::modelClass()::create([
+                'lead_id'           => $lead->id,
+                'pipeline_id'       => $lead->lead_pipeline_id,
+                'previous_stage_id' => $original['lead_pipeline_stage_id'] ?? null,
+                'new_stage_id'      => $changes['lead_pipeline_stage_id'],
+                'changed_by_id'     => auth()->guard('user')->user()?->id,
             ]);
         }
 

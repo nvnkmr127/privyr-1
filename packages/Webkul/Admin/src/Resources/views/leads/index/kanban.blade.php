@@ -184,8 +184,23 @@
                                             v-if="element.user"
                                         >
                                             <span class="icon-settings-user text-[10px]"></span>
-
                                             @{{ element.user.name }}
+                                        </div>
+
+                                        <div
+                                            class="flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200/60 px-2 py-1 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                            v-if="element.group"
+                                        >
+                                            <i class="fa-solid fa-users"></i>
+                                            @{{ element.group.name }}
+                                        </div>
+
+                                        <div
+                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-400 dark:bg-gray-800 dark:text-gray-500"
+                                            v-if="!element.user && !element.group"
+                                        >
+                                            <span class="icon-settings-user text-[10px]"></span>
+                                            Unassigned
                                         </div>
 
                                         <div class="rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white">
@@ -287,6 +302,28 @@
                                         >
                                             <i class="fa-solid fa-fire mr-0.5"></i> Rotten
                                         </span>
+                                    </div>
+                                    
+                                    <!-- Lead Health / Aging Badges -->
+                                    <div class="mt-1 flex flex-wrap gap-1 border-t border-gray-100 pt-1.5 dark:border-gray-700">
+                                        <div 
+                                            v-if="element.health_state === 'Overdue'"
+                                            class="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800"
+                                        >
+                                            Overdue Follow-up
+                                        </div>
+                                        <div 
+                                            v-if="element.health_state === 'Inactive' || element.health_state === 'Needs Attention'"
+                                            class="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800"
+                                        >
+                                            @{{ element.health_state }}
+                                        </div>
+                                        <div 
+                                            v-if="element.stage_age_days > 0"
+                                            class="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600 dark:bg-gray-800 dark:text-gray-300"
+                                        >
+                                            In Stage: @{{ element.stage_age_days }}d
+                                        </div>
                                     </div>
                                 </a>
 

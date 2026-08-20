@@ -52,7 +52,8 @@ class LeadController extends Controller
         protected TypeRepository $typeRepository,
         protected PipelineRepository $pipelineRepository,
         protected StageRepository $stageRepository,
-        protected LeadRepository $leadRepository
+        protected LeadRepository $leadRepository,
+        protected \Webkul\Lead\Services\LeadDuplicateService $leadDuplicateService
     ) {
         request()->request->add(['entity_type' => 'leads']);
     }
@@ -90,6 +91,18 @@ class LeadController extends Controller
             'stages' => $this->stageRepository->all(),
             'currentPreset' => request('preset', 'all'),
         ]);
+    }
+
+    /**
+     * Display a listing of nurturing leads.
+     */
+    public function nurturing()
+    {
+        if (request()->ajax()) {
+            return datagrid(\Webkul\Admin\DataGrids\Lead\NurtureDataGrid::class)->process();
+        }
+
+        return view('admin::leads.nurturing');
     }
 
     /**
@@ -273,6 +286,13 @@ class LeadController extends Controller
 
             $this->applyDateRangeFilters($query);
 
+            // Apply Advanced Filters if present
+            if ($requestedFilters = request()->input('filters')) {
+                $matchType = request()->input('match_type') === 'any' ? 'any' : 'all';
+                $availableColumns = $this->getKanbanColumns();
+                app(\Webkul\Lead\Services\LeadFilterService::class)->applyAdvancedFilters($query, $requestedFilters, $matchType, $availableColumns);
+            }
+
             $stage->lead_value = (clone $query)->sum('lead_value');
 
             $data[$stage->sort_order] = (new StageResource($stage))->jsonSerialize();
@@ -283,6 +303,7 @@ class LeadController extends Controller
                     'type',
                     'source',
                     'user',
+                    'group',
                     'pipeline',
                     'pipeline.stages',
                     'stage',
@@ -338,7 +359,25 @@ class LeadController extends Controller
 
         $data = $request->all();
 
-        $data['status'] = 1;
+        $data['status'] = \Webkul\Lead\Services\LeadLifecycleService::STATUS_OPEN;
+
+        if (! request()->has('bypass_duplicate_warning')) {
+            $origin = 'manual';
+            $duplicateResult = $this->leadDuplicateService->detect($data, $origin);
+            if ($duplicateResult) {
+                if (request()->ajax()) {
+                    return response()->json([
+                        'is_duplicate_warning' => true,
+                        'message' => 'Potential duplicate lead detected.',
+                        'duplicate_info' => $duplicateResult,
+                    ], 409);
+                } else {
+                    session()->flash('warning', 'Potential duplicate lead detected.');
+                    // In a non-ajax scenario, we'd normally redirect back with data, but Krayin mostly uses Ajax for forms.
+                    return redirect()->back()->withInput();
+                }
+            }
+        }
 
         if (request()->has('quick_add') && empty($data['user_id'])) {
             $data['user_id'] = auth()->guard('user')->user()->id;
@@ -582,6 +621,96 @@ class LeadController extends Controller
     }
 
     /**
+     * Update the lead status.
+     */
+    public function updateStatus(int $id): \Illuminate\Http\JsonResponse
+    {
+        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        
+        $lead = $this->leadRepository->findOrFail($id);
+
+        try {
+            $status = request()->input('status');
+            $reason = request()->input('reason');
+            
+            $lifecycleService = app(\Webkul\Lead\Services\LeadLifecycleService::class);
+            
+            if ($status === 'Reopen') {
+                $lifecycleService->reopenLead($lead, $reason);
+            } else {
+                $lifecycleService->changeStatus($lead, $status, $reason);
+            }
+
+            return response()->json([
+                'message' => trans('admin::app.leads.update-success'),
+            ]);
+        } catch (\Exception $exception) {
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Move a lead to Nurturing status.
+     */
+    public function nurture(int $id): JsonResponse
+    {
+        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        
+        $data = request()->validate([
+            'nurture_reason_id' => 'required|integer',
+            'nurture_reengagement_date' => 'required|date',
+            'nurture_notes' => 'nullable|string',
+            'create_follow_up' => 'nullable|boolean',
+        ]);
+
+        $lead = $this->leadRepository->findOrFail($id);
+
+        try {
+            $nurtureService = app(\Webkul\Lead\Services\LeadNurtureService::class);
+            $nurtureService->startNurturing($lead, $data);
+
+            return response()->json([
+                'message' => 'Lead moved to Nurturing successfully.',
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * End lead's Nurturing status.
+     */
+    public function endNurture(int $id): JsonResponse
+    {
+        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        
+        $data = request()->validate([
+            'outcome' => 'required|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $lead = $this->leadRepository->findOrFail($id);
+
+        try {
+            $nurtureService = app(\Webkul\Lead\Services\LeadNurtureService::class);
+            $nurtureService->completeNurturing($lead, $data['outcome'], $data['notes']);
+
+            return response()->json([
+                'message' => 'Lead Nurturing ended successfully.',
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
      * Mass update the specified resources.
      */
     public function massUpdate(MassUpdateRequest $massUpdateRequest): JsonResponse
@@ -635,6 +764,81 @@ class LeadController extends Controller
         } catch (\Exception $exception) {
             return response()->json([
                 'message' => trans('admin::app.leads.destroy-failed'),
+            ]);
+        }
+    }
+
+    /**
+     * Assign lead manually.
+     */
+    public function assign(int $id): RedirectResponse|JsonResponse
+    {
+        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+
+        $data = request()->validate([
+            'user_id' => 'nullable|integer',
+            'group_id' => 'nullable|integer',
+        ]);
+
+        $lead = $this->leadRepository->findOrFail($id);
+        
+        $assignmentService = app(\Webkul\Lead\Services\LeadAssignmentService::class);
+        
+        if (empty($data['user_id']) && empty($data['group_id'])) {
+            $assignmentService->unassign($lead);
+        } else {
+            $assignmentService->assignManually($lead, $data['user_id'] ?? null, $data['group_id'] ?? null);
+        }
+
+        if (request()->ajax()) {
+            return response()->json([
+                'message' => 'Lead assigned successfully.',
+            ]);
+        }
+
+        session()->flash('success', 'Lead assigned successfully.');
+        return redirect()->back();
+    }
+
+    /**
+     * Mass reassign the specified resources.
+     */
+    public function massReassign(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'indices' => 'required|array',
+            'value' => 'required|string',
+        ]);
+
+        $leads = $this->filterAuthorizedRecords(
+            $this->leadRepository->findWhereIn('id', $data['indices'])
+        );
+
+        $assignmentService = app(\Webkul\Lead\Services\LeadAssignmentService::class);
+        $userId = null;
+        $groupId = null;
+
+        if (str_starts_with($data['value'], 'user_')) {
+            $userId = (int) str_replace('user_', '', $data['value']);
+        } elseif (str_starts_with($data['value'], 'group_')) {
+            $groupId = (int) str_replace('group_', '', $data['value']);
+        }
+
+        try {
+            foreach ($leads as $lead) {
+                if (empty($userId) && empty($groupId)) {
+                    $assignmentService->unassign($lead);
+                } else {
+                    $assignmentService->assignManually($lead, $userId, $groupId);
+                }
+            }
+
+            return response()->json([
+                'message' => 'Leads reassigned successfully.',
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => trans('admin::app.leads.update-failed'),
             ]);
         }
     }
@@ -975,6 +1179,9 @@ class LeadController extends Controller
 
         $this->validate(request(), [
             'target_lead_id' => 'required|exists:leads,id',
+            'merge_reason' => 'nullable|string',
+            // Allow selecting which fields to merge. If not provided, we might default to some logic or empty array.
+            'field_selections' => 'nullable|array',
         ]);
 
         $targetLeadId = request()->input('target_lead_id');
@@ -989,25 +1196,32 @@ class LeadController extends Controller
 
         $this->preventUnauthorizedAccess($targetLead->user_id);
 
-        DB::table('activities')
-            ->where('lead_id', $targetLead->id)
-            ->update(['lead_id' => $primaryLead->id]);
-        $primaryLead->tags()->syncWithoutDetaching($targetLead->tags()->pluck('tags.id')->toArray());
-
-        $updateData = ['entity_type' => 'leads'];
-        if ((float) $primaryLead->lead_value == 0 && $targetLead->lead_value) {
-            $updateData['lead_value'] = $targetLead->lead_value;
-        }
-        if (! $primaryLead->description && $targetLead->description) {
-            $updateData['description'] = $targetLead->description;
-        }
-        if (count($updateData) > 1) {
-            $this->leadRepository->update($updateData, $primaryLead->id);
+        $mergeService = app(\Webkul\Lead\Services\LeadMergeService::class);
+        $fieldSelections = request()->input('field_selections', []);
+        
+        // Ensure some basic fields are selected if they are missing in primary
+        if (empty($fieldSelections)) {
+            if ((float) $primaryLead->lead_value == 0 && $targetLead->lead_value) {
+                $fieldSelections['lead_value'] = $targetLead->lead_value;
+            }
+            if (! $primaryLead->description && $targetLead->description) {
+                $fieldSelections['description'] = $targetLead->description;
+            }
         }
 
-        $this->leadRepository->delete($targetLead->id);
-
-        session()->flash('success', 'Leads merged successfully.');
+        try {
+            $mergeService->merge(
+                $primaryLead->id, 
+                $targetLead->id, 
+                $fieldSelections, 
+                auth()->check() ? auth()->id() : 1, 
+                request()->input('merge_reason')
+            );
+            
+            session()->flash('success', 'Leads merged successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error merging leads: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.leads.view', $primaryLead->id);
     }

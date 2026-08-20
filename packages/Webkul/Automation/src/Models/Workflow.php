@@ -16,9 +16,20 @@ class Workflow extends Model implements WorkflowContract
         'name',
         'description',
         'entity_type',
+        'status',
+        'is_scheduled',
+        'schedule_frequency',
         'event',
         'condition_type',
         'conditions',
         'actions',
     ];
+
+    /**
+     * Get the executions for the workflow.
+     */
+    public function executions()
+    {
+        return $this->hasMany(WorkflowExecutionProxy::modelClass());
+    }
 }

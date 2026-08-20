@@ -21,8 +21,21 @@
             <div class="flex max-w-max items-center justify-center gap-2 rounded-lg bg-white p-2 px-4 shadow-[0px_10px_20px_0px_rgba(0,0,0,0.12)] dark:border-gray-800 dark:bg-gray-700 dark:text-gray-300">
                 <div>
                     <p class="text-sm font-light text-gray-800 dark:text-white">
-                        @{{ "@lang('admin::app.components.datagrid.toolbar.selected')".replace(':total', applied.massActions.indices.length) }}
+                        <span v-if="massActions.meta.mode === 'all_filters'">
+                            All @{{ available.meta.total }} records matching filters selected
+                        </span>
+                        <span v-else>
+                            @{{ "@lang('admin::app.components.datagrid.toolbar.selected')".replace(':total', applied.massActions.indices.length) }}
+                        </span>
                     </p>
+                    <a 
+                        v-if="massActions.meta.mode === 'all' && available.meta.total > applied.massActions.indices.length" 
+                        href="javascript:void(0);" 
+                        @click="selectAllMatchingFilters" 
+                        class="text-xs font-medium text-brandColor hover:underline"
+                    >
+                        Select all @{{ available.meta.total }} matching leads
+                    </a>
                 </div>
 
                 <template v-if="available.massActions.some(action => action.icon !== 'icon-delete' && action.options.length)">
@@ -137,6 +150,14 @@
                 },
 
                 /**
+                 * Select all matching filters
+                 */
+                selectAllMatchingFilters() {
+                    this.massActions.meta.mode = 'all_filters';
+                    this.massActions.indices = ['all'];
+                },
+
+                /**
                  * Perform mass action.
                  *
                  * @param {object} currentAction
@@ -164,10 +185,17 @@
                                 case 'post':
                                 case 'put':
                                 case 'patch':
-                                    this.$axios[method](action.url, {
-                                            indices: this.massActions.indices,
-                                            value: this.massActions.value,
-                                        })
+                                    let payload = {
+                                        indices: this.massActions.indices,
+                                        value: this.massActions.value,
+                                        mode: this.massActions.meta.mode,
+                                    };
+                                    
+                                    if (this.massActions.meta.mode === 'all_filters') {
+                                        payload.filters = this.$parent.$parent.applied.filters;
+                                    }
+
+                                    this.$axios[method](action.url, payload)
                                         .then((response) => {
                                             this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
 
@@ -182,9 +210,16 @@
                                     break;
 
                                 case 'delete':
-                                    this.$axios[method](action.url, {
-                                            indices: this.massActions.indices
-                                        })
+                                    let deletePayload = {
+                                        indices: this.massActions.indices,
+                                        mode: this.massActions.meta.mode,
+                                    };
+                                    
+                                    if (this.massActions.meta.mode === 'all_filters') {
+                                        deletePayload.filters = this.$parent.$parent.applied.filters;
+                                    }
+
+                                    this.$axios[method](action.url, deletePayload)
                                         .then(response => {
                                             this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
 

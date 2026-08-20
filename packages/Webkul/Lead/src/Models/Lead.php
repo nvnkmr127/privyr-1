@@ -55,6 +55,46 @@ class Lead extends Model implements LeadContract
         'qualification_status',
         'next_action',
         'follow_up_owner_id',
+        'first_lead_source_id',
+        'first_origin',
+        'first_campaign',
+        'first_medium',
+        'first_content',
+        'first_term',
+        'first_landing_page',
+        'first_form',
+        'first_external_source',
+        'first_external_id',
+        'latest_lead_source_id',
+        'latest_origin',
+        'latest_campaign',
+        'latest_medium',
+        'latest_content',
+        'latest_term',
+        'latest_landing_page',
+        'latest_form',
+        'latest_external_source',
+        'latest_external_id',
+        'origin',
+        'external_id',
+        'ingestion_status',
+        'campaign',
+        'normalized_primary_email',
+        'normalized_primary_phone',
+        'duplicate_status',
+        'duplicate_of_id',
+        'is_merged',
+        'merged_into_id',
+        'last_activity_at',
+        'stage_changed_at',
+        'temperature',
+        'junk_reason',
+        'converted_at',
+        'converted_by',
+        'nurture_reason_id',
+        'nurtured_at',
+        'nurture_reengagement_date',
+        'nurture_notes',
     ];
 
     /**
@@ -71,6 +111,12 @@ class Lead extends Model implements LeadContract
         'next_follow_up_at' => 'datetime',
         'emails' => 'array',
         'contact_numbers' => 'array',
+        'is_merged' => 'boolean',
+        'last_activity_at' => 'datetime',
+        'stage_changed_at' => 'datetime',
+        'converted_at' => 'datetime:D M d, Y H:i A',
+        'nurtured_at' => 'datetime',
+        'nurture_reengagement_date' => 'date:Y-m-d',
     ];
 
     /**
@@ -80,6 +126,8 @@ class Lead extends Model implements LeadContract
      */
     protected $appends = [
         'rotten_days',
+        'lead_age_days',
+        'stage_age_days',
     ];
 
     /**
@@ -88,6 +136,14 @@ class Lead extends Model implements LeadContract
     public function user(): BelongsTo
     {
         return $this->belongsTo(UserProxy::modelClass());
+    }
+
+    /**
+     * Get the group/team that owns the lead.
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(\Webkul\User\Models\GroupProxy::modelClass());
     }
 
     /**
@@ -249,6 +305,70 @@ class Lead extends Model implements LeadContract
     }
 
     /**
+     * Get the lead age in days
+     */
+    public function getLeadAgeDaysAttribute()
+    {
+        if (! $this->created_at) {
+            return 0;
+        }
+        
+        return $this->created_at->diffInDays(Carbon::now());
+    }
+
+    /**
+     * Get the stage age in days
+     */
+    public function getStageAgeDaysAttribute()
+    {
+        if (! $this->stage_changed_at) {
+            return $this->getLeadAgeDaysAttribute();
+        }
+        
+        return $this->stage_changed_at->diffInDays(Carbon::now());
+    }
+
+    /**
+     * Get the next follow up activity.
+     */
+    public function getNextFollowUpAttribute()
+    {
+        return $this->activities()->where('status', 'pending')->where('schedule_from', '>=', now())->orderBy('schedule_from', 'asc')->first();
+    }
+
+    /**
+     * Get the last contacted activity.
+     */
+    public function getLastContactedAttribute()
+    {
+        return $this->activities()->where('status', 'completed')->orderBy('completed_at', 'desc')->first();
+    }
+
+    /**
+     * Get the count of pending follow-ups.
+     */
+    public function getFollowUpCountAttribute()
+    {
+        return $this->activities()->where('status', 'pending')->count();
+    }
+
+    /**
+     * Get the count of completed follow-ups.
+     */
+    public function getCompletedFollowUpsAttribute()
+    {
+        return $this->activities()->where('status', 'completed')->count();
+    }
+
+    /**
+     * Get the count of overdue follow-ups.
+     */
+    public function getOverdueFollowUpsAttribute()
+    {
+        return $this->activities()->where('status', 'pending')->where('schedule_from', '<', now())->count();
+    }
+
+    /**
      * Query scope for New Leads.
      */
     public function scopeNewLeads($query)
@@ -269,7 +389,7 @@ class Lead extends Model implements LeadContract
      */
     public function scopeMyLeads($query, $userId = null)
     {
-        $userId = $userId ?? auth()->guard('admin')->user()?->id;
+        $userId = $userId ?? auth()->guard('user')->user()?->id;
 
         return $query->where('user_id', $userId);
     }
@@ -382,10 +502,14 @@ class Lead extends Model implements LeadContract
                 $description = '';
                 if (is_array($additional)) {
                     if (isset($additional['old']) && isset($additional['new'])) {
-                        $description = "Changed from **{$additional['old']}** to **{$additional['new']}**";
+                        $oldVal = is_array($additional['old']) ? json_encode($additional['old']) : $additional['old'];
+                        $newVal = is_array($additional['new']) ? json_encode($additional['new']) : $additional['new'];
+                        $description = "Changed from **{$oldVal}** to **{$newVal}**";
                     } else {
                         $description = json_encode($additional);
                     }
+                } else {
+                    $description = (string) $additional;
                 }
 
                 $events->push([
@@ -402,7 +526,7 @@ class Lead extends Model implements LeadContract
                     'id' => 'activity_'.$activity->id,
                     'type' => 'activity_'.$type,
                     'title' => ucfirst($type).' '.($activity->title ? ': '.$activity->title : ''),
-                    'description' => $activity->comment ?? (is_array($activity->additional) ? json_encode($activity->additional) : $activity->additional),
+                    'description' => ($activity->comment ?? (is_array($activity->additional) ? json_encode($activity->additional) : $activity->additional)) . ($activity->outcome ? "\n\n**Outcome:** " . $activity->outcome : ''),
                     'icon' => $iconMap[$type] ?? 'icon-note',
                     'badge_color' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
                     'timestamp' => $activity->created_at ?? $this->created_at,
@@ -436,6 +560,19 @@ class Lead extends Model implements LeadContract
             ]);
         }
 
+        // 5. Status Histories
+        foreach ($this->statusHistories as $history) {
+            $events->push([
+                'id' => 'status_'.$history->id,
+                'type' => 'status_changed',
+                'title' => 'Status Changed',
+                'description' => 'Status changed from ' . ($history->previous_status ?? 'Unknown') . ' to ' . $history->new_status . ($history->reason ? ' (' . $history->reason . ')' : ''),
+                'icon' => 'icon-activity',
+                'badge_color' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
+                'timestamp' => $history->created_at,
+            ]);
+        }
+
         return $events->sortByDesc('timestamp')->values();
     }
 
@@ -457,23 +594,126 @@ class Lead extends Model implements LeadContract
      */
     public function getHealthStateAttribute()
     {
-        // Check for stale first (overrides score)
-        if ($this->last_contacted_at && Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 14) {
-            return 'stale';
+        // Explicitly handle Nurturing status
+        if ($this->status === 'Nurturing') {
+            if ($this->nurture_reengagement_date && $this->nurture_reengagement_date->isPast() && ! $this->nurture_reengagement_date->isToday()) {
+                return 'Overdue'; // Re-engagement date passed
+            }
+            return 'Nurturing'; // Safely nurturing, ignore inactivity
         }
 
-        if ($this->last_contacted_at && Carbon::parse($this->last_contacted_at)->diffInDays(now()) > 7) {
-            return 'at_risk';
+        $inactiveDays = config('lead_health.inactivity.inactive_days', 14);
+        $needsAttentionDays = config('lead_health.inactivity.needs_attention_days', 7);
+
+        // Check for overdue follow-up
+        if ($this->next_follow_up_at && $this->next_follow_up_at->isPast()) {
+            return 'Overdue';
         }
 
-        if ($this->lead_score >= 80) {
-            return 'hot';
+        // Check for inactivity
+        $lastActivity = $this->last_activity_at ?? $this->created_at;
+        
+        if ($lastActivity) {
+            $daysSinceActivity = Carbon::parse($lastActivity)->diffInDays(now());
+            
+            if ($daysSinceActivity >= $inactiveDays) {
+                return 'Inactive';
+            }
+            
+            if ($daysSinceActivity >= $needsAttentionDays) {
+                return 'Needs Attention';
+            }
         }
+        
+        // Active if no bad health conditions met
+        return 'Active';
+    }
 
-        if ($this->lead_score >= 50) {
-            return 'warm';
-        }
+    /**
+     * Get the lead this one is a duplicate of.
+     */
+    public function duplicateOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'duplicate_of_id');
+    }
 
-        return 'cold';
+    /**
+     * Get the lead this one was merged into.
+     */
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_id');
+    }
+
+    /**
+     * Get the merge histories for this lead (where it is the surviving lead).
+     */
+    public function mergeHistories(): HasMany
+    {
+        return $this->hasMany(LeadMergeHistoryProxy::modelClass(), 'surviving_lead_id');
+    }
+
+    /**
+     * Query scope to exclude merged leads.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_merged', false);
+    }
+
+    /**
+     * Get the stage histories for the lead.
+     */
+    public function stageHistories(): HasMany
+    {
+        return $this->hasMany(LeadStageHistoryProxy::modelClass(), 'lead_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get the status histories for the lead.
+     */
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(LeadStatusHistoryProxy::modelClass(), 'lead_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get the user that converted the lead.
+     */
+    public function convertedBy(): BelongsTo
+    {
+        return $this->belongsTo(UserProxy::modelClass(), 'converted_by');
+    }
+
+    /**
+     * Get the first source that generated the lead.
+     */
+    public function firstSource(): BelongsTo
+    {
+        return $this->belongsTo(SourceProxy::modelClass(), 'first_lead_source_id');
+    }
+
+    /**
+     * Get the latest source that generated/updated the lead.
+     */
+    public function latestSource(): BelongsTo
+    {
+        return $this->belongsTo(SourceProxy::modelClass(), 'latest_lead_source_id');
+    }
+
+    /**
+     * Get the attribution histories for the lead.
+     */
+    public function attributionHistories(): HasMany
+    {
+        return $this->hasMany(LeadAttributionHistoryProxy::modelClass(), 'lead_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get the nurture histories for the lead.
+     */
+    public function nurtureHistories(): HasMany
+    {
+        return $this->hasMany(LeadNurtureHistoryProxy::modelClass(), 'lead_id')->orderBy('created_at', 'desc');
     }
 }

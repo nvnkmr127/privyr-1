@@ -48,6 +48,7 @@ class LeadRepository extends Repository
         protected StageRepository $stageRepository,
         protected AttributeRepository $attributeRepository,
         protected AttributeValueRepository $attributeValueRepository,
+        protected \Webkul\Lead\Services\LeadDuplicateService $leadDuplicateService,
         Container $container
     ) {
         parent::__construct($container);
@@ -86,7 +87,7 @@ class LeadRepository extends Repository
                 'lead_value',
                 'person_name',
                 'lead_pipelines.id as lead_pipeline_id',
-                'lead_pipeline_stages.name as status',
+                'leads.status as status',
                 'lead_pipeline_stages.id as lead_pipeline_stage_id'
             )
                 ->addSelect(DB::raw('DATEDIFF('.DB::getTablePrefix().'leads.created_at + INTERVAL lead_pipelines.rotten_days DAY, now()) as rotten_days'))
@@ -117,6 +118,15 @@ class LeadRepository extends Repository
             $data['expected_close_date'] = null;
         }
 
+        // Normalize Email and Phone
+        if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
+            $data['normalized_primary_email'] = $this->leadDuplicateService->normalizeEmail($data['emails'][0]['value'] ?? null);
+        }
+
+        if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
+            $data['normalized_primary_phone'] = $this->leadDuplicateService->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+        }
+
         $lead = parent::create(array_merge([
             'lead_pipeline_id' => 1,
             'lead_pipeline_stage_id' => 1,
@@ -135,6 +145,15 @@ class LeadRepository extends Repository
                 'reason' => $data['qualification_reason'] ?? null,
                 'user_id' => auth()->check() ? auth()->id() : null,
             ]);
+
+            Event::dispatch('lead.qualification.started', $lead);
+            
+            if ($lead->qualification_status === 'qualified') {
+                Event::dispatch('lead.qualification.qualified', $lead);
+            } elseif ($lead->qualification_status === 'disqualified') {
+                Event::dispatch('lead.qualification.disqualified', $lead);
+            }
+            Event::dispatch('lead.qualification.updated', $lead);
         }
 
         // Assignment logic
@@ -143,23 +162,7 @@ class LeadRepository extends Repository
             // Try to auto-assign
             $assigned = app(LeadAssignmentService::class)->assignLead($lead);
 
-            // Fallback if no rules matched
-            if (! $assigned) {
-                // Determine a fallback user, e.g., super admin
-                $fallbackUser = UserProxy::modelClass()::orderBy('id')->first();
-                if ($fallbackUser) {
-                    DB::table('leads')->where('id', $lead->id)->update(['user_id' => $fallbackUser->id]);
-                    $lead->user_id = $fallbackUser->id;
-
-                    app(LeadAssignmentRepository::class)->create([
-                        'lead_id' => $lead->id,
-                        'assigned_to' => $fallbackUser->id,
-                        'assigned_by' => null,
-                        'previous_owner' => null,
-                        'reason' => 'Fallback Assignment',
-                    ]);
-                }
-            }
+            // Fallback if no rules matched (Removed so unassigned leads remain unassigned)
         } else {
             // Manual assignment during creation
             app(LeadAssignmentRepository::class)->create([
@@ -199,6 +202,18 @@ class LeadRepository extends Repository
             $data['expected_close_date'] = null;
         }
 
+        // Normalize Email and Phone
+        if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
+            $data['normalized_primary_email'] = $this->leadDuplicateService->normalizeEmail($data['emails'][0]['value'] ?? null);
+        }
+
+        if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
+            $data['normalized_primary_phone'] = $this->leadDuplicateService->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+        }
+
+        // Prevent direct manipulation of lifecycle fields
+        unset($data['status'], $data['lost_reason'], $data['junk_reason'], $data['converted_at'], $data['converted_by']);
+
         $originalLead = $this->find($id);
         $originalUserId = $originalLead ? $originalLead->user_id : null;
 
@@ -215,6 +230,21 @@ class LeadRepository extends Repository
                 'reason' => $data['qualification_reason'] ?? null,
                 'user_id' => auth()->check() ? auth()->id() : null,
             ]);
+
+            // Dispatch specific events
+            if (empty($originalLead->qualification_status) && !empty($lead->qualification_status)) {
+                Event::dispatch('lead.qualification.started', $lead);
+            }
+            
+            if ($lead->qualification_status === 'qualified') {
+                Event::dispatch('lead.qualification.qualified', $lead);
+            } elseif ($lead->qualification_status === 'disqualified') {
+                Event::dispatch('lead.qualification.disqualified', $lead);
+            } elseif ($lead->qualification_status === 'unqualified' && in_array($originalLead->qualification_status ?? null, ['qualified', 'disqualified'])) {
+                 Event::dispatch('lead.qualification.reopened', $lead);
+            }
+            
+            Event::dispatch('lead.qualification.updated', $lead);
         }
 
         if ($lead->user_id !== $originalUserId) {

@@ -36,7 +36,16 @@ it('Scenario 1 & 7: handles lead with very few / missing values without layout b
 });
 
 it('Scenario 2 & 3 & 4: handles leads with 20, 50, and 100+ custom fields with progressive disclosure', function () {
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     for ($i = 1; $i <= 9; $i++) {
         Attribute::where('code', "test_attr_{$i}")->delete();
@@ -162,7 +171,16 @@ it('Scenario 11 & 12: handles long lead name and long email address in header wi
 });
 
 it('Scenario 13 & 14 & 15: responsive layout classes accommodate mobile, tablet, and desktop', function () {
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     $response = $this->get(route('admin.leads.view', $lead->id));
 

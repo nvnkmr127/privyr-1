@@ -22,7 +22,6 @@ class Participant extends Model implements ParticipantContract
     protected $fillable = [
         'activity_id',
         'user_id',
-        'person_id',
     ];
 
     /**

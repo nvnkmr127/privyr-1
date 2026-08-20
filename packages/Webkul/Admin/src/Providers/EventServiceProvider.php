@@ -26,4 +26,13 @@ class EventServiceProvider extends ServiceProvider
         ],
 
     ];
+
+    /**
+     * The subscriber classes to register.
+     *
+     * @var array
+     */
+    protected $subscribe = [
+        \Webkul\Activity\Listeners\LeadTimelineEventSubscriber::class,
+    ];
 }

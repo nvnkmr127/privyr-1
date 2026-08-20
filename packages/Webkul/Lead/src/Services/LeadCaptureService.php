@@ -16,7 +16,9 @@ class LeadCaptureService
 {
     public function __construct(
         protected LeadRepository $leadRepository,
-        protected PipelineRepository $pipelineRepository
+        protected PipelineRepository $pipelineRepository,
+        protected \Webkul\Lead\Contracts\LeadIngestionService $leadIngestionService,
+        protected \Webkul\Lead\Services\LeadDuplicateService $leadDuplicateService
     ) {}
 
     /**
@@ -43,8 +45,20 @@ class LeadCaptureService
             $email = $mappedData['person']['emails'] ?? null;
             $phone = $mappedData['person']['contact_numbers'] ?? null;
 
+            $origin = match ($connector->source_type) {
+                'meta_ads' => 'meta',
+                'google_ads' => 'google',
+                'indiamart' => 'indiamart',
+                'justdial' => 'justdial',
+                'zapier', 'webhook', 'api' => 'api',
+                default => 'webhook',
+            };
+
+            $externalId = $payload['leadgen_id'] ?? $payload['id'] ?? null;
+
             // Duplicate Detection
-            $existingLead = $this->detectDuplicateContact($email, $phone);
+            $duplicateResult = $this->leadDuplicateService->detect($mappedData, $origin, $externalId);
+            $existingLead = $duplicateResult ? $this->leadRepository->find($duplicateResult['existing_lead_id']) : null;
 
             // Dry run: exercise the real mapping / dedup / routing path and report
             // what WOULD happen, without persisting a Lead, or log. Used by
@@ -65,76 +79,64 @@ class LeadCaptureService
                 ];
             }
 
-            if ($existingLead && $connector->duplicate_action === 'skip') {
-                LeadCaptureLog::create([
-                    'connector_id' => $connector->id,
-                    'raw_payload' => $payload,
-                    'status' => 'duplicate_flagged',
-                    'error_message' => 'Duplicate contact found. Ingestion skipped as per connector configuration.',
-                ]);
-
-                return null;
-            }
-
-            // Pipeline & Stage Fallbacks
-            $pipelineId = $connector->default_lead_pipeline_id ?? $this->pipelineRepository->getDefaultPipeline()?->id;
-            $pipeline = $this->pipelineRepository->find($pipelineId);
-            $stageId = $connector->default_lead_pipeline_stage_id ?? $pipeline?->stages?->first()?->id;
-
-            // Create or update Lead
             $leadTitle = $mappedData['title'] ?? ($connector->name.' - '.($mappedData['person']['name'] ?? 'New Lead'));
             $customLeadAttributes = Arr::except($mappedData, ['person', 'title', 'description', 'lead_value', 'utm_source', 'utm_medium', 'utm_campaign', 'location']);
 
             $leadData = array_merge([
-                'entity_type' => 'leads',
                 'title' => $leadTitle,
                 'description' => $mappedData['description'] ?? 'Captured automatically via '.$connector->name,
                 'lead_value' => $mappedData['lead_value'] ?? 0,
                 'person_name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
                 'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
                 'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
-                'user_id' => $connector->default_user_id,
-                'lead_source_id' => $connector->lead_source_id ?? null,
-                'lead_pipeline_id' => $pipelineId,
-                'lead_pipeline_stage_id' => $stageId,
                 'is_unread' => true,
-                'last_contacted_at' => null,
+            ], $customLeadAttributes);
+            
+            $metadata = [
                 'utm_source' => $mappedData['utm_source'] ?? null,
                 'utm_medium' => $mappedData['utm_medium'] ?? null,
-                'utm_campaign' => $mappedData['utm_campaign'] ?? null,
+                'campaign' => $mappedData['utm_campaign'] ?? null,
                 'location' => $mappedData['location'] ?? null,
-            ], $customLeadAttributes);
+            ];
 
-            if ($existingLead && in_array($connector->duplicate_action, ['update', 'attach_contact'])) {
-                if (isset($leadData['person'])) {
-                    throw new \Exception('PERSON IS IN LEADDATA UPDATE');
-                }
-                $lead = $this->leadRepository->update($leadData, $existingLead->id);
-            } else {
-                if (isset($leadData['person'])) {
-                    throw new \Exception('PERSON IS IN LEADDATA CREATE');
-                }
-                $lead = $this->leadRepository->create($leadData);
-            }
-            if (array_key_exists('person', $lead->getAttributes())) {
-                throw new \Exception('PERSON IS IN LEAD ATTRIBUTES IMMEDIATELY AFTER CREATE/UPDATE');
+            $origin = match ($connector->source_type) {
+                'meta_ads' => 'meta',
+                'google_ads' => 'google',
+                'indiamart' => 'indiamart',
+                'justdial' => 'justdial',
+                'zapier', 'webhook', 'api' => 'api',
+                default => 'webhook',
+            };
+
+            $ingestionPayload = new \Webkul\Lead\DataTransferObjects\LeadIngestionPayload(
+                origin: $origin,
+                sourceName: $connector->name,
+                sourceId: $connector->lead_source_id,
+                externalId: $externalId,
+                leadData: $leadData,
+                metadata: $metadata,
+                duplicateAction: $connector->duplicate_action,
+                connectorId: $connector->id
+            );
+
+            $lead = $this->leadIngestionService->ingest($ingestionPayload);
+
+            if ($duplicateResult && $lead->wasRecentlyCreated) {
+                $lead->update([
+                    'duplicate_status' => 'possible_duplicate',
+                    'duplicate_of_id' => $existingLead->id,
+                ]);
+                event('lead.duplicate.detected', ['lead' => $lead, 'duplicate_of' => $existingLead, 'match_info' => $duplicateResult]);
             }
 
             // Update Connector Statistics
             $connector->increment('captured_count');
             $connector->update(['last_received_at' => Carbon::now()]);
 
-            // Create Log Entry
-            LeadCaptureLog::create([
-                'connector_id' => $connector->id,
-                'raw_payload' => $payload,
-                'status' => 'success',
-                'lead_id' => $lead->id,
-            ]);
-
             return $lead;
         } catch (\Throwable $e) {
-            if (! $dryRun) {
+            // Only log if it's not a LeadIngestionException, as LeadIngestionService already logs those.
+            if (! $dryRun && ! ($e instanceof \Webkul\Lead\Exceptions\LeadIngestionException)) {
                 LeadCaptureLog::create([
                     'connector_id' => $connector->id,
                     'raw_payload' => $payload,
@@ -275,29 +277,5 @@ class LeadCaptureService
         return $payload;
     }
 
-    /**
-     * Detect duplicate lead by email or phone number.
-     *
-     * @return Lead|null
-     */
-    public function detectDuplicateContact(?string $email, ?string $phone)
-    {
-        if (empty($email) && empty($phone)) {
-            return null;
-        }
 
-        $query = $this->leadRepository->getModel()->newQuery();
-
-        $query->where(function ($q) use ($email, $phone) {
-            if ($email) {
-                $q->where('emails', 'like', "%{$email}%");
-            }
-
-            if ($phone) {
-                $q->orWhere('contact_numbers', 'like', "%{$phone}%");
-            }
-        });
-
-        return $query->first();
-    }
 }

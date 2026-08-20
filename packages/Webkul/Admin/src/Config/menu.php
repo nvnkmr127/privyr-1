@@ -156,10 +156,10 @@ return [
         'sort' => 2,
         'icon-class' => 'icon-settings-flow',
     ], [
-        'key' => 'settings.automation.lead_routing',
-        'name' => 'Visual Rule Matrix',
+        'key' => 'settings.automation.lead_assignment_rules',
+        'name' => 'Lead Assignment Rules',
         'info' => 'Configure lead assignment rules by value, source, and team capacity',
-        'route' => 'admin.settings.lead_routing',
+        'route' => 'admin.settings.lead_assignment_rules.index',
         'sort' => 3,
         'icon-class' => 'icon-settings-user',
     ], [

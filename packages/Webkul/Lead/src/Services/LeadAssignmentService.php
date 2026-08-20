@@ -9,10 +9,68 @@ use Webkul\Lead\Repositories\LeadAssignmentRepository;
 
 class LeadAssignmentService
 {
+    public function assignManually(Lead $lead, $userId = null, $groupId = null, $assignedBy = null): bool
+    {
+        $previousOwner = $lead->user_id;
+        $previousGroup = $lead->group_id;
+
+        $lead->user_id = $userId;
+        $lead->group_id = $groupId;
+        $lead->save();
+
+        app(LeadAssignmentRepository::class)->create([
+            'lead_id' => $lead->id,
+            'assigned_to' => $userId,
+            'assigned_group_id' => $groupId,
+            'assigned_by' => $assignedBy ?? (auth()->check() ? auth()->id() : null),
+            'previous_owner' => $previousOwner,
+            'previous_group_id' => $previousGroup,
+            'reason' => 'Manual Assignment',
+        ]);
+
+        if ($previousOwner || $previousGroup) {
+            \Illuminate\Support\Facades\Event::dispatch('lead.reassigned', $lead);
+        } else {
+            \Illuminate\Support\Facades\Event::dispatch('lead.assigned', $lead);
+        }
+
+        return true;
+    }
+
+    public function unassign(Lead $lead, $unassignedBy = null): bool
+    {
+        $previousOwner = $lead->user_id;
+        $previousGroup = $lead->group_id;
+
+        $lead->user_id = null;
+        $lead->group_id = null;
+        $lead->save();
+
+        app(LeadAssignmentRepository::class)->create([
+            'lead_id' => $lead->id,
+            'assigned_to' => null,
+            'assigned_group_id' => null,
+            'assigned_by' => $unassignedBy ?? (auth()->check() ? auth()->id() : null),
+            'previous_owner' => $previousOwner,
+            'previous_group_id' => $previousGroup,
+            'reason' => 'Unassigned manually',
+        ]);
+
+        \Illuminate\Support\Facades\Event::dispatch('lead.unassigned', $lead);
+
+        return true;
+    }
+
     public function assignLead(Lead $lead): bool
     {
+        // Assignment priority: WebForm owner, Rule, Default queue
+        if ($lead->user_id || $lead->group_id) {
+            // Already assigned manually or via WebForm
+            return false;
+        }
+
         // Get active rules ordered by sort_order
-        $rules = LeadAssignmentRule::with(['conditions', 'users'])->where('status', true)->orderBy('sort_order', 'asc')->get();
+        $rules = LeadAssignmentRule::with(['conditions', 'users', 'groups'])->where('status', true)->orderBy('sort_order', 'asc')->get();
 
         foreach ($rules as $rule) {
             if ($this->matchRule($rule, $lead)) {
@@ -75,26 +133,29 @@ class LeadAssignmentService
 
     protected function executeRule(LeadAssignmentRule $rule, Lead $lead): bool
     {
-        if ($rule->users->isEmpty()) {
+        if ($rule->users->isEmpty() && $rule->groups->isEmpty()) {
             return false;
         }
 
         $assignedUserId = null;
+        $assignedGroupId = null;
 
         if ($rule->type === 'direct') {
-            $assignedUserId = $rule->users->first()->id;
+            if ($rule->users->isNotEmpty()) {
+                $assignedUserId = $rule->users->first()->id;
+            }
+        } elseif ($rule->type === 'team') {
+            if ($rule->groups->isNotEmpty()) {
+                $assignedGroupId = $rule->groups->first()->id;
+            }
         } elseif ($rule->type === 'round_robin') {
-            // Find the user who was assigned least recently
-            $user = $rule->users()->orderByPivot('last_assigned_at', 'asc')->first();
+            // Find the user who was assigned least recently. Should ideally use atomic locking.
+            $user = $rule->users()->orderByPivot('last_assigned_at', 'asc')->lockForUpdate()->first();
             if ($user) {
                 $assignedUserId = $user->id;
                 $rule->users()->updateExistingPivot($user->id, ['last_assigned_at' => now()]);
             }
         } elseif ($rule->type === 'weighted') {
-            // Very simple weighted RR: not perfect but adequate for MVP.
-            // A better way is to track assignments over a window.
-            // Here we use weight as a simple score. We can just pick the user with the lowest `last_assigned_at` weighted by weight.
-            // For now, let's just do random weighted or simple modulo. We'll do random based on weight distribution.
             $totalWeight = $rule->users->sum('pivot.weight');
             if ($totalWeight > 0) {
                 $rand = rand(1, $totalWeight);
@@ -110,21 +171,34 @@ class LeadAssignmentService
             }
         }
 
-        if ($assignedUserId) {
+        if ($assignedUserId || $assignedGroupId) {
             $previousOwner = $lead->user_id;
+            $previousGroup = $lead->group_id;
 
             // Bypass updating Lead updated_at timestamp to avoid infinite loops if triggered via observers
-            DB::table('leads')->where('id', $lead->id)->update(['user_id' => $assignedUserId]);
+            DB::table('leads')->where('id', $lead->id)->update([
+                'user_id' => $assignedUserId,
+                'group_id' => $assignedGroupId,
+            ]);
             $lead->user_id = $assignedUserId;
+            $lead->group_id = $assignedGroupId;
 
             // Log history
             app(LeadAssignmentRepository::class)->create([
                 'lead_id' => $lead->id,
                 'assigned_to' => $assignedUserId,
+                'assigned_group_id' => $assignedGroupId,
                 'assigned_by' => auth()->check() ? auth()->id() : null,
                 'previous_owner' => $previousOwner,
+                'previous_group_id' => $previousGroup,
                 'reason' => "Assigned via Rule: {$rule->name}",
             ]);
+
+            if ($previousOwner || $previousGroup) {
+                \Illuminate\Support\Facades\Event::dispatch('lead.reassigned', $lead);
+            } else {
+                \Illuminate\Support\Facades\Event::dispatch('lead.assigned', $lead);
+            }
 
             return true;
         }

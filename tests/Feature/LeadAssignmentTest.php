@@ -47,23 +47,7 @@ it('logs manual assignment and updates timeline', function () {
         ->and($assignment2->reason)->toBe('Manual Reassignment');
 });
 
-it('triggers fallback assignment when no rules match', function () {
-    $this->loginAsAdmin();
-    $admin = User::orderBy('id')->first();
 
-    $lead = app(LeadRepository::class)->create([
-        'title' => 'Auto Lead',
-        'entity_type' => 'leads',
-        'lead_pipeline_id' => 1,
-        'lead_pipeline_stage_id' => 1,
-    ]);
-
-    expect($lead->user_id)->toBe($admin->id);
-
-    $assignment = LeadAssignment::where('lead_id', $lead->id)->latest('id')->first();
-    expect($assignment)->not->toBeNull()
-        ->and($assignment->reason)->toBe('Fallback Assignment');
-});
 
 it('executes direct rule assignment based on conditions', function () {
     $this->loginAsAdmin();

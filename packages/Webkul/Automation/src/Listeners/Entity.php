@@ -24,7 +24,10 @@ class Entity
      */
     public function process($eventName, $entity)
     {
-        $workflows = $this->workflowRepository->findByField('event', $eventName);
+        $workflows = $this->workflowRepository->findWhere([
+            'event' => $eventName,
+            'status' => 'active'
+        ]);
 
         foreach ($workflows as $workflow) {
             $workflowEntity = app(config('workflows.trigger_entities.'.$workflow->entity_type.'.class'));
@@ -35,11 +38,8 @@ class Entity
                 continue;
             }
 
-            try {
-                $workflowEntity->executeActions($workflow, $entity);
-            } catch (\Exception $e) {
-                logger()->error($e->getMessage());
-            }
+            // Dispatch job instead of executing synchronously
+            \Webkul\Automation\Jobs\ExecuteWorkflowActionJob::dispatch($workflow, $entity, $eventName);
         }
     }
 }

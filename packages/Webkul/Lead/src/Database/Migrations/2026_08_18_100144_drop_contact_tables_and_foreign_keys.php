@@ -43,8 +43,6 @@ return new class extends Migration
         Schema::dropIfExists('contact_export_batch_items');
         Schema::dropIfExists('person_activities');
         Schema::dropIfExists('person_tags');
-        Schema::dropIfExists('persons');
-        Schema::dropIfExists('organizations');
 
         Schema::enableForeignKeyConstraints();
     }
