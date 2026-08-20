@@ -447,7 +447,7 @@ class LeadController extends Controller
             ->orderBy('sort_order', 'asc')
             ->get();
 
-        $this->preventUnauthorizedAccess($lead->user_id);
+        $this->authorize('update', $lead);
 
         return view('admin::leads.edit', compact('lead', 'attributes'));
     }
@@ -459,14 +459,7 @@ class LeadController extends Controller
     {
         $lead = $this->leadRepository->findOrFail($id);
 
-        $userIds = bouncer()->getAuthorizedUserIds();
-
-        if (
-            $userIds
-            && ! in_array($lead->user_id, $userIds)
-        ) {
-            return redirect()->route('admin.leads.index');
-        }
+        $this->authorize('view', $lead);
 
         return view('admin::leads.view', compact('lead'));
     }
@@ -476,7 +469,8 @@ class LeadController extends Controller
      */
     public function update(LeadForm $request, int $id): RedirectResponse|JsonResponse
     {
-        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->authorize('update', $lead);
 
         Event::dispatch('lead.update.before', $id);
 
@@ -520,7 +514,8 @@ class LeadController extends Controller
      */
     public function updateAttributes(int $id)
     {
-        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->authorize('update', $lead);
 
         $data = request()->all();
 
@@ -551,7 +546,7 @@ class LeadController extends Controller
 
         $lead = $this->leadRepository->findOrFail($id);
 
-        $this->preventUnauthorizedAccess($lead->user_id);
+        $this->authorize('update', $lead);
 
         $stage = $lead->pipeline->stages()
             ->where('id', request()->input('lead_pipeline_stage_id'))
@@ -601,7 +596,8 @@ class LeadController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->authorize('delete', $lead);
 
         try {
             Event::dispatch('lead.delete.before', $id);
@@ -625,7 +621,8 @@ class LeadController extends Controller
      */
     public function updateStatus(int $id): \Illuminate\Http\JsonResponse
     {
-        $this->preventUnauthorizedAccess($this->leadRepository->findOrFail($id)->user_id);
+        $lead = $this->leadRepository->findOrFail($id);
+        $this->authorize('update', $lead);
         
         $lead = $this->leadRepository->findOrFail($id);
 

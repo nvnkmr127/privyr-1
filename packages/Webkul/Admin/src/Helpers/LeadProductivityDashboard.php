@@ -31,12 +31,9 @@ class LeadProductivityDashboard
         // Owner/Team filter (ACL is applied elsewhere if needed, but this applies explicit filters)
         if (!empty($filters['user_id'])) {
             $query->where('leads.user_id', $filters['user_id']);
-        } elseif (empty($filters['bypass_acl']) && !bouncer()->hasPermission('leads.all')) {
+        } elseif (empty($filters['bypass_acl'])) {
             // Apply ACL if not explicitly bypassed
-            $userIds = bouncer()->getAuthorizedUserIds();
-            if ($userIds) {
-                $query->whereIn('leads.user_id', $userIds);
-            }
+            $query->visibleTo(auth()->user());
         }
 
         // Source filter
@@ -96,9 +93,10 @@ class LeadProductivityDashboard
         
         if (!empty($filters['user_id'])) {
             $activityQuery->where('user_id', $filters['user_id']);
-        } elseif (!bouncer()->hasPermission('leads.all')) {
-            $userIds = bouncer()->getAuthorizedUserIds();
-            if ($userIds) {
+        } elseif (empty($filters['bypass_acl'])) {
+            $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+            $userIds = $visibilityService->getVisibleUserIds(auth()->user());
+            if ($userIds !== null) {
                 $activityQuery->whereIn('user_id', $userIds);
             }
         }
@@ -111,9 +109,10 @@ class LeadProductivityDashboard
             
         if (!empty($filters['user_id'])) {
             $overdueActivityQuery->where('user_id', $filters['user_id']);
-        } elseif (!bouncer()->hasPermission('leads.all')) {
-            $userIds = bouncer()->getAuthorizedUserIds();
-            if ($userIds) {
+        } elseif (empty($filters['bypass_acl'])) {
+            $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+            $userIds = $visibilityService->getVisibleUserIds(auth()->user());
+            if ($userIds !== null) {
                 $overdueActivityQuery->whereIn('user_id', $userIds);
             }
         }

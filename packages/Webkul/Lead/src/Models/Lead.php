@@ -463,6 +463,44 @@ class Lead extends Model implements LeadContract
     }
 
     /**
+     * Query scope for Lead Visibility.
+     * Enforces that the queried leads are accessible to the given user based on their visibility scope.
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Webkul\User\Models\User|null $user
+     * @param string $action
+     */
+    public function scopeVisibleTo($query, $user = null, string $action = 'view')
+    {
+        $user = $user ?? auth()->guard('user')->user();
+        if (! $user) {
+            return $query->whereRaw('1 = 0'); // Deny if no user
+        }
+
+        $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+        $visibleUserIds = $visibilityService->getVisibleUserIds($user, $action);
+
+        if ($visibleUserIds === null) {
+            // Global access, no filter needed on user_id
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($visibleUserIds, $user) {
+            $q->whereIn('leads.user_id', $visibleUserIds);
+            
+            if ($user->view_permission == 'group') {
+                $userGroupIds = $user->groups()->pluck('id')->toArray();
+                if (! empty($userGroupIds)) {
+                    $q->orWhere(function ($subQ) use ($userGroupIds) {
+                        $subQ->whereNull('leads.user_id')
+                             ->whereIn('leads.group_id', $userGroupIds);
+                    });
+                }
+            }
+        });
+    }
+
+    /**
      * Retrieve all lead events formatted for chronological activity timeline.
      *
      * @return Collection

@@ -126,10 +126,8 @@ class BulkLeadOperationService
             if (($workspaceId = app(WorkspaceContext::class)->currentWorkspaceId()) !== null) {
                 $baseQuery->where('workspace_id', $workspaceId);
             }
-            // ACL
-            if ($userIds = bouncer()->getAuthorizedUserIds()) {
-                $baseQuery->whereIn('user_id', $userIds);
-            }
+            // ACL using scopeVisibleTo
+            $baseQuery->visibleTo(auth()->user(), 'update');
 
             foreach ($filters as $filter) {
                 $index = $filter['index'];
@@ -166,11 +164,10 @@ class BulkLeadOperationService
             throw new \Exception("Lead not found");
         }
 
-        // Verify ACL explicitly
-        if ($userIds = bouncer()->getAuthorizedUserIds()) {
-            if (!in_array($lead->user_id, $userIds)) {
-                throw new \Exception("Unauthorized");
-            }
+        // Verify ACL explicitly using Policy
+        $ability = $action === 'delete' ? 'delete' : 'update';
+        if (! \Illuminate\Support\Facades\Gate::allows($ability, $lead)) {
+            throw new \Exception("Unauthorized");
         }
 
         switch ($action) {

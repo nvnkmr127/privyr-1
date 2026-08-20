@@ -37,10 +37,15 @@ return [
         'route' => ['admin.leads.delete', 'admin.leads.mass_delete'],
         'sort' => 4,
     ], [
+        'key' => 'leads.view_audit',
+        'name' => 'View Audit',
+        'route' => ['admin.leads.audits.index'],
+        'sort' => 5,
+    ], [
         'key' => 'leads.qualify',
         'name' => 'admin::app.acl.qualify',
         'route' => ['admin.leads.qualify'],
-        'sort' => 5,
+        'sort' => 6,
     ], [
         'key' => 'leads.status.change',
         'name' => 'Change Lifecycle Status',

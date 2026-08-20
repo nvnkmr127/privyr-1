@@ -48,7 +48,6 @@ class LeadRepository extends Repository
         protected StageRepository $stageRepository,
         protected AttributeRepository $attributeRepository,
         protected AttributeValueRepository $attributeValueRepository,
-        protected \Webkul\Lead\Services\LeadDuplicateService $leadDuplicateService,
         Container $container
     ) {
         parent::__construct($container);
@@ -99,11 +98,7 @@ class LeadRepository extends Repository
                 ->when($createdAtRange, function ($query) use ($createdAtRange) {
                     return $query->whereBetween('leads.created_at', $createdAtRange);
                 })
-                ->where(function ($query) {
-                    if ($userIds = bouncer()->getAuthorizedUserIds()) {
-                        $query->whereIn('leads.user_id', $userIds);
-                    }
-                });
+                ->visibleTo();
         });
     }
 
@@ -120,11 +115,11 @@ class LeadRepository extends Repository
 
         // Normalize Email and Phone
         if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
-            $data['normalized_primary_email'] = $this->leadDuplicateService->normalizeEmail($data['emails'][0]['value'] ?? null);
+            $data['normalized_primary_email'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = $this->leadDuplicateService->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+            $data['normalized_primary_phone'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
         $lead = parent::create(array_merge([
@@ -204,11 +199,11 @@ class LeadRepository extends Repository
 
         // Normalize Email and Phone
         if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
-            $data['normalized_primary_email'] = $this->leadDuplicateService->normalizeEmail($data['emails'][0]['value'] ?? null);
+            $data['normalized_primary_email'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = $this->leadDuplicateService->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+            $data['normalized_primary_phone'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
         // Prevent direct manipulation of lifecycle fields
@@ -304,7 +299,8 @@ class LeadRepository extends Repository
     public function getInboxLeads(string $preset = 'all', ?string $search = null, array $filters = [], int $perPage = 15)
     {
         $query = $this->model->newQuery()
-            ->with(['user', 'stage', 'source', 'type', 'tags']);
+            ->with(['user', 'stage', 'source', 'type', 'tags'])
+            ->visibleTo();
 
         // Exclude archived by default unless specifically requesting archived preset
         if ($preset === 'archived') {

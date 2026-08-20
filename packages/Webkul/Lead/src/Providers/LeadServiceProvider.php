@@ -18,8 +18,13 @@ class LeadServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
+        \Illuminate\Support\Facades\Gate::policy(\Webkul\Lead\Contracts\Lead::class, \Webkul\Lead\Policies\LeadPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\Webkul\Lead\Models\Lead::class, \Webkul\Lead\Policies\LeadPolicy::class);
+
         Lead::observe(LeadObserver::class);
         
+        \Illuminate\Support\Facades\Event::subscribe(\Webkul\Lead\Listeners\LeadAuditSubscriber::class);
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Webkul\Lead\Console\Commands\EvaluateLeadHealth::class,
