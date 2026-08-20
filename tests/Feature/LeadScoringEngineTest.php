@@ -49,8 +49,6 @@ it('calculates score based on dynamic rules', function () {
     $engine = app(LeadScoringEngine::class);
     $engine->evaluateLead($lead);
 
-
-
     // Expected: 25 (Qualified) + 10 (Name) - 20 (Stale) = 15
     expect($lead->lead_score)->toEqual(15);
     expect($lead->scoreLogs()->count())->toEqual(3);

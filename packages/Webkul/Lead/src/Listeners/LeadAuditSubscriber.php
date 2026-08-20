@@ -2,6 +2,7 @@
 
 namespace Webkul\Lead\Listeners;
 
+use Illuminate\Events\Dispatcher;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadAudit;
 
@@ -38,7 +39,7 @@ class LeadAuditSubscriber
         foreach ($lead->getDirty() as $field => $newValue) {
             if (array_key_exists($field, $this->trackableFields)) {
                 $oldValue = $lead->getOriginal($field);
-                
+
                 // Don't audit if values haven't actually changed
                 if ($oldValue == $newValue) {
                     continue;
@@ -66,13 +67,13 @@ class LeadAuditSubscriber
         $source = request()->has('audit_source') ? request()->get('audit_source') : 'Manual';
 
         LeadAudit::create([
-            'lead_id'    => $lead->id,
-            'user_id'    => auth()->check() ? auth()->id() : null,
-            'action'     => $action,
-            'field'      => $field,
-            'old_value'  => $oldValue,
-            'new_value'  => $newValue,
-            'source'     => $source,
+            'lead_id' => $lead->id,
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => $action,
+            'field' => $field,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+            'source' => $source,
             'request_id' => request()->header('X-Request-Id'),
         ]);
     }
@@ -80,7 +81,7 @@ class LeadAuditSubscriber
     /**
      * Register the listeners for the subscriber.
      *
-     * @param  \Illuminate\Events\Dispatcher  $events
+     * @param  Dispatcher  $events
      */
     public function subscribe($events)
     {

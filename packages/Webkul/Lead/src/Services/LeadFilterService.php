@@ -4,6 +4,7 @@ namespace Webkul\Lead\Services;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Webkul\Attribute\Models\AttributeValue;
 use Webkul\Attribute\Repositories\AttributeRepository;
 
 class LeadFilterService
@@ -14,22 +15,22 @@ class LeadFilterService
 
     /**
      * Apply a set of advanced filters to a Lead query builder.
-     * 
-     * @param Builder $query The base query builder (from LeadDataGrid or Kanban).
-     * @param array $filters The structured filters payload.
-     * @param string $matchType 'all' or 'any' (AND vs OR).
-     * @param array $availableColumns The definition of columns from the DataGrid.
+     *
+     * @param  Builder  $query  The base query builder (from LeadDataGrid or Kanban).
+     * @param  array  $filters  The structured filters payload.
+     * @param  string  $matchType  'all' or 'any' (AND vs OR).
+     * @param  array  $availableColumns  The definition of columns from the DataGrid.
      */
     public function applyAdvancedFilters(Builder $query, array $filters, string $matchType = 'all', array $availableColumns = [])
     {
         $booleanFn = $matchType === 'any' ? 'orWhere' : 'where';
-        
+
         $query->where(function ($groupQuery) use ($filters, $booleanFn, $availableColumns) {
             foreach ($filters as $columnName => $requestedValues) {
                 // Determine if this is a custom attribute
                 $attribute = $this->attributeRepository->findOneWhere([
                     'entity_type' => 'leads',
-                    'code' => $columnName
+                    'code' => $columnName,
                 ]);
 
                 if ($attribute) {
@@ -52,10 +53,10 @@ class LeadFilterService
      */
     protected function applyEavFilter(Builder $query, $attributeId, $attributeType, $values, $booleanFn)
     {
-        $valueColumn = \Webkul\Attribute\Models\AttributeValue::$attributeTypeFields[$attributeType] ?? 'text_value';
-        
+        $valueColumn = AttributeValue::$attributeTypeFields[$attributeType] ?? 'text_value';
+
         // E.g. whereExists (SELECT 1 FROM attribute_values WHERE entity_id = leads.id AND attribute_id = X AND text_value IN (...))
-        $query->{$booleanFn . 'Exists'}(function ($subQuery) use ($attributeId, $valueColumn, $values) {
+        $query->{$booleanFn.'Exists'}(function ($subQuery) use ($attributeId, $valueColumn, $values) {
             $subQuery->select(DB::raw(1))
                 ->from('attribute_values')
                 ->whereColumn('attribute_values.entity_id', 'leads.id')
@@ -65,11 +66,11 @@ class LeadFilterService
             // Handle operators if present (e.g., ['operator' => 'contains', 'value' => 'foo'])
             // For now, assume simple arrays or single values as passed by DataGrid
             if (is_array($values) && isset($values['operator'])) {
-                $this->applyOperator($subQuery, 'attribute_values.' . $valueColumn, $values['operator'], $values['value']);
+                $this->applyOperator($subQuery, 'attribute_values.'.$valueColumn, $values['operator'], $values['value']);
             } elseif (is_array($values)) {
-                $subQuery->whereIn('attribute_values.' . $valueColumn, $values);
+                $subQuery->whereIn('attribute_values.'.$valueColumn, $values);
             } else {
-                $subQuery->where('attribute_values.' . $valueColumn, $values);
+                $subQuery->where('attribute_values.'.$valueColumn, $values);
             }
         });
     }
@@ -85,24 +86,24 @@ class LeadFilterService
                     // Normalized phone search
                     $cleanPhone = preg_replace('/[^0-9]/', '', $value);
                     if ($cleanPhone) {
-                        $subQuery->orWhere('leads.contact_numbers', 'LIKE', '%"value":"%' . $cleanPhone . '%"%');
+                        $subQuery->orWhere('leads.contact_numbers', 'LIKE', '%"value":"%'.$cleanPhone.'%"%');
                     }
-                    
+
                     // Case-insensitive email search handled natively by LIKE in most SQL
-                    $subQuery->orWhere('leads.emails', 'LIKE', '%"value":"%' . $value . '%"%');
-                    
+                    $subQuery->orWhere('leads.emails', 'LIKE', '%"value":"%'.$value.'%"%');
+
                     // Standard columns
                     foreach ($availableColumns as $col) {
-                        if ($col['searchable'] && !($col['is_custom'] ?? false)) {
+                        if ($col['searchable'] && ! ($col['is_custom'] ?? false)) {
                             // Extract actual db column mapping if available, else use index
-                            $dbColumn = $col['index']; 
+                            $dbColumn = $col['index'];
                             if ($dbColumn === 'person_name' || $dbColumn === 'title') {
-                                $dbColumn = 'leads.' . $dbColumn;
+                                $dbColumn = 'leads.'.$dbColumn;
                             }
                             // Avoid searching on computed columns or complex relationships during global text search if not mapped properly,
                             // But fallback to standard DataGrid behavior where appropriate.
                             if (strpos($dbColumn, '.') !== false || in_array($dbColumn, ['leads.title', 'leads.person_name'])) {
-                                $subQuery->orWhere($dbColumn, 'LIKE', '%' . $value . '%');
+                                $subQuery->orWhere($dbColumn, 'LIKE', '%'.$value.'%');
                             }
                         }
                     }
@@ -118,11 +119,11 @@ class LeadFilterService
     {
         // Simple mapping to prevent SQL injection and map index to real DB columns
         $dbColumn = $columnName;
-        // DataGrid normally handles this via `$column->processFilter`. 
+        // DataGrid normally handles this via `$column->processFilter`.
         // Here we can either instantiate the Column object or apply simple logic.
-        
-        if (strpos($dbColumn, '.') === false && !in_array($dbColumn, ['id', 'rotten_lead', 'sales_person', 'team_name'])) {
-            $dbColumn = 'leads.' . $dbColumn; // Fallback
+
+        if (strpos($dbColumn, '.') === false && ! in_array($dbColumn, ['id', 'rotten_lead', 'sales_person', 'team_name'])) {
+            $dbColumn = 'leads.'.$dbColumn; // Fallback
         }
 
         if (is_array($values) && isset($values['operator'])) {
@@ -133,16 +134,16 @@ class LeadFilterService
             // Check if it's a date range
             if (is_array($values) && (isset($values[0]) || isset($values['from']))) {
                 if (isset($values['from']) || isset($values['to'])) {
-                    $query->{$booleanFn}(function($q) use ($dbColumn, $values) {
-                        if (!empty($values['from'])) {
+                    $query->{$booleanFn}(function ($q) use ($dbColumn, $values) {
+                        if (! empty($values['from'])) {
                             $q->where($dbColumn, '>=', $values['from']);
                         }
-                        if (!empty($values['to'])) {
+                        if (! empty($values['to'])) {
                             $q->where($dbColumn, '<=', $values['to']);
                         }
                     });
                 } else {
-                    $query->{$booleanFn . 'In'}($dbColumn, $values);
+                    $query->{$booleanFn.'In'}($dbColumn, $values);
                 }
             } else {
                 $query->{$booleanFn}($dbColumn, is_array($values) ? implode(',', $values) : $values);
@@ -154,10 +155,10 @@ class LeadFilterService
     {
         switch (strtolower($operator)) {
             case 'contains':
-                $query->where($column, 'LIKE', '%' . $value . '%');
+                $query->where($column, 'LIKE', '%'.$value.'%');
                 break;
             case 'starts_with':
-                $query->where($column, 'LIKE', $value . '%');
+                $query->where($column, 'LIKE', $value.'%');
                 break;
             case 'equals':
                 $query->where($column, '=', $value);
@@ -172,7 +173,7 @@ class LeadFilterService
                 $query->where($column, '<', $value);
                 break;
             case 'is_empty':
-                $query->where(function($q) use ($column) {
+                $query->where(function ($q) use ($column) {
                     $q->whereNull($column)->orWhere($column, '=', '');
                 });
                 break;

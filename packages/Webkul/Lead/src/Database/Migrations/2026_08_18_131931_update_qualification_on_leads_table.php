@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->dropColumn('is_qualified');
             });
         }
-        if (!Schema::hasColumn('leads', 'qualification_status')) {
+        if (! Schema::hasColumn('leads', 'qualification_status')) {
             Schema::table('leads', function (Blueprint $table) {
                 $table->string('qualification_status')->nullable();
             });

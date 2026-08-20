@@ -20,11 +20,11 @@ return new class extends Migration
         Schema::table('lead_assignments', function (Blueprint $table) {
             $table->integer('previous_group_id')->unsigned()->nullable()->after('previous_owner');
             $table->foreign('previous_group_id')->references('id')->on('groups')->onDelete('set null');
-            
+
             $table->integer('assigned_group_id')->unsigned()->nullable()->after('assigned_to');
             $table->foreign('assigned_group_id')->references('id')->on('groups')->onDelete('set null');
         });
-        
+
         // Update lead_assignment_rules to support assigning to groups
         Schema::create('lead_assignment_rule_groups', function (Blueprint $table) {
             $table->unsignedBigInteger('rule_id');

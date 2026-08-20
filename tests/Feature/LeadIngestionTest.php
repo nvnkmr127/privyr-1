@@ -1,12 +1,11 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Exceptions\LeadIngestionException;
 use Webkul\Lead\Models\Lead;
-use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Services\LeadIngestionService;
-use Illuminate\Support\Facades\Event;
 
 uses(RefreshDatabase::class);
 
@@ -24,8 +23,8 @@ it('can ingest a valid lead', function () {
             'person_name' => 'John Doe',
             'emails' => [['value' => 'john@example.com', 'label' => 'work']],
             'contact_numbers' => [['value' => '+1234567890', 'label' => 'mobile']],
-            'title' => 'New API Lead'
-        ]
+            'title' => 'New API Lead',
+        ],
     ]);
 
     $lead = $this->ingestionService->ingest($payload);
@@ -37,7 +36,7 @@ it('can ingest a valid lead', function () {
 
     $this->assertDatabaseHas('lead_capture_logs', [
         'lead_id' => $lead->id,
-        'status' => 'Created'
+        'status' => 'Created',
     ]);
 
     Event::assertDispatched('lead.ingestion.received');
@@ -52,7 +51,7 @@ it('rejects duplicate email and creates log', function () {
         'lead_data' => [
             'person_name' => 'Jane Smith',
             'emails' => [['value' => 'jane@example.com', 'label' => 'work']],
-        ]
+        ],
     ]));
 
     // Attempt duplicate
@@ -61,15 +60,15 @@ it('rejects duplicate email and creates log', function () {
         'lead_data' => [
             'person_name' => 'Jane Smith Duplicate',
             'emails' => [['value' => 'jane@example.com', 'label' => 'work']],
-        ]
+        ],
     ]);
 
-    expect(fn() => $this->ingestionService->ingest($payload))
+    expect(fn () => $this->ingestionService->ingest($payload))
         ->toThrow(LeadIngestionException::class);
 
     $this->assertDatabaseHas('lead_capture_logs', [
         'status' => 'Rejected',
-        'error_message' => 'Duplicate lead detected.'
+        'error_message' => 'Duplicate lead detected.',
     ]);
 });
 
@@ -80,8 +79,8 @@ it('updates duplicate lead when duplicateAction is update', function () {
         'lead_data' => [
             'person_name' => 'Bob Builder',
             'emails' => [['value' => 'bob@example.com', 'label' => 'work']],
-            'title' => 'Initial Title'
-        ]
+            'title' => 'Initial Title',
+        ],
     ]));
 
     // Attempt duplicate with update
@@ -91,7 +90,7 @@ it('updates duplicate lead when duplicateAction is update', function () {
         'lead_data' => [
             'title' => 'Updated Title',
             'emails' => [['value' => 'bob@example.com', 'label' => 'work']],
-        ]
+        ],
     ]);
 
     $updatedLead = $this->ingestionService->ingest($payload);
@@ -101,7 +100,7 @@ it('updates duplicate lead when duplicateAction is update', function () {
 
     $this->assertDatabaseHas('lead_capture_logs', [
         'status' => 'Updated',
-        'lead_id' => $initialLead->id
+        'lead_id' => $initialLead->id,
     ]);
 });
 
@@ -112,8 +111,8 @@ it('skips duplicate lead when duplicateAction is skip', function () {
         'lead_data' => [
             'person_name' => 'Alice Wonder',
             'emails' => [['value' => 'alice@example.com', 'label' => 'work']],
-            'title' => 'Initial Title'
-        ]
+            'title' => 'Initial Title',
+        ],
     ]));
 
     // Attempt duplicate with skip
@@ -123,20 +122,20 @@ it('skips duplicate lead when duplicateAction is skip', function () {
         'lead_data' => [
             'title' => 'Updated Title',
             'emails' => [['value' => 'alice@example.com', 'label' => 'work']],
-        ]
+        ],
     ]);
 
     $result = $this->ingestionService->ingest($payload);
 
     expect($result->id)->toBe($initialLead->id);
-    
+
     // Ensure title was NOT updated
     $freshLead = Lead::find($initialLead->id);
     expect($freshLead->title)->toBe('Initial Title');
 
     $this->assertDatabaseHas('lead_capture_logs', [
         'status' => 'Duplicate Skipped',
-        'lead_id' => $initialLead->id
+        'lead_id' => $initialLead->id,
     ]);
 });
 
@@ -147,7 +146,7 @@ it('handles idempotent external ID safely', function () {
         'external_id' => 'ext-123',
         'lead_data' => [
             'person_name' => 'Idempotent User',
-        ]
+        ],
     ]));
 
     // Attempt exact same external ID and origin
@@ -156,7 +155,7 @@ it('handles idempotent external ID safely', function () {
         'external_id' => 'ext-123',
         'lead_data' => [
             'person_name' => 'Idempotent User',
-        ]
+        ],
     ]);
 
     $result = $this->ingestionService->ingest($payload);
@@ -165,6 +164,6 @@ it('handles idempotent external ID safely', function () {
 
     $this->assertDatabaseHas('lead_capture_logs', [
         'status' => 'Duplicate', // idempotent duplicate
-        'lead_id' => $initialLead->id
+        'lead_id' => $initialLead->id,
     ]);
 });

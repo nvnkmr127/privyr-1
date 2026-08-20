@@ -9,6 +9,7 @@ use Webkul\User\Models\User;
 abstract class TestCase extends BaseTestCase
 {
     use DatabaseTransactions;
+
     public function loginAsAdmin(): User
     {
         $admin = getDefaultAdmin();

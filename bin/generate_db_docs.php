@@ -10,16 +10,18 @@ foreach ($tables as $tableName => $tableData) {
     $entitiesMd .= "## `{$tableName}`\n\n";
     $entitiesMd .= "| Column | Type | Nullable | Default |\n";
     $entitiesMd .= "|--------|------|----------|---------|\n";
-    
+
     foreach ($tableData['columns'] as $col) {
         $nullable = $col['nullable'] ? 'Yes' : 'No';
         $default = $col['default'] ?? 'NULL';
-        if (is_array($default)) { $default = json_encode($default); }
+        if (is_array($default)) {
+            $default = json_encode($default);
+        }
         $entitiesMd .= "| `{$col['name']}` | `{$col['type']}` | {$nullable} | {$default} |\n";
     }
     $entitiesMd .= "\n";
-    
-    if (!empty($tableData['foreign_keys'])) {
+
+    if (! empty($tableData['foreign_keys'])) {
         $relationshipsMd .= "## `{$tableName}` Relationships\n\n";
         $relationshipsMd .= "| Local Column | Foreign Table | Foreign Column |\n";
         $relationshipsMd .= "|--------------|---------------|----------------|\n";
@@ -33,7 +35,7 @@ foreach ($tables as $tableName => $tableData) {
     }
 }
 
-if (!is_dir(__DIR__.'/../docs/database')) {
+if (! is_dir(__DIR__.'/../docs/database')) {
     mkdir(__DIR__.'/../docs/database', 0777, true);
 }
 

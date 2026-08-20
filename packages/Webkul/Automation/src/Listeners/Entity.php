@@ -3,6 +3,7 @@
 namespace Webkul\Automation\Listeners;
 
 use Webkul\Automation\Helpers\Validator;
+use Webkul\Automation\Jobs\ExecuteWorkflowActionJob;
 use Webkul\Automation\Repositories\WorkflowRepository;
 
 class Entity
@@ -26,7 +27,7 @@ class Entity
     {
         $workflows = $this->workflowRepository->findWhere([
             'event' => $eventName,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         foreach ($workflows as $workflow) {
@@ -39,7 +40,7 @@ class Entity
             }
 
             // Dispatch job instead of executing synchronously
-            \Webkul\Automation\Jobs\ExecuteWorkflowActionJob::dispatch($workflow, $entity, $eventName);
+            ExecuteWorkflowActionJob::dispatch($workflow, $entity, $eventName);
         }
     }
 }

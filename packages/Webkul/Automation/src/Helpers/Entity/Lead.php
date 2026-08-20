@@ -95,7 +95,7 @@ class Lead extends AbstractEntity
                         'id' => 'owner_id',
                         'type' => 'select',
                         'name' => 'Owner',
-                    ]
+                    ],
                 ],
             ],
         ];
@@ -203,7 +203,7 @@ class Lead extends AbstractEntity
 
                 case 'assign_owner':
                     $this->leadRepository->update([
-                        'user_id' => $action['value']
+                        'user_id' => $action['value'],
                     ], $lead->id);
 
                     break;

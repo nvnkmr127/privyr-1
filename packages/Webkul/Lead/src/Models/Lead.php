@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,7 +14,10 @@ use Webkul\Activity\Traits\LogsActivity;
 use Webkul\Attribute\Traits\CustomAttribute;
 use Webkul\Email\Models\EmailProxy;
 use Webkul\Lead\Contracts\Lead as LeadContract;
+use Webkul\Lead\Services\LeadVisibilityService;
 use Webkul\Tag\Models\TagProxy;
+use Webkul\User\Models\GroupProxy;
+use Webkul\User\Models\User;
 use Webkul\User\Models\UserProxy;
 
 class Lead extends Model implements LeadContract
@@ -143,7 +147,7 @@ class Lead extends Model implements LeadContract
      */
     public function group(): BelongsTo
     {
-        return $this->belongsTo(\Webkul\User\Models\GroupProxy::modelClass());
+        return $this->belongsTo(GroupProxy::modelClass());
     }
 
     /**
@@ -312,7 +316,7 @@ class Lead extends Model implements LeadContract
         if (! $this->created_at) {
             return 0;
         }
-        
+
         return $this->created_at->diffInDays(Carbon::now());
     }
 
@@ -324,7 +328,7 @@ class Lead extends Model implements LeadContract
         if (! $this->stage_changed_at) {
             return $this->getLeadAgeDaysAttribute();
         }
-        
+
         return $this->stage_changed_at->diffInDays(Carbon::now());
     }
 
@@ -465,10 +469,9 @@ class Lead extends Model implements LeadContract
     /**
      * Query scope for Lead Visibility.
      * Enforces that the queried leads are accessible to the given user based on their visibility scope.
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Webkul\User\Models\User|null $user
-     * @param string $action
+     *
+     * @param  Builder  $query
+     * @param  User|null  $user
      */
     public function scopeVisibleTo($query, $user = null, string $action = 'view')
     {
@@ -477,7 +480,7 @@ class Lead extends Model implements LeadContract
             return $query->whereRaw('1 = 0'); // Deny if no user
         }
 
-        $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+        $visibilityService = app(LeadVisibilityService::class);
         $visibleUserIds = $visibilityService->getVisibleUserIds($user, $action);
 
         if ($visibleUserIds === null) {
@@ -487,13 +490,13 @@ class Lead extends Model implements LeadContract
 
         return $query->where(function ($q) use ($visibleUserIds, $user) {
             $q->whereIn('leads.user_id', $visibleUserIds);
-            
+
             if ($user->view_permission == 'group') {
                 $userGroupIds = $user->groups()->pluck('id')->toArray();
                 if (! empty($userGroupIds)) {
                     $q->orWhere(function ($subQ) use ($userGroupIds) {
                         $subQ->whereNull('leads.user_id')
-                             ->whereIn('leads.group_id', $userGroupIds);
+                            ->whereIn('leads.group_id', $userGroupIds);
                     });
                 }
             }
@@ -564,7 +567,7 @@ class Lead extends Model implements LeadContract
                     'id' => 'activity_'.$activity->id,
                     'type' => 'activity_'.$type,
                     'title' => ucfirst($type).' '.($activity->title ? ': '.$activity->title : ''),
-                    'description' => ($activity->comment ?? (is_array($activity->additional) ? json_encode($activity->additional) : $activity->additional)) . ($activity->outcome ? "\n\n**Outcome:** " . $activity->outcome : ''),
+                    'description' => ($activity->comment ?? (is_array($activity->additional) ? json_encode($activity->additional) : $activity->additional)).($activity->outcome ? "\n\n**Outcome:** ".$activity->outcome : ''),
                     'icon' => $iconMap[$type] ?? 'icon-note',
                     'badge_color' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
                     'timestamp' => $activity->created_at ?? $this->created_at,
@@ -604,7 +607,7 @@ class Lead extends Model implements LeadContract
                 'id' => 'status_'.$history->id,
                 'type' => 'status_changed',
                 'title' => 'Status Changed',
-                'description' => 'Status changed from ' . ($history->previous_status ?? 'Unknown') . ' to ' . $history->new_status . ($history->reason ? ' (' . $history->reason . ')' : ''),
+                'description' => 'Status changed from '.($history->previous_status ?? 'Unknown').' to '.$history->new_status.($history->reason ? ' ('.$history->reason.')' : ''),
                 'icon' => 'icon-activity',
                 'badge_color' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
                 'timestamp' => $history->created_at,
@@ -637,6 +640,7 @@ class Lead extends Model implements LeadContract
             if ($this->nurture_reengagement_date && $this->nurture_reengagement_date->isPast() && ! $this->nurture_reengagement_date->isToday()) {
                 return 'Overdue'; // Re-engagement date passed
             }
+
             return 'Nurturing'; // Safely nurturing, ignore inactivity
         }
 
@@ -650,19 +654,19 @@ class Lead extends Model implements LeadContract
 
         // Check for inactivity
         $lastActivity = $this->last_activity_at ?? $this->created_at;
-        
+
         if ($lastActivity) {
             $daysSinceActivity = Carbon::parse($lastActivity)->diffInDays(now());
-            
+
             if ($daysSinceActivity >= $inactiveDays) {
                 return 'Inactive';
             }
-            
+
             if ($daysSinceActivity >= $needsAttentionDays) {
                 return 'Needs Attention';
             }
         }
-        
+
         // Active if no bad health conditions met
         return 'Active';
     }

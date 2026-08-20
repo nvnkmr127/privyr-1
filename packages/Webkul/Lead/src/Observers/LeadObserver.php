@@ -65,11 +65,11 @@ class LeadObserver
 
             // Create Stage History
             LeadStageHistoryProxy::modelClass()::create([
-                'lead_id'           => $lead->id,
-                'pipeline_id'       => $lead->lead_pipeline_id,
+                'lead_id' => $lead->id,
+                'pipeline_id' => $lead->lead_pipeline_id,
                 'previous_stage_id' => $original['lead_pipeline_stage_id'] ?? null,
-                'new_stage_id'      => $changes['lead_pipeline_stage_id'],
-                'changed_by_id'     => auth()->guard('user')->user()?->id,
+                'new_stage_id' => $changes['lead_pipeline_stage_id'],
+                'changed_by_id' => auth()->guard('user')->user()?->id,
             ]);
         }
 

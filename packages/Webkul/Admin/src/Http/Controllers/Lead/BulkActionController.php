@@ -19,7 +19,7 @@ class BulkActionController extends Controller
     public function execute(Request $request): JsonResponse
     {
         $action = $request->query('action');
-        
+
         $data = $request->validate([
             'indices' => 'required|array',
             'value' => 'nullable|string',
@@ -37,12 +37,12 @@ class BulkActionController extends Controller
             );
 
             return response()->json([
-                'message' => 'Bulk action executed successfully. ' . ($result['message'] ?? ''),
+                'message' => 'Bulk action executed successfully. '.($result['message'] ?? ''),
                 'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to execute bulk action: ' . $e->getMessage(),
+                'message' => 'Failed to execute bulk action: '.$e->getMessage(),
             ], 400);
         }
     }

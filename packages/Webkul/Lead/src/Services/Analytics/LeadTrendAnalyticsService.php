@@ -13,14 +13,15 @@ class LeadTrendAnalyticsService
 
     /**
      * Get lead creation trend over time.
-     * @param string $groupBy 'day', 'week', or 'month'
+     *
+     * @param  string  $groupBy  'day', 'week', or 'month'
      */
     public function getMetrics(string $startDate, string $endDate, ?int $userId = null, string $groupBy = 'day'): array
     {
         $query = Lead::query();
-        
+
         $this->applyDateFiltering($query, $startDate, $endDate, 'leads.created_at');
-        
+
         if ($userId) {
             $query->where('leads.user_id', $userId);
         } else {

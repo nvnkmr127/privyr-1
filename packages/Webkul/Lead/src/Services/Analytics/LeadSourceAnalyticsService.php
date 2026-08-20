@@ -17,9 +17,9 @@ class LeadSourceAnalyticsService
     public function getMetrics(string $startDate, string $endDate, ?int $userId = null): array
     {
         $query = Lead::query();
-        
+
         $this->applyDateFiltering($query, $startDate, $endDate, 'leads.created_at');
-        
+
         if ($userId) {
             $query->where('leads.user_id', $userId);
         } else {
@@ -28,9 +28,9 @@ class LeadSourceAnalyticsService
 
         $wonStageIds = DB::table('lead_pipeline_stages')->where('code', 'won')->pluck('id')->toArray();
         $lostStageIds = DB::table('lead_pipeline_stages')->where('code', 'lost')->pluck('id')->toArray();
-        
-        $wonStagesCsv = !empty($wonStageIds) ? implode(',', $wonStageIds) : '0';
-        $lostStagesCsv = !empty($lostStageIds) ? implode(',', $lostStageIds) : '0';
+
+        $wonStagesCsv = ! empty($wonStageIds) ? implode(',', $wonStageIds) : '0';
+        $lostStagesCsv = ! empty($lostStageIds) ? implode(',', $lostStageIds) : '0';
 
         $query->select(
             'leads.lead_source_id as id',

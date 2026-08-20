@@ -3,8 +3,8 @@
 namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Webkul\User\Models\UserProxy;
 use Webkul\Lead\Contracts\LeadStatusHistory as LeadStatusHistoryContract;
+use Webkul\User\Models\UserProxy;
 
 class LeadStatusHistory extends Model implements LeadStatusHistoryContract
 {

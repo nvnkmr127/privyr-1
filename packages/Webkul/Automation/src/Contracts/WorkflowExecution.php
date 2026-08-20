@@ -2,6 +2,4 @@
 
 namespace Webkul\Automation\Contracts;
 
-interface WorkflowExecution
-{
-}
+interface WorkflowExecution {}

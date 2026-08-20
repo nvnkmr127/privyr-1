@@ -6,9 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Webkul\Activity\Repositories\ActivityRepository;
-use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadNurtureHistoryProxy;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class LeadNurtureService
 {
@@ -20,8 +20,7 @@ class LeadNurtureService
     /**
      * Move a lead into Nurturing status.
      *
-     * @param Lead $lead
-     * @param array $data Expected: nurture_reason_id, nurture_reengagement_date, nurture_notes
+     * @param  array  $data  Expected: nurture_reason_id, nurture_reengagement_date, nurture_notes
      */
     public function startNurturing(Lead $lead, array $data): Lead
     {
@@ -40,7 +39,7 @@ class LeadNurtureService
             ];
 
             // 2. Create Follow-up Activity if requested
-            if (!empty($data['create_follow_up'])) {
+            if (! empty($data['create_follow_up'])) {
                 $this->activityRepository->create([
                     'type' => 'task',
                     'title' => 'Re-engage Nurtured Lead',
@@ -73,8 +72,8 @@ class LeadNurtureService
             $this->activityRepository->create([
                 'type' => 'system',
                 'title' => 'Lead moved to Nurturing',
-                'comment' => 'Reason: ' . ($lead->nurture_reason_id ? 'Configured Reason' : 'Not specified') . 
-                             '. Re-engagement scheduled for: ' . Carbon::parse($leadData['nurture_reengagement_date'])->format('M d, Y'),
+                'comment' => 'Reason: '.($lead->nurture_reason_id ? 'Configured Reason' : 'Not specified').
+                             '. Re-engagement scheduled for: '.Carbon::parse($leadData['nurture_reengagement_date'])->format('M d, Y'),
                 'is_done' => 1,
                 'user_id' => auth()->id(),
                 'lead_id' => $lead->id,
@@ -95,8 +94,7 @@ class LeadNurtureService
     /**
      * Complete a lead's nurture cycle.
      *
-     * @param Lead $lead
-     * @param string $outcome (Working, Qualified, Converted, Lost, Junk)
+     * @param  string  $outcome  (Working, Qualified, Converted, Lost, Junk)
      */
     public function completeNurturing(Lead $lead, string $outcome, ?string $notes = null): Lead
     {
@@ -128,7 +126,7 @@ class LeadNurtureService
             $this->activityRepository->create([
                 'type' => 'system',
                 'title' => 'Lead re-engaged from Nurturing',
-                'comment' => 'Outcome: ' . $outcome . ($notes ? '. Notes: ' . $notes : ''),
+                'comment' => 'Outcome: '.$outcome.($notes ? '. Notes: '.$notes : ''),
                 'is_done' => 1,
                 'user_id' => auth()->id(),
                 'lead_id' => $lead->id,

@@ -1,18 +1,22 @@
 <?php
 
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 $metadata = [
     'routes' => [],
     'tables' => [],
-    'packages' => []
+    'packages' => [],
 ];
 
 // Extract Routes
-$routes = \Illuminate\Support\Facades\Route::getRoutes();
+$routes = Route::getRoutes();
 foreach ($routes as $route) {
     $metadata['routes'][] = [
         'uri' => $route->uri(),
@@ -24,20 +28,21 @@ foreach ($routes as $route) {
 }
 
 // Extract Database Schema
-$schema = \Illuminate\Support\Facades\Schema::getConnection()->getSchemaBuilder();
+$schema = Schema::getConnection()->getSchemaBuilder();
 $tables = $schema->getTables();
 foreach ($tables as $tableInfo) {
     $table = $tableInfo['name'];
     $columns = $schema->getColumns($table);
-    
+
     $foreignKeys = [];
     try {
         $foreignKeys = $schema->getForeignKeys($table);
-    } catch (\Exception $e) {}
+    } catch (Exception $e) {
+    }
 
     $metadata['tables'][$table] = [
         'columns' => $columns,
-        'foreign_keys' => $foreignKeys
+        'foreign_keys' => $foreignKeys,
     ];
 }
 

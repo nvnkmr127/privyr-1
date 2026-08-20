@@ -2,6 +2,7 @@
 
 namespace Webkul\Activity\Repositories;
 
+use Illuminate\Support\Facades\Event;
 use Webkul\Activity\Contracts\Activity;
 use Webkul\Core\Eloquent\Repository;
 
@@ -42,7 +43,7 @@ class ActivityRepository extends Repository
             }
         }
 
-        \Illuminate\Support\Facades\Event::dispatch('activity.created', $activity);
+        Event::dispatch('activity.created', $activity);
 
         return $activity;
     }
@@ -79,9 +80,9 @@ class ActivityRepository extends Repository
         }
 
         if (isset($data['is_done']) && $data['is_done']) {
-            \Illuminate\Support\Facades\Event::dispatch('activity.completed', $activity);
+            Event::dispatch('activity.completed', $activity);
         } else {
-            \Illuminate\Support\Facades\Event::dispatch('activity.updated', $activity);
+            Event::dispatch('activity.updated', $activity);
         }
 
         return $activity;
@@ -158,8 +159,7 @@ class ActivityRepository extends Repository
     /**
      * Delete a repository entity
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return int
      */
     public function delete($id)
@@ -168,7 +168,7 @@ class ActivityRepository extends Repository
 
         $result = parent::delete($id);
 
-        \Illuminate\Support\Facades\Event::dispatch('activity.deleted', $activity);
+        Event::dispatch('activity.deleted', $activity);
 
         return $result;
     }

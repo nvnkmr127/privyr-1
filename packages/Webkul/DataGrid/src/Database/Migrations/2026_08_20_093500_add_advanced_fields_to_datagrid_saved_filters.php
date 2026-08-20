@@ -33,7 +33,7 @@ return new class extends Migration
                 'sort_column',
                 'sort_direction',
                 'columns',
-                'is_default'
+                'is_default',
             ]);
         });
     }

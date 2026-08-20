@@ -4,8 +4,8 @@ namespace Webkul\Lead\Services;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Models\LeadMergeHistory;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class LeadMergeService
 {
@@ -16,12 +16,12 @@ class LeadMergeService
     /**
      * Merge one lead into another.
      *
-     * @param int $survivingId The ID of the lead that will be kept.
-     * @param int $mergedId The ID of the lead that will be soft-deleted (merged).
-     * @param array $fieldSelections Key-value pairs of fields to update on the surviving lead.
-     * @param int $userId The ID of the user performing the merge.
-     * @param string|null $reason Optional reason for the merge.
-     * @return bool
+     * @param  int  $survivingId  The ID of the lead that will be kept.
+     * @param  int  $mergedId  The ID of the lead that will be soft-deleted (merged).
+     * @param  array  $fieldSelections  Key-value pairs of fields to update on the surviving lead.
+     * @param  int  $userId  The ID of the user performing the merge.
+     * @param  string|null  $reason  Optional reason for the merge.
+     *
      * @throws Exception
      */
     public function merge(int $survivingId, int $mergedId, array $fieldSelections, int $userId, ?string $reason = null): bool
@@ -33,7 +33,7 @@ class LeadMergeService
         $survivingLead = $this->leadRepository->find($survivingId);
         $mergedLead = $this->leadRepository->find($mergedId);
 
-        if (!$survivingLead || !$mergedLead) {
+        if (! $survivingLead || ! $mergedLead) {
             throw new Exception('One or both leads not found.');
         }
 
@@ -71,9 +71,9 @@ class LeadMergeService
             // In EAV, attribute values are tied to entity_id and entity_type.
             // Since we don't have the exact EAV structure here in simple models without the generic EAV service,
             // we rely on the `$fieldSelections` to update the model. The BaseRepository's `update` handles EAV.
-            
+
             // 2. Update Surviving Lead Fields
-            if (!empty($fieldSelections)) {
+            if (! empty($fieldSelections)) {
                 $this->leadRepository->update($fieldSelections, $survivingId);
             }
 
@@ -102,8 +102,9 @@ class LeadMergeService
             event('lead.merged', ['surviving_lead' => $survivingLead, 'merged_lead' => $mergedLead]);
 
             DB::commit();
+
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }

@@ -2,24 +2,22 @@
 
 namespace Webkul\API\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class WebhookAuthenticate
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
         $signature = $request->header('X-Signature');
         $timestamp = $request->header('X-Timestamp');
-        
+
         if (! $signature || ! $timestamp) {
             return response()->json(['error' => 'Missing webhook signature or timestamp.'], 401);
         }
@@ -35,12 +33,12 @@ class WebhookAuthenticate
         }
 
         $secret = config('services.webhook.secret');
-        
+
         if (! $secret) {
             return response()->json(['error' => 'Webhook secret not configured on server.'], 500);
         }
 
-        $payload = $timestamp . '.' . $request->getContent();
+        $payload = $timestamp.'.'.$request->getContent();
         $expectedSignature = hash_hmac('sha256', $payload, $secret);
 
         if (! hash_equals($expectedSignature, $signature)) {

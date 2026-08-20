@@ -3,6 +3,7 @@
 namespace Webkul\Admin\DataGrids\Lead;
 
 use App\Support\WorkspaceContext;
+use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\Lead\Repositories\StageRepository;
 use Webkul\Lead\Repositories\TypeRepository;
 use Webkul\Tag\Repositories\TagRepository;
+use Webkul\User\Repositories\GroupRepository;
 use Webkul\User\Repositories\UserRepository;
 
 class NurtureDataGrid extends DataGrid
@@ -224,9 +226,10 @@ class NurtureDataGrid extends DataGrid
                 ],
             ],
             'closure' => function ($row) {
-                if (!$row->sales_person && !$row->team_name) {
+                if (! $row->sales_person && ! $row->team_name) {
                     return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">Unassigned</span>';
                 }
+
                 return $row->sales_person ?? '--';
             },
         ]);
@@ -240,7 +243,7 @@ class NurtureDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'searchable_dropdown',
             'filterable_options' => [
-                'repository' => \Webkul\User\Repositories\GroupRepository::class,
+                'repository' => GroupRepository::class,
                 'column' => [
                     'label' => 'name',
                     'value' => 'id',
@@ -538,7 +541,7 @@ class NurtureDataGrid extends DataGrid
                 } elseif ($row->status === 'Nurturing') {
                     return '<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">Nurturing</span>';
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-900 dark:text-gray-300">Open</span>';
             },
         ]);
@@ -562,7 +565,7 @@ class NurtureDataGrid extends DataGrid
                 } elseif ($row->temperature === 'Warm') {
                     return '<span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-300">Warm</span>';
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">Cold</span>';
             },
         ]);
@@ -612,8 +615,11 @@ class NurtureDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'date_range',
             'closure' => function ($row) {
-                if (!$row->last_activity_at) return '--';
-                return \Carbon\Carbon::parse($row->last_activity_at)->diffForHumans();
+                if (! $row->last_activity_at) {
+                    return '--';
+                }
+
+                return Carbon::parse($row->last_activity_at)->diffForHumans();
             },
         ]);
 
@@ -628,13 +634,13 @@ class NurtureDataGrid extends DataGrid
                 $inactiveDays = config('lead_health.inactivity.inactive_days', 14);
                 $needsAttentionDays = config('lead_health.inactivity.needs_attention_days', 7);
 
-                if ($row->next_follow_up_at && \Carbon\Carbon::parse($row->next_follow_up_at)->isPast()) {
+                if ($row->next_follow_up_at && Carbon::parse($row->next_follow_up_at)->isPast()) {
                     return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-800">Overdue</span>';
                 }
 
                 $lastActivity = $row->last_activity_at ?? $row->created_at;
                 if ($lastActivity) {
-                    $daysSince = \Carbon\Carbon::parse($lastActivity)->diffInDays(now());
+                    $daysSince = Carbon::parse($lastActivity)->diffInDays(now());
                     if ($daysSince >= $inactiveDays) {
                         return '<span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-bold text-gray-700">Inactive</span>';
                     }
@@ -642,7 +648,7 @@ class NurtureDataGrid extends DataGrid
                         return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">Needs Attention</span>';
                     }
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Active</span>';
             },
         ]);
@@ -723,18 +729,18 @@ class NurtureDataGrid extends DataGrid
             ])->toArray(),
         ]);
 
-        $users = app(\Webkul\User\Repositories\UserRepository::class)->all()->map(fn ($user) => [
-            'label' => 'User: ' . $user->name,
-            'value' => 'user_' . $user->id,
+        $users = app(UserRepository::class)->all()->map(fn ($user) => [
+            'label' => 'User: '.$user->name,
+            'value' => 'user_'.$user->id,
         ])->toArray();
 
-        $groups = app(\Webkul\User\Repositories\GroupRepository::class)->all()->map(fn ($group) => [
-            'label' => 'Team: ' . $group->name,
-            'value' => 'group_' . $group->id,
+        $groups = app(GroupRepository::class)->all()->map(fn ($group) => [
+            'label' => 'Team: '.$group->name,
+            'value' => 'group_'.$group->id,
         ])->toArray();
 
         $unassigned = [
-            ['label' => 'Unassigned', 'value' => 'unassigned']
+            ['label' => 'Unassigned', 'value' => 'unassigned'],
         ];
 
         $this->addMassAction([

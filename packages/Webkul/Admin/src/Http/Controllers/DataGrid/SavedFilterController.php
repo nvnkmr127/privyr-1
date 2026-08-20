@@ -53,9 +53,9 @@ class SavedFilterController extends Controller
     {
         $savedFilters = $this->savedFilterRepository->getModel()
             ->where('src', request()->get('src'))
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('user_id', auth()->guard()->user()->id)
-                      ->orWhere('visibility', 'shared');
+                    ->orWhere('visibility', 'shared');
             })->get();
 
         return response()->json(['data' => $savedFilters]);
@@ -93,7 +93,7 @@ class SavedFilterController extends Controller
             'description',
             'columns',
             'sort_column',
-            'sort_direction'
+            'sort_direction',
         ]), $id);
 
         Event::dispatch('datagrid.saved_filter.update.after', $updatedFilter);

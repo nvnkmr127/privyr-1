@@ -2,6 +2,7 @@
 
 namespace Webkul\Lead\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Webkul\Lead\Models\LeadProxy;
 
@@ -32,7 +33,7 @@ class EvaluateLeadHealth extends Command
         $stuckDays = config('lead_health.stage_aging.stuck_days', 14);
 
         $this->info('Starting Lead health evaluation...');
-        
+
         $totalEvaluated = 0;
 
         LeadProxy::modelClass()::active()->chunkById($batchSize, function ($leads) use ($inactiveDays, $needsAttentionDays, $stuckDays, &$totalEvaluated) {
@@ -51,14 +52,14 @@ class EvaluateLeadHealth extends Command
     protected function evaluateLead($lead, $inactiveDays, $needsAttentionDays, $stuckDays)
     {
         // We only fire events if we haven't fired them recently to prevent spam.
-        // A robust system would track this in a table, but for now we dispatch the event 
+        // A robust system would track this in a table, but for now we dispatch the event
         // and let the event listener/automation system handle debouncing or one-off logic.
 
         $lastActivity = $lead->last_activity_at ?? $lead->created_at;
-        
+
         if ($lastActivity) {
-            $daysSinceActivity = \Carbon\Carbon::parse($lastActivity)->diffInDays(now());
-            
+            $daysSinceActivity = Carbon::parse($lastActivity)->diffInDays(now());
+
             if ($daysSinceActivity >= $inactiveDays) {
                 event('lead.inactivity.detected', [$lead, 'inactive']);
             } elseif ($daysSinceActivity >= $needsAttentionDays) {
@@ -68,7 +69,7 @@ class EvaluateLeadHealth extends Command
 
         $stageChangedAt = $lead->stage_changed_at ?? $lead->created_at;
         if ($stageChangedAt) {
-            $stageAge = \Carbon\Carbon::parse($stageChangedAt)->diffInDays(now());
+            $stageAge = Carbon::parse($stageChangedAt)->diffInDays(now());
             if ($stageAge >= $stuckDays) {
                 event('lead.stage.aging.detected', [$lead, $stageAge]);
             }

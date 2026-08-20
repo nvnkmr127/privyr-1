@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->string('latest_form')->nullable();
             $table->string('latest_external_source')->nullable();
             $table->string('latest_external_id')->nullable();
-            
+
             // Foreign keys
             $table->foreign('first_lead_source_id')->references('id')->on('lead_sources')->onDelete('set null');
             $table->foreign('latest_lead_source_id')->references('id')->on('lead_sources')->onDelete('set null');
@@ -102,7 +102,7 @@ return new class extends Migration
                 'latest_landing_page',
                 'latest_form',
                 'latest_external_source',
-                'latest_external_id'
+                'latest_external_id',
             ]);
         });
     }

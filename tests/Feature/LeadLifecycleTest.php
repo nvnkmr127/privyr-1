@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Event;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Services\LeadLifecycleService;
+use Webkul\User\Models\User;
 
 beforeEach(function () {
     $this->lifecycleService = app(LeadLifecycleService::class);
@@ -29,8 +30,8 @@ it('can change lead status to Working and create history', function () {
 
 it('can convert a lead', function () {
     $lead = Lead::factory()->create(['status' => 'Open']);
-    
-    $user = \Webkul\User\Models\User::factory()->create();
+
+    $user = User::factory()->create();
     $this->actingAs($user);
 
     $this->lifecycleService->changeStatus($lead, 'Converted');
@@ -54,7 +55,7 @@ it('can mark a lead as lost with a reason', function () {
 it('can reopen a lost lead', function () {
     $lead = Lead::factory()->create([
         'status' => 'Lost',
-        'lost_reason' => 'Not interested'
+        'lost_reason' => 'Not interested',
     ]);
 
     $this->lifecycleService->reopenLead($lead, 'Client called back');

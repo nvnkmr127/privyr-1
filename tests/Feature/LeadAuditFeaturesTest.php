@@ -6,6 +6,7 @@ use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Source;
 use Webkul\Lead\Models\Stage;
 use Webkul\Lead\Models\Type;
+use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\User\Models\User;
 
 beforeEach(function () {
@@ -91,7 +92,7 @@ test('it merges two leads correctly', function () {
 });
 
 test('it automatically calculates lead score', function () {
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'title' => 'Scored Lead',
         'entity_type' => 'leads',
         'lead_value' => 100,

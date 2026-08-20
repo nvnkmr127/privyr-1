@@ -3,6 +3,7 @@
 namespace Webkul\Admin\DataGrids\Lead;
 
 use App\Support\WorkspaceContext;
+use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +15,11 @@ use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\Lead\Repositories\StageRepository;
 use Webkul\Lead\Repositories\TypeRepository;
-use Webkul\Tag\Repositories\TagRepository;
-use Webkul\User\Repositories\UserRepository;
 use Webkul\Lead\Services\LeadFilterService;
+use Webkul\Lead\Services\LeadVisibilityService;
+use Webkul\Tag\Repositories\TagRepository;
+use Webkul\User\Repositories\GroupRepository;
+use Webkul\User\Repositories\UserRepository;
 
 class LeadDataGrid extends DataGrid
 {
@@ -140,19 +143,19 @@ class LeadDataGrid extends DataGrid
 
         $user = auth()->guard('user')->user();
         if ($user) {
-            $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+            $visibilityService = app(LeadVisibilityService::class);
             $visibleUserIds = $visibilityService->getVisibleUserIds($user);
 
             if ($visibleUserIds !== null) {
                 $queryBuilder->where(function ($q) use ($visibleUserIds, $user) {
                     $q->whereIn('leads.user_id', $visibleUserIds);
-                    
+
                     if ($user->view_permission == 'group') {
                         $userGroupIds = $user->groups()->pluck('id')->toArray();
                         if (! empty($userGroupIds)) {
                             $q->orWhere(function ($subQ) use ($userGroupIds) {
                                 $subQ->whereNull('leads.user_id')
-                                     ->whereIn('leads.group_id', $userGroupIds);
+                                    ->whereIn('leads.group_id', $userGroupIds);
                             });
                         }
                     }
@@ -241,9 +244,10 @@ class LeadDataGrid extends DataGrid
                 ],
             ],
             'closure' => function ($row) {
-                if (!$row->sales_person && !$row->team_name) {
+                if (! $row->sales_person && ! $row->team_name) {
                     return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">Unassigned</span>';
                 }
+
                 return $row->sales_person ?? '--';
             },
         ]);
@@ -257,7 +261,7 @@ class LeadDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'searchable_dropdown',
             'filterable_options' => [
-                'repository' => \Webkul\User\Repositories\GroupRepository::class,
+                'repository' => GroupRepository::class,
                 'column' => [
                     'label' => 'name',
                     'value' => 'id',
@@ -555,7 +559,7 @@ class LeadDataGrid extends DataGrid
                 } elseif ($row->status === 'Nurturing') {
                     return '<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">Nurturing</span>';
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-900 dark:text-gray-300">Open</span>';
             },
         ]);
@@ -579,7 +583,7 @@ class LeadDataGrid extends DataGrid
                 } elseif ($row->temperature === 'Warm') {
                     return '<span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-300">Warm</span>';
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">Cold</span>';
             },
         ]);
@@ -629,8 +633,11 @@ class LeadDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'date_range',
             'closure' => function ($row) {
-                if (!$row->last_activity_at) return '--';
-                return \Carbon\Carbon::parse($row->last_activity_at)->diffForHumans();
+                if (! $row->last_activity_at) {
+                    return '--';
+                }
+
+                return Carbon::parse($row->last_activity_at)->diffForHumans();
             },
         ]);
 
@@ -645,13 +652,13 @@ class LeadDataGrid extends DataGrid
                 $inactiveDays = config('lead_health.inactivity.inactive_days', 14);
                 $needsAttentionDays = config('lead_health.inactivity.needs_attention_days', 7);
 
-                if ($row->next_follow_up_at && \Carbon\Carbon::parse($row->next_follow_up_at)->isPast()) {
+                if ($row->next_follow_up_at && Carbon::parse($row->next_follow_up_at)->isPast()) {
                     return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-800">Overdue</span>';
                 }
 
                 $lastActivity = $row->last_activity_at ?? $row->created_at;
                 if ($lastActivity) {
-                    $daysSince = \Carbon\Carbon::parse($lastActivity)->diffInDays(now());
+                    $daysSince = Carbon::parse($lastActivity)->diffInDays(now());
                     if ($daysSince >= $inactiveDays) {
                         return '<span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-bold text-gray-700">Inactive</span>';
                     }
@@ -659,7 +666,7 @@ class LeadDataGrid extends DataGrid
                         return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">Needs Attention</span>';
                     }
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Active</span>';
             },
         ]);
@@ -726,21 +733,21 @@ class LeadDataGrid extends DataGrid
         $bulkUrl = route('admin.leads.bulk');
 
         // 1. Assignment
-        $users = app(\Webkul\User\Repositories\UserRepository::class)->all()->map(fn ($user) => [
-            'label' => 'User: ' . $user->name,
-            'value' => 'user_' . $user->id,
+        $users = app(UserRepository::class)->all()->map(fn ($user) => [
+            'label' => 'User: '.$user->name,
+            'value' => 'user_'.$user->id,
         ])->toArray();
 
-        $groups = app(\Webkul\User\Repositories\GroupRepository::class)->all()->map(fn ($group) => [
-            'label' => 'Team: ' . $group->name,
-            'value' => 'group_' . $group->id,
+        $groups = app(GroupRepository::class)->all()->map(fn ($group) => [
+            'label' => 'Team: '.$group->name,
+            'value' => 'group_'.$group->id,
         ])->toArray();
 
         $unassigned = [['label' => 'Unassigned', 'value' => 'unassigned']];
 
         $this->addMassAction([
             'title' => 'Assign',
-            'url' => $bulkUrl . '?action=assign',
+            'url' => $bulkUrl.'?action=assign',
             'method' => 'POST',
             'options' => array_merge($unassigned, $users, $groups),
         ]);
@@ -748,7 +755,7 @@ class LeadDataGrid extends DataGrid
         // 2. Lifecycle (Stage)
         $this->addMassAction([
             'title' => 'Change Stage',
-            'url' => $bulkUrl . '?action=change_stage',
+            'url' => $bulkUrl.'?action=change_stage',
             'method' => 'POST',
             'options' => $this->pipeline->stages->map(fn ($stage) => [
                 'label' => $stage->name,
@@ -759,7 +766,7 @@ class LeadDataGrid extends DataGrid
         // 3. Status
         $this->addMassAction([
             'title' => 'Change Status',
-            'url' => $bulkUrl . '?action=change_status',
+            'url' => $bulkUrl.'?action=change_status',
             'method' => 'POST',
             'options' => [
                 ['label' => 'Open', 'value' => 'Open'],
@@ -773,7 +780,7 @@ class LeadDataGrid extends DataGrid
         // 4. Qualification
         $this->addMassAction([
             'title' => 'Qualification',
-            'url' => $bulkUrl . '?action=change_qualification',
+            'url' => $bulkUrl.'?action=change_qualification',
             'method' => 'POST',
             'options' => [
                 ['label' => 'Qualified', 'value' => 'qualified'],
@@ -782,11 +789,11 @@ class LeadDataGrid extends DataGrid
                 ['label' => 'In Review', 'value' => 'in_review'],
             ],
         ]);
-        
+
         // 5. Priority
         $this->addMassAction([
             'title' => 'Change Priority',
-            'url' => $bulkUrl . '?action=change_priority',
+            'url' => $bulkUrl.'?action=change_priority',
             'method' => 'POST',
             'options' => [
                 ['label' => 'Low', 'value' => 'low'],
@@ -799,7 +806,7 @@ class LeadDataGrid extends DataGrid
         // 6. Temperature
         $this->addMassAction([
             'title' => 'Change Temperature',
-            'url' => $bulkUrl . '?action=change_temperature',
+            'url' => $bulkUrl.'?action=change_temperature',
             'method' => 'POST',
             'options' => [
                 ['label' => 'Cold', 'value' => 'Cold'],
@@ -809,18 +816,18 @@ class LeadDataGrid extends DataGrid
         ]);
 
         // 7. Add Tags
-        $tags = $this->tagRepository->all()->map(fn($t) => ['label' => $t->name, 'value' => $t->id])->toArray();
+        $tags = $this->tagRepository->all()->map(fn ($t) => ['label' => $t->name, 'value' => $t->id])->toArray();
         $this->addMassAction([
             'title' => 'Add Tag',
-            'url' => $bulkUrl . '?action=add_tag',
+            'url' => $bulkUrl.'?action=add_tag',
             'method' => 'POST',
             'options' => $tags,
         ]);
-        
+
         // Remove Tags
         $this->addMassAction([
             'title' => 'Remove Tag',
-            'url' => $bulkUrl . '?action=remove_tag',
+            'url' => $bulkUrl.'?action=remove_tag',
             'method' => 'POST',
             'options' => $tags,
         ]);
@@ -828,7 +835,7 @@ class LeadDataGrid extends DataGrid
         // 8. Follow-up (Will need custom modal, we use options for type if we want simple, but user asked for date/time/notes. For now we will just use a generic post and intercept it if we can, or add it to our modal blade.)
         $this->addMassAction([
             'title' => 'Create Follow-up',
-            'url' => $bulkUrl . '?action=create_follow_up',
+            'url' => $bulkUrl.'?action=create_follow_up',
             'method' => 'POST',
             'options' => [
                 ['label' => 'Call', 'value' => 'Call'],
@@ -840,7 +847,7 @@ class LeadDataGrid extends DataGrid
         // 9. Nurturing
         $this->addMassAction([
             'title' => 'Move to Nurturing',
-            'url' => $bulkUrl . '?action=move_to_nurturing',
+            'url' => $bulkUrl.'?action=move_to_nurturing',
             'method' => 'POST',
             // Simple generic nurturing without reason for now if we don't have modal
         ]);
@@ -848,7 +855,7 @@ class LeadDataGrid extends DataGrid
         // 10. Export
         $this->addMassAction([
             'title' => 'Export',
-            'url' => $bulkUrl . '?action=export',
+            'url' => $bulkUrl.'?action=export',
             'method' => 'POST',
             'options' => [
                 ['label' => 'CSV', 'value' => 'csv'],
@@ -861,7 +868,7 @@ class LeadDataGrid extends DataGrid
             'icon' => 'icon-delete',
             'title' => trans('admin::app.leads.index.datagrid.mass-delete'),
             'method' => 'POST',
-            'url' => $bulkUrl . '?action=delete',
+            'url' => $bulkUrl.'?action=delete',
         ]);
 
         // Add Custom EAV Attributes as Filterable Columns

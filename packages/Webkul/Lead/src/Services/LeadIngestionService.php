@@ -2,17 +2,17 @@
 
 namespace Webkul\Lead\Services;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Contracts\LeadIngestionService as LeadIngestionServiceContract;
 use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Exceptions\LeadIngestionException;
-use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Repositories\SourceRepository;
-use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Models\LeadCaptureLog;
+use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Repositories\PipelineRepository;
+use Webkul\Lead\Repositories\SourceRepository;
 
 class LeadIngestionService implements LeadIngestionServiceContract
 {
@@ -27,8 +27,8 @@ class LeadIngestionService implements LeadIngestionServiceContract
     /**
      * Ingest a lead from any origin.
      *
-     * @param LeadIngestionPayload $payload
-     * @return \Webkul\Lead\Contracts\Lead
+     * @return Lead
+     *
      * @throws LeadIngestionException
      */
     public function ingest(LeadIngestionPayload $payload)
@@ -45,7 +45,7 @@ class LeadIngestionService implements LeadIngestionServiceContract
                 'origin' => $payload->origin,
                 'external_id' => $payload->externalId,
                 'raw_payload' => $payload->leadData,
-                'status' => 'Received'
+                'status' => 'Received',
             ]);
             $logId = $log->id;
 
@@ -70,23 +70,25 @@ class LeadIngestionService implements LeadIngestionServiceContract
                     $this->updateLog($logId, 'Duplicate Skipped', $duplicate->id, $startTime, 'Duplicate lead detected and skipped.');
                     Event::dispatch('lead.ingestion.duplicate', $duplicate);
                     DB::commit();
+
                     return $duplicate; // Or return null depending on convention, but returning the duplicate is fine.
                 }
 
                 if ($payload->duplicateAction === 'update') {
                     // Update existing lead instead of creating a new one
                     $leadData = $this->leadAttributionService->mapAttributionData($leadData, true);
-                    
+
                     Event::dispatch('lead.update.before', $duplicate->id);
                     $lead = $this->leadRepository->update($leadData, $duplicate->id);
-                    
+
                     $this->leadAttributionService->recordHistory($lead, $leadData);
-                    
+
                     Event::dispatch('lead.update.after', $lead);
-                    
+
                     $this->updateLog($logId, 'Updated', $lead->id, $startTime);
                     Event::dispatch('lead.ingestion.updated', $lead);
                     DB::commit();
+
                     return $lead;
                 }
 
@@ -95,25 +97,26 @@ class LeadIngestionService implements LeadIngestionServiceContract
                     $this->updateLog($logId, 'Duplicate', $duplicate->id, $startTime);
                     Event::dispatch('lead.ingestion.duplicate', $duplicate);
                     DB::commit();
+
                     return $duplicate;
                 }
-                
+
                 // Configurable duplicate action can be added here
                 // For now, we reject duplicates to prevent overwrite
                 $this->updateLog($logId, 'Rejected', null, $startTime, 'Duplicate lead detected.');
                 Event::dispatch('lead.ingestion.rejected', $payload);
                 DB::commit();
-                
+
                 // Throw exception outside the transaction so it doesn't trigger rollback
                 throw LeadIngestionException::duplicate();
             }
 
             // 4. Create Lead
             Event::dispatch('lead.create.before');
-            
+
             $leadData = $this->leadAttributionService->mapAttributionData($leadData, false);
             $lead = $this->leadRepository->create($leadData);
-            
+
             $this->leadAttributionService->recordHistory($lead, $leadData);
 
             Event::dispatch('lead.create.after', $lead);
@@ -144,7 +147,7 @@ class LeadIngestionService implements LeadIngestionServiceContract
 
         // Ensure title
         if (empty($data['title'])) {
-            $data['title'] = 'Lead from ' . ucfirst($payload->origin);
+            $data['title'] = 'Lead from '.ucfirst($payload->origin);
         }
 
         // Apply metadata to lead attributes
@@ -155,7 +158,7 @@ class LeadIngestionService implements LeadIngestionServiceContract
         if (isset($payload->metadata['campaign'])) {
             $data['campaign'] = $payload->metadata['campaign'];
         }
-        
+
         // Custom EAV fields
         $eavFields = ['medium', 'content', 'term', 'landing_page', 'form_id'];
         foreach ($eavFields as $field) {
@@ -174,7 +177,7 @@ class LeadIngestionService implements LeadIngestionServiceContract
 
         if ($source) {
             $data['lead_source_id'] = $source->id;
-            
+
             if (empty($data['lead_pipeline_id']) && $source->default_lead_pipeline_id) {
                 $data['lead_pipeline_id'] = $source->default_lead_pipeline_id;
             }
@@ -210,12 +213,12 @@ class LeadIngestionService implements LeadIngestionServiceContract
     protected function updateLog(int $logId, string $status, ?int $leadId, float $startTime, ?string $errorMessage = null)
     {
         $timeMs = round((microtime(true) - $startTime) * 1000);
-        
+
         LeadCaptureLog::where('id', $logId)->update([
             'status' => $status,
             'lead_id' => $leadId,
             'processing_time_ms' => $timeMs,
-            'error_message' => $errorMessage
+            'error_message' => $errorMessage,
         ]);
     }
 }

@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Admin\DataGrids\Settings\SourceDataGrid;
 use Webkul\Admin\Http\Controllers\Controller;
+use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\User\Repositories\UserRepository;
 
 class SourceController extends Controller
 {
@@ -28,8 +30,8 @@ class SourceController extends Controller
             return datagrid(SourceDataGrid::class)->process();
         }
 
-        $pipelines = app(\Webkul\Lead\Repositories\PipelineRepository::class)->all();
-        $users = app(\Webkul\User\Repositories\UserRepository::class)->all();
+        $pipelines = app(PipelineRepository::class)->all();
+        $users = app(UserRepository::class)->all();
 
         return view('admin::settings.sources.index', compact('pipelines', 'users'));
     }
@@ -50,10 +52,10 @@ class SourceController extends Controller
         Event::dispatch('settings.source.create.before');
 
         $data = request()->only([
-            'name', 'is_active', 'default_lead_pipeline_id', 
-            'default_lead_pipeline_stage_id', 'default_user_id'
+            'name', 'is_active', 'default_lead_pipeline_id',
+            'default_lead_pipeline_stage_id', 'default_user_id',
         ]);
-        
+
         $data['is_active'] = request()->has('is_active') ? request('is_active') : 1;
 
         $source = $this->sourceRepository->create($data);
@@ -94,8 +96,8 @@ class SourceController extends Controller
         Event::dispatch('settings.source.update.before', $id);
 
         $data = request()->only([
-            'name', 'is_active', 'default_lead_pipeline_id', 
-            'default_lead_pipeline_stage_id', 'default_user_id'
+            'name', 'is_active', 'default_lead_pipeline_id',
+            'default_lead_pipeline_stage_id', 'default_user_id',
         ]);
 
         $data['is_active'] = request()->has('is_active') ? request('is_active') : 0;

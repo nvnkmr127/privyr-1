@@ -3,9 +3,15 @@
 namespace Webkul\Lead\Providers;
 
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Webkul\Lead\Console\Commands\EvaluateLeadHealth;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\Listeners\LeadAuditSubscriber;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Observers\LeadObserver;
+use Webkul\Lead\Policies\LeadPolicy;
 
 class LeadServiceProvider extends ServiceProvider
 {
@@ -18,16 +24,16 @@ class LeadServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
-        \Illuminate\Support\Facades\Gate::policy(\Webkul\Lead\Contracts\Lead::class, \Webkul\Lead\Policies\LeadPolicy::class);
-        \Illuminate\Support\Facades\Gate::policy(\Webkul\Lead\Models\Lead::class, \Webkul\Lead\Policies\LeadPolicy::class);
+        Gate::policy(\Webkul\Lead\Contracts\Lead::class, LeadPolicy::class);
+        Gate::policy(Lead::class, LeadPolicy::class);
 
         Lead::observe(LeadObserver::class);
-        
-        \Illuminate\Support\Facades\Event::subscribe(\Webkul\Lead\Listeners\LeadAuditSubscriber::class);
+
+        Event::subscribe(LeadAuditSubscriber::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Webkul\Lead\Console\Commands\EvaluateLeadHealth::class,
+                EvaluateLeadHealth::class,
             ]);
         }
     }
@@ -40,7 +46,7 @@ class LeadServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(
-            \Webkul\Lead\Contracts\LeadIngestionService::class,
+            LeadIngestionService::class,
             \Webkul\Lead\Services\LeadIngestionService::class
         );
     }

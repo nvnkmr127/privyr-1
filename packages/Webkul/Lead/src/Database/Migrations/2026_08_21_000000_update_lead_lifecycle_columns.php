@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -39,7 +39,7 @@ return new class extends Migration
         DB::table('leads')->orderBy('id')->chunk(100, function ($leads) {
             foreach ($leads as $lead) {
                 $newStatus = 'Open';
-                
+
                 // Fetch the lead's pipeline stage if needed, but we can just map based on legacy_status
                 // Krayin's legacy boolean status: 1 = Active, 0 = Inactive
                 $stage = DB::table('lead_pipeline_stages')->where('id', $lead->lead_pipeline_stage_id)->first();
@@ -54,7 +54,7 @@ return new class extends Migration
                 }
 
                 DB::table('leads')->where('id', $lead->id)->update([
-                    'status' => $newStatus
+                    'status' => $newStatus,
                 ]);
             }
         });

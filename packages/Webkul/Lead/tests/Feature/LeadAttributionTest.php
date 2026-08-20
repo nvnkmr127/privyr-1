@@ -1,10 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Event;
-use Webkul\Lead\Models\Lead;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Models\Source;
 use Webkul\Lead\Services\LeadIngestionService;
-use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 
 it('preserves first touch attribution on update', function () {
     Event::fake([
@@ -13,7 +12,7 @@ it('preserves first touch attribution on update', function () {
 
     $source = Source::factory()->create(['name' => 'Initial Source']);
     $newSource = Source::factory()->create(['name' => 'Updated Source']);
-    
+
     $ingestionService = app(LeadIngestionService::class);
 
     // Initial creation
@@ -64,7 +63,7 @@ it('preserves first touch attribution on update', function () {
     expect($updatedLead->latest_origin)->toBe('api')
         ->and($updatedLead->latest_lead_source_id)->toBe($newSource->id)
         ->and($updatedLead->latest_campaign)->toBe('New Campaign');
-        
+
     // History should have 2 records
     expect($updatedLead->attributionHistories()->count())->toBe(2);
 });

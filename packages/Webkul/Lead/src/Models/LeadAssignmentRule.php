@@ -4,6 +4,7 @@ namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Webkul\Lead\Contracts\LeadAssignmentRule as LeadAssignmentRuleContract;
+use Webkul\User\Models\GroupProxy;
 use Webkul\User\Models\UserProxy;
 
 class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
@@ -30,6 +31,6 @@ class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
 
     public function groups()
     {
-        return $this->belongsToMany(\Webkul\User\Models\GroupProxy::modelClass(), 'lead_assignment_rule_groups', 'rule_id', 'group_id');
+        return $this->belongsToMany(GroupProxy::modelClass(), 'lead_assignment_rule_groups', 'rule_id', 'group_id');
     }
 }

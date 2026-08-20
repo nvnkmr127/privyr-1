@@ -3,10 +3,11 @@
 namespace Webkul\Admin\Helpers;
 
 use Carbon\Carbon;
-use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Models\LeadProxy;
-use Webkul\Activity\Models\ActivityProxy;
 use Illuminate\Database\Eloquent\Builder;
+use Webkul\Activity\Models\ActivityProxy;
+use Webkul\Lead\Models\LeadProxy;
+use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Services\LeadVisibilityService;
 
 class LeadProductivityDashboard
 {
@@ -29,7 +30,7 @@ class LeadProductivityDashboard
     protected function applyFilters(Builder $query, array $filters): Builder
     {
         // Owner/Team filter (ACL is applied elsewhere if needed, but this applies explicit filters)
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $query->where('leads.user_id', $filters['user_id']);
         } elseif (empty($filters['bypass_acl'])) {
             // Apply ACL if not explicitly bypassed
@@ -37,12 +38,12 @@ class LeadProductivityDashboard
         }
 
         // Source filter
-        if (!empty($filters['source_id'])) {
+        if (! empty($filters['source_id'])) {
             $query->where('leads.lead_source_id', $filters['source_id']);
         }
 
         // Date filter for generic queries (if applicable)
-        if (!empty($filters['date_range'])) {
+        if (! empty($filters['date_range'])) {
             $dates = $this->getDateRange($filters);
             if ($dates) {
                 $query->whereBetween('leads.created_at', $dates);
@@ -55,13 +56,13 @@ class LeadProductivityDashboard
     protected function getDateRange(array $filters): ?array
     {
         $range = $filters['date_range'] ?? null;
-        
+
         return match ($range) {
             'today' => [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()],
             'yesterday' => [Carbon::yesterday()->startOfDay(), Carbon::yesterday()->endOfDay()],
             'last_7_days' => [Carbon::today()->subDays(7)->startOfDay(), Carbon::today()->endOfDay()],
             'last_30_days' => [Carbon::today()->subDays(30)->startOfDay(), Carbon::today()->endOfDay()],
-            'custom' => !empty($filters['start_date']) && !empty($filters['end_date']) 
+            'custom' => ! empty($filters['start_date']) && ! empty($filters['end_date'])
                 ? [Carbon::parse($filters['start_date'])->startOfDay(), Carbon::parse($filters['end_date'])->endOfDay()]
                 : null,
             default => null,
@@ -71,6 +72,7 @@ class LeadProductivityDashboard
     protected function getBaseLeadQuery(array $filters = []): Builder
     {
         $query = LeadProxy::modelClass()::query();
+
         return $this->applyFilters($query, $filters);
     }
 
@@ -90,11 +92,11 @@ class LeadProductivityDashboard
         $activityQuery = ActivityProxy::modelClass()::query()
             ->where('status', 'pending')
             ->whereDate('schedule_from', Carbon::today());
-        
-        if (!empty($filters['user_id'])) {
+
+        if (! empty($filters['user_id'])) {
             $activityQuery->where('user_id', $filters['user_id']);
         } elseif (empty($filters['bypass_acl'])) {
-            $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+            $visibilityService = app(LeadVisibilityService::class);
             $userIds = $visibilityService->getVisibleUserIds(auth()->user());
             if ($userIds !== null) {
                 $activityQuery->whereIn('user_id', $userIds);
@@ -106,11 +108,11 @@ class LeadProductivityDashboard
         $overdueActivityQuery = ActivityProxy::modelClass()::query()
             ->where('status', 'pending')
             ->where('schedule_from', '<', Carbon::now());
-            
-        if (!empty($filters['user_id'])) {
+
+        if (! empty($filters['user_id'])) {
             $overdueActivityQuery->where('user_id', $filters['user_id']);
         } elseif (empty($filters['bypass_acl'])) {
-            $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+            $visibilityService = app(LeadVisibilityService::class);
             $userIds = $visibilityService->getVisibleUserIds(auth()->user());
             if ($userIds !== null) {
                 $overdueActivityQuery->whereIn('user_id', $userIds);
@@ -149,7 +151,7 @@ class LeadProductivityDashboard
         $openCount = (clone $baseQuery)
             ->whereHas('stage', fn ($q) => $q->whereNotIn('code', ['won', 'lost']))
             ->count();
-            
+
         // Qualified Leads
         $qualifiedCount = (clone $baseQuery)
             ->where('qualification_status', 'qualified')
@@ -201,13 +203,13 @@ class LeadProductivityDashboard
             ->where('last_contacted_at', '<', Carbon::now()->subDays($inactiveDays))
             ->where('status', '!=', 'Nurturing')
             ->count();
-            
+
         // Overdue Leads
         $overdueLeadsCount = (clone $baseQuery)
             ->whereNotNull('next_follow_up_at')
             ->where('next_follow_up_at', '<', Carbon::now())
             ->count();
-            
+
         // Leads with no Follow-up
         $noFollowUpCount = (clone $baseQuery)
             ->whereNull('next_follow_up_at')
@@ -229,8 +231,8 @@ class LeadProductivityDashboard
     {
         $query = ActivityProxy::modelClass()::with('lead')
             ->where('status', 'pending');
-            
-        if (!empty($filters['user_id'])) {
+
+        if (! empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         } else {
             $userId = auth()->guard('user')->id();
@@ -238,7 +240,7 @@ class LeadProductivityDashboard
                 $query->where('user_id', $userId);
             }
         }
-            
+
         return $query->whereDate('schedule_from', '<=', Carbon::today())
             ->orderBy('schedule_from', 'asc')
             ->limit(10)

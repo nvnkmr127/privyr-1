@@ -29,7 +29,7 @@ return new class extends Migration
         Schema::table('leads', function (Blueprint $table) {
             $table->dropIndex(['stage_changed_at']);
             $table->dropIndex(['last_activity_at']);
-            
+
             $table->dropColumn(['last_activity_at', 'stage_changed_at']);
         });
     }

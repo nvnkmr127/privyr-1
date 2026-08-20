@@ -9,6 +9,7 @@ use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Admin\Http\Resources\ActivityResource;
 use Webkul\Email\Repositories\AttachmentRepository;
 use Webkul\Email\Repositories\EmailRepository;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class ActivityController extends Controller
 {
@@ -31,7 +32,7 @@ class ActivityController extends Controller
      */
     public function index($id)
     {
-        $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->findOrFail($id);
+        $lead = app(LeadRepository::class)->findOrFail($id);
         $this->authorize('view', $lead);
 
         $activities = $this->activityRepository

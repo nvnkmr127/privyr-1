@@ -38,7 +38,7 @@ class WorkflowExecution extends Model implements WorkflowExecutionContract
      * @var array
      */
     protected $casts = [
-        'started_at'   => 'datetime',
+        'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 

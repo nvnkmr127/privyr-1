@@ -2,8 +2,8 @@
 
 namespace Webkul\Lead\Services;
 
-use Webkul\Lead\Models\LeadAttributionHistoryProxy;
 use Webkul\Lead\Contracts\Lead;
+use Webkul\Lead\Models\LeadAttributionHistoryProxy;
 
 class LeadAttributionService
 {
@@ -70,7 +70,7 @@ class LeadAttributionService
             'external_source' => $data['external_source'] ?? null,
             'external_id' => $data['external_id'] ?? null,
         ]);
-        
+
         event('lead.attribution.updated', $lead);
     }
 }

@@ -22,7 +22,7 @@ return new class extends Migration
     {
         Schema::table('leads', function (Blueprint $table) {
             $table->dropForeign(['nurture_reason_id']);
-            
+
             $table->dropColumn([
                 'nurture_reason_id',
                 'nurtured_at',

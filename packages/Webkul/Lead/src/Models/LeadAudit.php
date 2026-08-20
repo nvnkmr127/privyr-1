@@ -2,8 +2,9 @@
 
 namespace Webkul\Lead\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Exception;
+use Illuminate\Database\Eloquent\Model;
+use Webkul\User\Models\User;
 
 class LeadAudit extends Model
 {
@@ -43,23 +44,24 @@ class LeadAudit extends Model
      */
     public function user()
     {
-        return $this->belongsTo(\Webkul\User\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
      * Prevent updates to audit records (immutability).
      *
      * @return void
+     *
      * @throws Exception
      */
     protected static function booted()
     {
         static::updating(function ($audit) {
-            throw new Exception("Audit records cannot be modified.");
+            throw new Exception('Audit records cannot be modified.');
         });
 
         static::deleting(function ($audit) {
-            throw new Exception("Audit records cannot be deleted.");
+            throw new Exception('Audit records cannot be deleted.');
         });
     }
 }

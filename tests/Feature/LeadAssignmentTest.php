@@ -47,8 +47,6 @@ it('logs manual assignment and updates timeline', function () {
         ->and($assignment2->reason)->toBe('Manual Reassignment');
 });
 
-
-
 it('executes direct rule assignment based on conditions', function () {
     $this->loginAsAdmin();
     $user1 = User::create(['name' => 'User 1', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);

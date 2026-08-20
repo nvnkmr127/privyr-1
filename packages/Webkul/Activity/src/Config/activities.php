@@ -21,6 +21,6 @@ return [
         'follow-up' => [
             'Completed' => 'Completed',
             'Did not connect' => 'Did not connect',
-        ]
-    ]
+        ],
+    ],
 ];

@@ -10,6 +10,7 @@ use Webkul\Activity\Contracts\Participant as ParticipantContract;
 use Webkul\Activity\Models\Activity;
 use Webkul\Activity\Models\File;
 use Webkul\Activity\Models\Participant;
+use Webkul\Activity\Observers\ActivityObserver;
 
 class ActivityServiceProvider extends ServiceProvider
 {
@@ -23,7 +24,7 @@ class ActivityServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            dirname(__DIR__) . '/Config/activities.php', 'activities'
+            dirname(__DIR__).'/Config/activities.php', 'activities'
         );
 
         $this->app->bindIf(ActivityContract::class, Activity::class);
@@ -46,7 +47,7 @@ class ActivityServiceProvider extends ServiceProvider
         // Laravel container — so this registration is strictly necessary for
         // proxies like ActivityProxy used in Eloquent relationships.
         $this->app->booted(function () {
-            Activity::observe(\Webkul\Activity\Observers\ActivityObserver::class);
+            Activity::observe(ActivityObserver::class);
 
             $concord = app('concord');
 

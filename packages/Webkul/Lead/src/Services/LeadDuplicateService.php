@@ -2,8 +2,8 @@
 
 namespace Webkul\Lead\Services;
 
-use Webkul\Lead\Repositories\LeadRepository;
 use Illuminate\Support\Str;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class LeadDuplicateService
 {
@@ -23,12 +23,12 @@ class LeadDuplicateService
 
         $isPlus = str_starts_with(trim($phone), '+');
         $normalized = preg_replace('/[^0-9]/', '', $phone);
-        
+
         if (empty($normalized)) {
             return null;
         }
 
-        return $isPlus ? '+' . $normalized : $normalized;
+        return $isPlus ? '+'.$normalized : $normalized;
     }
 
     /**
@@ -89,22 +89,22 @@ class LeadDuplicateService
         // or check if similar name exists with the same phone/email (but they didn't match exactly above).
         // If the normalized primary didn't match, we can check the JSON arrays `emails` or `contact_numbers`
         // just in case they have it as a secondary contact.
-        
+
         $mediumQuery = clone $query;
         $hasMediumQuery = false;
-        
+
         $mediumQuery->where(function ($q) use ($email, $phone, $name, &$hasMediumQuery) {
             if ($email && $name) {
                 $q->orWhere(function ($sub) use ($email, $name) {
-                    $sub->where('emails', 'LIKE', '%' . $email . '%')
-                        ->where('person_name', 'LIKE', '%' . $name . '%');
+                    $sub->where('emails', 'LIKE', '%'.$email.'%')
+                        ->where('person_name', 'LIKE', '%'.$name.'%');
                 });
                 $hasMediumQuery = true;
             }
             if ($phone && $name) {
                 $q->orWhere(function ($sub) use ($phone, $name) {
-                    $sub->where('contact_numbers', 'LIKE', '%' . $phone . '%')
-                        ->where('person_name', 'LIKE', '%' . $name . '%');
+                    $sub->where('contact_numbers', 'LIKE', '%'.$phone.'%')
+                        ->where('person_name', 'LIKE', '%'.$name.'%');
                 });
                 $hasMediumQuery = true;
             }
@@ -143,7 +143,7 @@ class LeadDuplicateService
                 'stage' => $lead->stage ? $lead->stage->name : null,
                 'last_activity' => $lead->last_contacted_at,
                 'source' => $lead->source ? $lead->source->name : null,
-            ]
+            ],
         ];
     }
 }

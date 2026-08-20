@@ -7,6 +7,9 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Webkul\Lead\Contracts\Lead;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
+use Webkul\Lead\Exceptions\LeadIngestionException;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -17,8 +20,8 @@ class LeadCaptureService
     public function __construct(
         protected LeadRepository $leadRepository,
         protected PipelineRepository $pipelineRepository,
-        protected \Webkul\Lead\Contracts\LeadIngestionService $leadIngestionService,
-        protected \Webkul\Lead\Services\LeadDuplicateService $leadDuplicateService
+        protected LeadIngestionService $leadIngestionService,
+        protected LeadDuplicateService $leadDuplicateService
     ) {}
 
     /**
@@ -91,7 +94,7 @@ class LeadCaptureService
                 'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
                 'is_unread' => true,
             ], $customLeadAttributes);
-            
+
             $metadata = [
                 'utm_source' => $mappedData['utm_source'] ?? null,
                 'utm_medium' => $mappedData['utm_medium'] ?? null,
@@ -108,7 +111,7 @@ class LeadCaptureService
                 default => 'webhook',
             };
 
-            $ingestionPayload = new \Webkul\Lead\DataTransferObjects\LeadIngestionPayload(
+            $ingestionPayload = new LeadIngestionPayload(
                 origin: $origin,
                 sourceName: $connector->name,
                 sourceId: $connector->lead_source_id,
@@ -136,7 +139,7 @@ class LeadCaptureService
             return $lead;
         } catch (\Throwable $e) {
             // Only log if it's not a LeadIngestionException, as LeadIngestionService already logs those.
-            if (! $dryRun && ! ($e instanceof \Webkul\Lead\Exceptions\LeadIngestionException)) {
+            if (! $dryRun && ! ($e instanceof LeadIngestionException)) {
                 LeadCaptureLog::create([
                     'connector_id' => $connector->id,
                     'raw_payload' => $payload,
@@ -276,6 +279,4 @@ class LeadCaptureService
 
         return $payload;
     }
-
-
 }

@@ -1,11 +1,9 @@
 <?php
 
-use Webkul\Lead\Models\Lead;
-use Webkul\Activity\Models\Activity;
-use Webkul\User\Models\User;
 use Carbon\Carbon;
+use Webkul\Lead\Models\Lead;
+use Webkul\User\Models\User;
 
-use function Pest\Laravel\get;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
