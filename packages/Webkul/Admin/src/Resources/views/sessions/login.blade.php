@@ -139,19 +139,18 @@
                 if (emailField && passwordField) {
                     emailField.value = "admin@example.com";
                     passwordField.value = "admin123";
+                    
                     emailField.dispatchEvent(new Event("input", { bubbles: true }));
                     passwordField.dispatchEvent(new Event("input", { bubbles: true }));
                     emailField.dispatchEvent(new Event("change", { bubbles: true }));
                     passwordField.dispatchEvent(new Event("change", { bubbles: true }));
 
                     setTimeout(() => {
-                        let submitBtn = emailField.closest("form")?.querySelector("button.primary-button");
+                        let submitBtn = document.querySelector(".primary-button");
                         if (submitBtn) {
                             submitBtn.click();
-                        } else {
-                            emailField.closest("form")?.requestSubmit();
                         }
-                    }, 50);
+                    }, 100);
                 }
             }
         </script>

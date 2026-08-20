@@ -31,6 +31,9 @@ class ActivityController extends Controller
      */
     public function index($id)
     {
+        $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->findOrFail($id);
+        $this->authorize('view', $lead);
+
         $activities = $this->activityRepository
             ->where('lead_id', $id)
             ->get();

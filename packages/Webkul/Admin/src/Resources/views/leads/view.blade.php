@@ -166,13 +166,19 @@
                     </a>
                 </div>
 
+                @php
+                    $extraTypes = [
+                        ['name' => 'timeline', 'label' => 'Timeline'],
+                    ];
+                    if (bouncer()->hasPermission('leads.view_audit')) {
+                        $extraTypes[] = ['name' => 'audit', 'label' => 'Audit History'];
+                    }
+                @endphp
                 <x-admin::activities
                     :endpoint="route('admin.leads.activities.index', $lead->id)"
                     :email-detach-endpoint="route('admin.leads.emails.detach', $lead->id)"
                     :activeType="request()->query('tab') ?? 'timeline'"
-                    :extra-types="[
-                        ['name' => 'timeline', 'label' => 'Timeline'],
-                    ]"
+                    :extra-types="$extraTypes"
                 >
                     <!-- Timeline Tab -->
                     <x-slot:timeline>
@@ -181,6 +187,13 @@
                         </div>
                     </x-slot:timeline>
 
+                    @if (bouncer()->hasPermission('leads.view_audit'))
+                    <x-slot:audit>
+                        <div class="p-6 animate-[on-fade_0.5s_ease-in-out]">
+                            @include('admin::leads.view.audit')
+                        </div>
+                    </x-slot:audit>
+                    @endif
 
                 </x-admin::activities>
 

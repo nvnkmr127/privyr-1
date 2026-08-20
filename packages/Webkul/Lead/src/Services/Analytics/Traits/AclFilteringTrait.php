@@ -11,7 +11,13 @@ trait AclFilteringTrait
      */
     protected function applyAclFiltering(Builder $query, string $userIdColumn = 'leads.user_id'): Builder
     {
-        if ($userIds = bouncer()->getAuthorizedUserIds()) {
+        $user = auth()->user();
+        if (! $user) return $query;
+
+        $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+        $userIds = $visibilityService->getVisibleUserIds($user);
+
+        if ($userIds !== null) {
             $query->whereIn($userIdColumn, $userIds);
         }
 

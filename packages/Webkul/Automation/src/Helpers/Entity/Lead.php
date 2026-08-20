@@ -83,7 +83,7 @@ class Lead extends AbstractEntity
             ], [
                 'id' => 'add_note_as_activity',
                 'name' => trans('admin::app.settings.workflows.helpers.add-note-as-activity'),
-            [
+            ], [
                 'id' => 'trigger_webhook',
                 'name' => trans('admin::app.settings.workflows.helpers.add-webhook'),
                 'options' => $webhooksOptions,

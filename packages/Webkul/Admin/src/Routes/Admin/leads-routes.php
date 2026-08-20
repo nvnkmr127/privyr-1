@@ -112,4 +112,8 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
         Route::delete('', 'detach')->name('admin.leads.emails.detach');
     });
 
+    Route::controller(\Webkul\Admin\Http\Controllers\Lead\AuditController::class)->prefix('{id}/audits')->group(function () {
+        Route::get('', 'index')->name('admin.leads.audits.index');
+    });
+
 });

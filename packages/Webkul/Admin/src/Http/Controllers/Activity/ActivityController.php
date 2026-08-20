@@ -141,7 +141,12 @@ class ActivityController extends Controller
 
         $this->preventUnauthorizedAccess($this->activityOwnerIds($activity));
 
-        $leadId = old('lead_id') ?? optional($activity->leads()->first())->id;
+        $lead = $activity->leads()->first();
+        if ($lead) {
+            $this->authorize('view', $lead);
+        }
+
+        $leadId = old('lead_id') ?? optional($lead)->id;
 
         $lookUpEntityData = $this->attributeRepository->getLookUpEntity('leads', $leadId);
 

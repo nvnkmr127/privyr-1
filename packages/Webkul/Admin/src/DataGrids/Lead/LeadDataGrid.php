@@ -138,11 +138,27 @@ class LeadDataGrid extends DataGrid
             }
         }
 
-        if ($userIds = bouncer()->getAuthorizedUserIds()) {
-            $queryBuilder->whereIn('leads.user_id', $userIds);
-        }
+        $user = auth()->guard('user')->user();
+        if ($user) {
+            $visibilityService = app(\Webkul\Lead\Services\LeadVisibilityService::class);
+            $visibleUserIds = $visibilityService->getVisibleUserIds($user);
 
-        // Tenant isolation (raw query builder — the Lead model global scope does
+            if ($visibleUserIds !== null) {
+                $queryBuilder->where(function ($q) use ($visibleUserIds, $user) {
+                    $q->whereIn('leads.user_id', $visibleUserIds);
+                    
+                    if ($user->view_permission == 'group') {
+                        $userGroupIds = $user->groups()->pluck('id')->toArray();
+                        if (! empty($userGroupIds)) {
+                            $q->orWhere(function ($subQ) use ($userGroupIds) {
+                                $subQ->whereNull('leads.user_id')
+                                     ->whereIn('leads.group_id', $userGroupIds);
+                            });
+                        }
+                    }
+                });
+            }
+        }
         // not apply here). Null = no current tenant / super-admin = see all.
         if (($workspaceId = app(WorkspaceContext::class)->currentWorkspaceId()) !== null) {
             $queryBuilder->where('leads.workspace_id', $workspaceId);
