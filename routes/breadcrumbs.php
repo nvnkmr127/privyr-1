@@ -313,6 +313,22 @@ Breadcrumbs::for('settings.webhooks.edit', function (BreadcrumbTrail $trail, $wo
     $trail->push(trans('admin::app.settings.webhooks.edit.edit-btn'), route('admin.settings.workflows.edit', $workflow->id));
 });
 
+// Settings > Lead Assignment Rules
+Breadcrumbs::for('settings.lead_assignment_rules', function (BreadcrumbTrail $trail) {
+    $trail->parent('settings');
+    $trail->push('Lead Assignment Rules', route('admin.settings.lead_assignment_rules.index'));
+});
+
+Breadcrumbs::for('settings.lead_assignment_rules.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('settings.lead_assignment_rules');
+    $trail->push('Create Lead Assignment Rule', route('admin.settings.lead_assignment_rules.create'));
+});
+
+Breadcrumbs::for('settings.lead_assignment_rules.edit', function (BreadcrumbTrail $trail, $rule) {
+    $trail->parent('settings.lead_assignment_rules');
+    $trail->push('Edit Lead Assignment Rule', route('admin.settings.lead_assignment_rules.edit', is_object($rule) ? $rule->id : $rule));
+});
+
 // Settings > Tags
 Breadcrumbs::for('settings.tags', function (BreadcrumbTrail $trail) {
     $trail->parent('settings');

@@ -19,6 +19,12 @@ class LeadServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
         Lead::observe(LeadObserver::class);
+        
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Webkul\Lead\Console\Commands\EvaluateLeadHealth::class,
+            ]);
+        }
     }
 
     /**
@@ -26,5 +32,11 @@ class LeadServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register() {}
+    public function register()
+    {
+        $this->app->singleton(
+            \Webkul\Lead\Contracts\LeadIngestionService::class,
+            \Webkul\Lead\Services\LeadIngestionService::class
+        );
+    }
 }

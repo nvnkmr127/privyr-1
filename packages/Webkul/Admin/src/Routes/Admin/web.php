@@ -26,6 +26,11 @@ require 'settings-routes.php';
 require 'activities-routes.php';
 
 /**
+ * Follow Ups routes.
+ */
+require 'follow-ups-routes.php';
+
+/**
  * Configuration routes.
  */
 require 'configuration-routes.php';

@@ -83,10 +83,20 @@ class Lead extends AbstractEntity
             ], [
                 'id' => 'add_note_as_activity',
                 'name' => trans('admin::app.settings.workflows.helpers.add-note-as-activity'),
-            ], [
+            [
                 'id' => 'trigger_webhook',
                 'name' => trans('admin::app.settings.workflows.helpers.add-webhook'),
                 'options' => $webhooksOptions,
+            ], [
+                'id' => 'assign_owner',
+                'name' => 'Assign Owner', // Should be translated
+                'attributes' => [
+                    [
+                        'id' => 'owner_id',
+                        'type' => 'select',
+                        'name' => 'Owner',
+                    ]
+                ],
             ],
         ];
     }
@@ -188,6 +198,13 @@ class Lead extends AbstractEntity
                     } catch (\Exception $e) {
                         report($e);
                     }
+
+                    break;
+
+                case 'assign_owner':
+                    $this->leadRepository->update([
+                        'user_id' => $action['value']
+                    ], $lead->id);
 
                     break;
             }

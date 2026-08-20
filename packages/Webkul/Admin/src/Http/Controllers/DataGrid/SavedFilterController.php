@@ -31,6 +31,11 @@ class SavedFilterController extends Controller
             'name' => request('name'),
             'src' => request('src'),
             'applied' => request('applied'),
+            'visibility' => request('visibility', 'private'),
+            'description' => request('description'),
+            'columns' => request('columns'),
+            'sort_column' => request('sort_column'),
+            'sort_direction' => request('sort_direction'),
         ]);
 
         Event::dispatch('datagrid.saved_filter.create.after', $savedFilter);
@@ -46,10 +51,12 @@ class SavedFilterController extends Controller
      */
     public function get()
     {
-        $savedFilters = $this->savedFilterRepository->findWhere([
-            'src' => request()->get('src'),
-            'user_id' => auth()->guard()->user()->id,
-        ]);
+        $savedFilters = $this->savedFilterRepository->getModel()
+            ->where('src', request()->get('src'))
+            ->where(function($query) {
+                $query->where('user_id', auth()->guard()->user()->id)
+                      ->orWhere('visibility', 'shared');
+            })->get();
 
         return response()->json(['data' => $savedFilters]);
     }
@@ -65,10 +72,12 @@ class SavedFilterController extends Controller
             'name' => 'required|unique:datagrid_saved_filters,name,'.$id.',id,src,'.request('src').',user_id,'.$userId,
         ]);
 
-        $savedFilter = $this->savedFilterRepository->findOneWhere([
-            'id' => $id,
-            'user_id' => auth()->guard()->user()->id,
-        ]);
+        $savedFilter = $this->savedFilterRepository->getModel()->where('id', $id)->first();
+
+        // Check if user has permission to update
+        if ($savedFilter && $savedFilter->user_id != auth()->guard()->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         if (! $savedFilter) {
             return response()->json([], 404);
@@ -80,6 +89,11 @@ class SavedFilterController extends Controller
             'name',
             'src',
             'applied',
+            'visibility',
+            'description',
+            'columns',
+            'sort_column',
+            'sort_direction'
         ]), $id);
 
         Event::dispatch('datagrid.saved_filter.update.after', $updatedFilter);

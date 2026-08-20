@@ -33,11 +33,24 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
     Route::get('inbox', 'inbox')->name('admin.leads.inbox');
 
+    Route::get('nurturing', 'nurturing')->name('admin.leads.nurturing');
+    Route::post('nurture/{id}', 'nurture')->name('admin.leads.nurture');
+    Route::post('end-nurture/{id}', 'endNurture')->name('admin.leads.end_nurture');
+
     Route::get('inbox/data', 'inboxData')->name('admin.leads.inbox.data');
 
     Route::post('inbox/swipe', 'swipeAction')->name('admin.leads.inbox.swipe');
 
     Route::post('inbox/bulk', 'bulkAction')->name('admin.leads.inbox.bulk');
+
+    Route::post('bulk', [\Webkul\Admin\Http\Controllers\Lead\BulkActionController::class, 'execute'])->name('admin.leads.bulk');
+
+    // Import Routes
+    Route::get('import', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'index'])->name('admin.leads.import');
+    Route::post('import/upload', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'upload'])->name('admin.leads.import.upload');
+    Route::post('import/validate', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'validateMapping'])->name('admin.leads.import.validate');
+    Route::post('import/process', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'process'])->name('admin.leads.import.process');
+    Route::get('import/status/{id}', [\Webkul\Admin\Http\Controllers\Lead\ImportWizardController::class, 'status'])->name('admin.leads.import.status');
 
     Route::get('create', 'create')->name('admin.leads.create');
 
@@ -60,6 +73,8 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::post('follow-up/snooze/{id}', 'snoozeFollowUp')->name('admin.leads.follow_up.snooze');
 
     Route::put('stage/edit/{id}', 'updateStage')->name('admin.leads.stage.update');
+    
+    Route::put('status/edit/{id}', 'updateStatus')->name('admin.leads.status.update');
 
     Route::get('search', 'search')->name('admin.leads.search');
 
@@ -68,6 +83,10 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::post('mass-update', 'massUpdate')->name('admin.leads.mass_update');
 
     Route::post('mass-destroy', 'massDestroy')->name('admin.leads.mass_delete');
+
+    Route::post('mass-reassign', 'massReassign')->name('admin.leads.mass_reassign');
+
+    Route::post('assign/{id}', 'assign')->name('admin.leads.assign');
 
     Route::get('duplicate/{id}', 'duplicate')->name('admin.leads.duplicate');
 

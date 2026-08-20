@@ -125,6 +125,21 @@
                                 </x-slot>
 
                                 <x-slot:content class="">
+                                    <!-- Match Type Selector -->
+                                    <div class="px-4 py-2 mb-2 border-b dark:border-gray-800" v-if="hasAnyAppliedColumn()">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-medium text-gray-500">Match:</span>
+                                            <select
+                                                class="text-xs bg-white border border-gray-300 rounded px-2 py-1 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
+                                                v-model="matchType"
+                                                @change="applyMatchType"
+                                            >
+                                                <option value="all">All filters (AND)</option>
+                                                <option value="any">Any filter (OR)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <!-- All Filters -->
                                     <div v-for="column in available.columns">
                                         <div v-if="column.filterable">
@@ -927,7 +942,10 @@
 
                     filters: {
                         columns: [],
+                        matchType: 'all',
                     },
+
+                    matchType: 'all',
 
                     isShowSavedFilters: false,
 
@@ -1123,9 +1141,14 @@
                  * @returns {void}
                  */
                 applyFilters() {
+                    this.filters.matchType = this.matchType;
                     this.$emit('applyFilters', this.filters);
 
                     this.$refs.filterDrawer.close();
+                },
+
+                applyMatchType() {
+                    this.applyFilters();
                 },
 
                 /**

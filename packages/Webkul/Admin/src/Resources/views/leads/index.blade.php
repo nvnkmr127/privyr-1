@@ -39,6 +39,13 @@
                 <!-- Create button for Leads -->
                 @if (bouncer()->hasPermission('leads.create'))
                     <a
+                        href="{{ route('admin.leads.import') }}"
+                        class="secondary-button"
+                    >
+                        @lang('admin::app.leads.index.import')
+                    </a>
+
+                    <a
                         href="{{ route('admin.leads.create', request()->query()) }}"
                         class="primary-button"
                     >

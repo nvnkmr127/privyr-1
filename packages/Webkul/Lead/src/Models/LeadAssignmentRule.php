@@ -27,4 +27,9 @@ class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
         return $this->belongsToMany(UserProxy::modelClass(), 'lead_assignment_rule_users', 'rule_id', 'user_id')
             ->withPivot('weight', 'last_assigned_at');
     }
+
+    public function groups()
+    {
+        return $this->belongsToMany(\Webkul\User\Models\GroupProxy::modelClass(), 'lead_assignment_rule_groups', 'rule_id', 'group_id');
+    }
 }

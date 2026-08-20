@@ -7,6 +7,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Attribute\Repositories\AttributeRepository;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
@@ -28,6 +30,7 @@ class WebFormController extends Controller
         protected PipelineRepository $pipelineRepository,
         protected SourceRepository $sourceRepository,
         protected TypeRepository $typeRepository,
+        protected LeadIngestionService $leadIngestionService
     ) {}
 
     /**
@@ -51,53 +54,50 @@ class WebFormController extends Controller
         $webForm = $this->webFormRepository->findOrFail($id);
 
         if ($webForm->create_lead) {
-            request()->request->add(['entity_type' => 'leads']);
-
-            Event::dispatch('lead.create.before');
-
-            $data = request('leads');
-
-            $data['entity_type'] = 'leads';
-
+            $data = request('leads') ?? [];
+            
             $data['status'] = 1;
-
-            /**
-             * The pipeline is configured on the web form by the admin, so the default pipeline is
-             * only used when the web form does not point to one.
-             */
+            
+            // Set Pipeline
             $pipeline = $webForm->lead_pipeline_id
                 ? $this->pipelineRepository->find($webForm->lead_pipeline_id)
                 : null;
-
-            if (! $pipeline) {
-                $pipeline = $this->pipelineRepository->getDefaultPipeline();
-            }
-
-            $stage = $pipeline->stages()->first();
-
-            $data['lead_pipeline_id'] = $pipeline->id;
-
-            $data['lead_pipeline_stage_id'] = $stage->id;
-
-            $data['title'] = request('leads.title') ?: 'Lead From Web Form';
-
-            $data['lead_value'] = request('leads.lead_value') ?: 0;
-
-            if (! request('leads.lead_source_id')) {
-                $source = $this->sourceRepository->findOneByField('name', 'Web Form');
-
-                if (! $source) {
-                    $source = $this->sourceRepository->first();
+            if ($pipeline) {
+                $data['lead_pipeline_id'] = $pipeline->id;
+                $stage = $pipeline->stages()->first();
+                if ($stage) {
+                    $data['lead_pipeline_stage_id'] = $stage->id;
                 }
-
-                $data['lead_source_id'] = $source->id;
             }
 
-            $data['lead_type_id'] = request('leads.lead_type_id') ?: $this->typeRepository->first()->id;
+            // Set Title
+            $data['title'] = request('leads.title') ?: 'Lead From Web Form';
+            $data['lead_value'] = request('leads.lead_value') ?: 0;
+            $data['lead_type_id'] = request('leads.lead_type_id') ?: $this->typeRepository->first()?->id;
+            
+            // Determine source
+            $sourceId = request('leads.lead_source_id');
+            if (!$sourceId) {
+                $source = $this->sourceRepository->findOneByField('name', 'Web Form') ?? $this->sourceRepository->first();
+                $sourceId = $source?->id;
+            }
 
-            $lead = $this->leadRepository->create($data);
+            try {
+                $payload = new LeadIngestionPayload(
+                    origin: 'webform',
+                    sourceId: $sourceId,
+                    leadData: $data,
+                    metadata: [
+                        'form_id' => $webForm->form_id,
+                    ]
+                );
 
-            Event::dispatch('lead.create.after', $lead);
+                $this->leadIngestionService->ingest($payload);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
         }
 
         if ($webForm->submit_success_action == 'message') {

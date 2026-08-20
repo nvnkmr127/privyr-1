@@ -34,15 +34,15 @@ class ActivityRepository extends Repository
             ]);
         }
 
-        if (! isset($data['participants'])) {
-            return $activity;
+        if (isset($data['participants'])) {
+            foreach ($data['participants']['users'] ?? [] as $userId) {
+                $activity->participants()->create([
+                    'user_id' => $userId,
+                ]);
+            }
         }
 
-        foreach ($data['participants']['users'] ?? [] as $userId) {
-            $activity->participants()->create([
-                'user_id' => $userId,
-            ]);
-        }
+        \Illuminate\Support\Facades\Event::dispatch('activity.created', $activity);
 
         return $activity;
     }
@@ -76,6 +76,12 @@ class ActivityRepository extends Repository
                 ]);
             }
 
+        }
+
+        if (isset($data['is_done']) && $data['is_done']) {
+            \Illuminate\Support\Facades\Event::dispatch('activity.completed', $activity);
+        } else {
+            \Illuminate\Support\Facades\Event::dispatch('activity.updated', $activity);
         }
 
         return $activity;
@@ -139,10 +145,6 @@ class ActivityRepository extends Repository
                 if (isset($participants['users'])) {
                     $query->orWhereIn('activity_participants.user_id', $participants['users']);
                 }
-
-                if (isset($participants['persons'])) {
-                    $query->orWhereIn('activity_participants.person_id', $participants['persons']);
-                }
             })
             ->groupBy('activities.id');
 
@@ -151,5 +153,23 @@ class ActivityRepository extends Repository
         }
 
         return $queryBuilder->count() ? true : false;
+    }
+
+    /**
+     * Delete a repository entity
+     *
+     * @param int $id
+     *
+     * @return int
+     */
+    public function delete($id)
+    {
+        $activity = $this->find($id);
+
+        $result = parent::delete($id);
+
+        \Illuminate\Support\Facades\Event::dispatch('activity.deleted', $activity);
+
+        return $result;
     }
 }

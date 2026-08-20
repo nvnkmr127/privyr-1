@@ -35,11 +35,17 @@ class LeadResource extends JsonResource
             'utm_campaign' => $this->utm_campaign,
             'person' => $this->person ? new PersonResource($this->person) : null,
             'user' => $this->user ? new UserResource($this->user) : null,
+            'group' => $this->group ? ['id' => $this->group->id, 'name' => $this->group->name] : null,
             'type' => $this->type ? new TypeResource($this->type) : null,
             'source' => $this->source ? new SourceResource($this->source) : null,
             'pipeline' => $this->pipeline ? new PipelineResource($this->pipeline) : null,
             'stage' => $this->stage ? new StageResource($this->stage) : null,
             'tags' => TagResource::collection($this->tags),
+            'health_state' => $this->health_state,
+            'lead_age_days' => $this->lead_age_days,
+            'stage_age_days' => $this->stage_age_days,
+            'last_activity_at' => $this->last_activity_at,
+            'next_follow_up_at' => $this->next_follow_up_at,
         ];
     }
 }

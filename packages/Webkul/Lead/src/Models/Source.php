@@ -16,6 +16,10 @@ class Source extends Model implements SourceContract
      */
     protected $fillable = [
         'name',
+        'is_active',
+        'default_lead_pipeline_id',
+        'default_lead_pipeline_stage_id',
+        'default_user_id',
     ];
 
     /**

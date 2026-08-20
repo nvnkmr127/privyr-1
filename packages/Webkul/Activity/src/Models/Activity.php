@@ -48,6 +48,11 @@ class Activity extends Model implements ActivityContract
         'schedule_from',
         'schedule_to',
         'is_done',
+        'status',
+        'outcome',
+        'priority',
+        'completed_at',
+        'completed_by_id',
         'user_id',
         'lead_id',
     ];
@@ -82,5 +87,45 @@ class Activity extends Model implements ActivityContract
     public function lead()
     {
         return $this->belongsTo(LeadProxy::modelClass());
+    }
+
+    /**
+     * Get the user that completed the activity.
+     */
+    public function completedBy()
+    {
+        return $this->belongsTo(UserProxy::modelClass(), 'completed_by_id');
+    }
+
+    /**
+     * Scope for pending activities.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope for overdue activities.
+     */
+    public function scopeOverdue($query)
+    {
+        return $query->where('status', 'pending')->where('schedule_from', '<', now());
+    }
+
+    /**
+     * Scope for upcoming activities.
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->where('status', 'pending')->where('schedule_from', '>=', now());
+    }
+
+    /**
+     * Scope for completed today.
+     */
+    public function scopeCompletedToday($query)
+    {
+        return $query->where('status', 'completed')->whereDate('completed_at', today());
     }
 }

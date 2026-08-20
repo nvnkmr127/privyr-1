@@ -8,7 +8,16 @@ it('renders the activity timeline with responsive two-column proportions and sti
     $admin = User::first();
     $this->actingAs($admin);
 
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     $response = $this->get(route('admin.leads.view', $lead->id));
 
@@ -23,7 +32,16 @@ it('renders chronological timeline events with category filter buttons and badge
     $admin = User::first();
     $this->actingAs($admin);
 
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     // Attach a call activity with long description
     $activity = Activity::create([

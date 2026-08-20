@@ -91,8 +91,9 @@ test('it merges two leads correctly', function () {
 });
 
 test('it automatically calculates lead score', function () {
-    $lead = Lead::create([
+    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
         'title' => 'Scored Lead',
+        'entity_type' => 'leads',
         'lead_value' => 100,
         'user_id' => $this->admin->id,
         'person_name' => $this->person_name,

@@ -16,7 +16,8 @@ class SourceDataGrid extends DataGrid
         $queryBuilder = DB::table('lead_sources')
             ->addSelect(
                 'lead_sources.id',
-                'lead_sources.name'
+                'lead_sources.name',
+                'lead_sources.is_active'
             );
 
         $this->addFilter('id', 'lead_sources.id');
@@ -42,6 +43,13 @@ class SourceDataGrid extends DataGrid
             'type' => 'string',
             'searchable' => true,
             'filterable' => true,
+            'sortable' => true,
+        ]);
+
+        $this->addColumn([
+            'index' => 'is_active',
+            'label' => 'Active',
+            'type' => 'boolean',
             'sortable' => true,
         ]);
     }

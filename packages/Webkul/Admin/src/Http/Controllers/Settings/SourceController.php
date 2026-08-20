@@ -28,7 +28,10 @@ class SourceController extends Controller
             return datagrid(SourceDataGrid::class)->process();
         }
 
-        return view('admin::settings.sources.index');
+        $pipelines = app(\Webkul\Lead\Repositories\PipelineRepository::class)->all();
+        $users = app(\Webkul\User\Repositories\UserRepository::class)->all();
+
+        return view('admin::settings.sources.index', compact('pipelines', 'users'));
     }
 
     /**
@@ -38,11 +41,22 @@ class SourceController extends Controller
     {
         $this->validate(request(), [
             'name' => ['required', 'unique:lead_sources,name'],
+            'is_active' => 'sometimes|boolean',
+            'default_lead_pipeline_id' => 'nullable|integer|exists:lead_pipelines,id',
+            'default_lead_pipeline_stage_id' => 'nullable|integer|exists:lead_pipeline_stages,id',
+            'default_user_id' => 'nullable|integer|exists:users,id',
         ]);
 
         Event::dispatch('settings.source.create.before');
 
-        $source = $this->sourceRepository->create(request()->only(['name']));
+        $data = request()->only([
+            'name', 'is_active', 'default_lead_pipeline_id', 
+            'default_lead_pipeline_stage_id', 'default_user_id'
+        ]);
+        
+        $data['is_active'] = request()->has('is_active') ? request('is_active') : 1;
+
+        $source = $this->sourceRepository->create($data);
 
         Event::dispatch('settings.source.create.after', $source);
 
@@ -71,11 +85,22 @@ class SourceController extends Controller
     {
         $this->validate(request(), [
             'name' => 'required|unique:lead_sources,name,'.$id,
+            'is_active' => 'sometimes|boolean',
+            'default_lead_pipeline_id' => 'nullable|integer|exists:lead_pipelines,id',
+            'default_lead_pipeline_stage_id' => 'nullable|integer|exists:lead_pipeline_stages,id',
+            'default_user_id' => 'nullable|integer|exists:users,id',
         ]);
 
         Event::dispatch('settings.source.update.before', $id);
 
-        $source = $this->sourceRepository->update(request()->only(['name']), $id);
+        $data = request()->only([
+            'name', 'is_active', 'default_lead_pipeline_id', 
+            'default_lead_pipeline_stage_id', 'default_user_id'
+        ]);
+
+        $data['is_active'] = request()->has('is_active') ? request('is_active') : 0;
+
+        $source = $this->sourceRepository->update($data, $id);
 
         Event::dispatch('settings.source.update.after', $source);
 

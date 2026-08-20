@@ -227,6 +227,7 @@
                         sort: {},
 
                         filters: {},
+                        match_type: this.applied.filters.match_type || 'all',
                     };
 
                     if (
@@ -365,6 +366,7 @@
                         ...(this.applied.filters.columns.filter((column) => column.index === 'all')),
                         ...filters.columns,
                     ];
+                    this.applied.filters.match_type = filters.matchType || 'all';
 
                     /**
                      * This will check for empty column values and reset the saved filter ID to ensure the saved filter is not highlighted.

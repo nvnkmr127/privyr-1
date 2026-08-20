@@ -3,8 +3,10 @@
 namespace Webkul\Admin\Helpers;
 
 use Carbon\Carbon;
-use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Models\LeadProxy;
+use Webkul\Activity\Models\ActivityProxy;
+use Illuminate\Database\Eloquent\Builder;
 
 class LeadProductivityDashboard
 {
@@ -13,88 +15,233 @@ class LeadProductivityDashboard
     ) {}
 
     /**
-     * Get productivity metrics.
+     * Get productivity metrics for the dashboard.
      */
-    public function getMetrics(): array
+    public function getMetrics(array $filters = []): array
     {
-        // 1. New Leads (arrived today)
-        $newLeadsCount = $this->leadRepository->findWhere([
-            ['created_at', '>=', Carbon::today()],
-        ])->count();
+        return [
+            'today' => $this->getTodayMetrics($filters),
+            'pipeline' => $this->getPipelineMetrics($filters),
+            'health' => $this->getHealthMetrics($filters),
+        ];
+    }
 
-        // 2. Unassigned
-        $unassignedCount = $this->leadRepository->findWhere([
-            'user_id' => null,
-        ])->count();
+    protected function applyFilters(Builder $query, array $filters): Builder
+    {
+        // Owner/Team filter (ACL is applied elsewhere if needed, but this applies explicit filters)
+        if (!empty($filters['user_id'])) {
+            $query->where('leads.user_id', $filters['user_id']);
+        } elseif (empty($filters['bypass_acl']) && !bouncer()->hasPermission('leads.all')) {
+            // Apply ACL if not explicitly bypassed
+            $userIds = bouncer()->getAuthorizedUserIds();
+            if ($userIds) {
+                $query->whereIn('leads.user_id', $userIds);
+            }
+        }
 
-        // 3. Needs first contact (unread or no contact)
-        $needsContactCount = $this->leadRepository->getNeedsAttentionLeads()->count();
+        // Source filter
+        if (!empty($filters['source_id'])) {
+            $query->where('leads.lead_source_id', $filters['source_id']);
+        }
 
-        // 4. Follow-ups Due
-        $dueTodayCount = $this->leadRepository->getDueTodayLeads()->count();
+        // Date filter for generic queries (if applicable)
+        if (!empty($filters['date_range'])) {
+            $dates = $this->getDateRange($filters);
+            if ($dates) {
+                $query->whereBetween('leads.created_at', $dates);
+            }
+        }
 
-        // 5. Overdue
-        $overdueCount = $this->leadRepository->getOverdueLeads()->count();
+        return $query;
+    }
 
-        // 6. Hot Leads
-        $hotCount = $this->leadRepository->findWhereIn('priority', ['high', 'urgent'])->count();
+    protected function getDateRange(array $filters): ?array
+    {
+        $range = $filters['date_range'] ?? null;
+        
+        return match ($range) {
+            'today' => [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()],
+            'yesterday' => [Carbon::yesterday()->startOfDay(), Carbon::yesterday()->endOfDay()],
+            'last_7_days' => [Carbon::today()->subDays(7)->startOfDay(), Carbon::today()->endOfDay()],
+            'last_30_days' => [Carbon::today()->subDays(30)->startOfDay(), Carbon::today()->endOfDay()],
+            'custom' => !empty($filters['start_date']) && !empty($filters['end_date']) 
+                ? [Carbon::parse($filters['start_date'])->startOfDay(), Carbon::parse($filters['end_date'])->endOfDay()]
+                : null,
+            default => null,
+        };
+    }
 
-        // 7. Stale
-        $staleCount = $this->leadRepository->getStaleLeads()->count();
+    protected function getBaseLeadQuery(array $filters = []): Builder
+    {
+        $query = LeadProxy::modelClass()::query();
+        return $this->applyFilters($query, $filters);
+    }
 
-        // 8. No next action
-        $noActionCount = $this->leadRepository->getNoNextActionLeads()->count();
+    /**
+     * TODAY metrics
+     */
+    protected function getTodayMetrics(array $filters): array
+    {
+        $baseQuery = $this->getBaseLeadQuery($filters);
 
-        // 9. Qualified
-        $qualifiedCount = $this->leadRepository->findWhere([
-            'qualification_status' => 'qualified',
-        ])->count();
+        // New Leads Today
+        $newLeadsCount = (clone $baseQuery)
+            ->whereDate('leads.created_at', Carbon::today())
+            ->count();
 
-        // 10. Stage changed today (Optional, using a basic check on updated_at for now,
-        // true implementation would require activity history check, which we can approximate)
-        // Here we approximate as updated today and stage is not "new"
-        $stageChangedToday = $this->leadRepository->findWhere([
-            ['updated_at', '>=', Carbon::today()],
-        ])->count();
+        // Follow-ups Due Today
+        $activityQuery = ActivityProxy::modelClass()::query()
+            ->where('status', 'pending')
+            ->whereDate('schedule_from', Carbon::today());
+        
+        if (!empty($filters['user_id'])) {
+            $activityQuery->where('user_id', $filters['user_id']);
+        } elseif (!bouncer()->hasPermission('leads.all')) {
+            $userIds = bouncer()->getAuthorizedUserIds();
+            if ($userIds) {
+                $activityQuery->whereIn('user_id', $userIds);
+            }
+        }
+        $dueTodayCount = $activityQuery->count();
 
-        // 11. Waiting for response
-        $waitingCount = $this->leadRepository->findWhere([
-            'is_unread' => false,
-            ['last_contacted_at', '!=', null],
-        ])->count();
+        // Overdue Follow-ups
+        $overdueActivityQuery = ActivityProxy::modelClass()::query()
+            ->where('status', 'pending')
+            ->where('schedule_from', '<', Carbon::now());
+            
+        if (!empty($filters['user_id'])) {
+            $overdueActivityQuery->where('user_id', $filters['user_id']);
+        } elseif (!bouncer()->hasPermission('leads.all')) {
+            $userIds = bouncer()->getAuthorizedUserIds();
+            if ($userIds) {
+                $overdueActivityQuery->whereIn('user_id', $userIds);
+            }
+        }
+        $overdueCount = $overdueActivityQuery->count();
+
+        // Unassigned Leads
+        $unassignedCount = (clone $baseQuery)
+            ->whereNull('leads.user_id')
+            ->count();
+
+        // High-priority Leads
+        $highPriorityCount = (clone $baseQuery)
+            ->whereIn('leads.priority', ['high', 'urgent'])
+            ->count();
 
         return [
             'new_leads' => $newLeadsCount,
-            'unassigned' => $unassignedCount,
-            'needs_contact' => $needsContactCount,
             'due_today' => $dueTodayCount,
             'overdue' => $overdueCount,
-            'hot' => $hotCount,
-            'stale' => $staleCount,
-            'no_next_action' => $noActionCount,
+            'unassigned' => $unassignedCount,
+            'high_priority' => $highPriorityCount,
+        ];
+    }
+
+    /**
+     * LEAD PIPELINE metrics
+     */
+    protected function getPipelineMetrics(array $filters): array
+    {
+        $baseQuery = $this->getBaseLeadQuery($filters);
+
+        // We assume stage codes might be used, or specific statuses
+        // Open Leads (not won, not lost)
+        $openCount = (clone $baseQuery)
+            ->whereHas('stage', fn ($q) => $q->whereNotIn('code', ['won', 'lost']))
+            ->count();
+            
+        // Qualified Leads
+        $qualifiedCount = (clone $baseQuery)
+            ->where('qualification_status', 'qualified')
+            ->count();
+
+        // Nurturing Leads
+        $nurturingCount = (clone $baseQuery)
+            ->where('status', 'Nurturing')
+            ->count();
+
+        // Converted Leads (Won)
+        $convertedCount = (clone $baseQuery)
+            ->whereHas('stage', fn ($q) => $q->where('code', 'won'))
+            ->count();
+
+        // Lost Leads
+        $lostCount = (clone $baseQuery)
+            ->whereHas('stage', fn ($q) => $q->where('code', 'lost'))
+            ->count();
+
+        return [
+            'open' => $openCount,
             'qualified' => $qualifiedCount,
-            'stage_changed' => $stageChangedToday,
-            'waiting_for_response' => $waitingCount,
+            'nurturing' => $nurturingCount,
+            'converted' => $convertedCount,
+            'lost' => $lostCount,
+        ];
+    }
+
+    /**
+     * LEAD HEALTH metrics
+     */
+    protected function getHealthMetrics(array $filters): array
+    {
+        $baseQuery = $this->getBaseLeadQuery($filters);
+
+        // Needs Attention
+        $needsAttentionCount = (clone $baseQuery)
+            ->where(function ($query) {
+                $query->where('is_unread', true)
+                    ->orWhereNull('last_contacted_at');
+            })
+            ->count();
+
+        // Inactive (Stale) -> No contact for > 14 days
+        $inactiveDays = config('lead_health.inactivity.inactive_days', 14);
+        $inactiveCount = (clone $baseQuery)
+            ->whereNotNull('last_contacted_at')
+            ->where('last_contacted_at', '<', Carbon::now()->subDays($inactiveDays))
+            ->where('status', '!=', 'Nurturing')
+            ->count();
+            
+        // Overdue Leads
+        $overdueLeadsCount = (clone $baseQuery)
+            ->whereNotNull('next_follow_up_at')
+            ->where('next_follow_up_at', '<', Carbon::now())
+            ->count();
+            
+        // Leads with no Follow-up
+        $noFollowUpCount = (clone $baseQuery)
+            ->whereNull('next_follow_up_at')
+            ->whereNull('next_action')
+            ->count();
+
+        return [
+            'needs_attention' => $needsAttentionCount,
+            'inactive' => $inactiveCount,
+            'overdue' => $overdueLeadsCount,
+            'no_follow_up' => $noFollowUpCount,
         ];
     }
 
     /**
      * Get next actions for the current user.
      */
-    public function getMyNextActions()
+    public function getMyNextActions(array $filters = [])
     {
-        $userId = auth()->guard('user')->id();
-
-        if (! $userId) {
-            return collect();
+        $query = ActivityProxy::modelClass()::with('lead')
+            ->where('status', 'pending');
+            
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        } else {
+            $userId = auth()->guard('user')->id();
+            if ($userId) {
+                $query->where('user_id', $userId);
+            }
         }
-
-        return app(Lead::class)
-            ->whereNotNull('next_action')
-            ->whereNotNull('next_follow_up_at')
-            ->where('follow_up_owner_id', $userId)
-            ->whereDate('next_follow_up_at', '<=', Carbon::today())
-            ->orderBy('next_follow_up_at', 'asc')
+            
+        return $query->whereDate('schedule_from', '<=', Carbon::today())
+            ->orderBy('schedule_from', 'asc')
             ->limit(10)
             ->get();
     }

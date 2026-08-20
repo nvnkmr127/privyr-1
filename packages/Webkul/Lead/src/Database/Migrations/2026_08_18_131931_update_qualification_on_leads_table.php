@@ -11,10 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('leads', function (Blueprint $table) {
-            $table->dropColumn('is_qualified');
-            $table->string('qualification_status')->nullable();
-        });
+        if (Schema::hasColumn('leads', 'is_qualified')) {
+            Schema::table('leads', function (Blueprint $table) {
+                $table->dropColumn('is_qualified');
+            });
+        }
+        if (!Schema::hasColumn('leads', 'qualification_status')) {
+            Schema::table('leads', function (Blueprint $table) {
+                $table->string('qualification_status')->nullable();
+            });
+        }
     }
 
     /**

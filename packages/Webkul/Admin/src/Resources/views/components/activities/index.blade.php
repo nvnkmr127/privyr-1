@@ -188,9 +188,16 @@
 
                                         <!-- Activity Description -->
                                         <p
-                                            class="dark:text-white"
+                                            class="dark:text-white whitespace-pre-wrap"
                                             v-if="activity.comment"
                                         >@{{ activity.comment }}</p>
+
+                                        <p
+                                            class="mt-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                                            v-if="activity.outcome"
+                                        >
+                                            @lang('admin::app.components.activities.index.outcome'): @{{ activity.outcome }}
+                                        </p>
 
                                         {!! view_render_event('admin.components.activities.content.activity.item.description.after') !!}
 

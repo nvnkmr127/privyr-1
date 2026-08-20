@@ -37,6 +37,21 @@ return [
         'route' => ['admin.leads.delete', 'admin.leads.mass_delete'],
         'sort' => 4,
     ], [
+        'key' => 'leads.qualify',
+        'name' => 'admin::app.acl.qualify',
+        'route' => ['admin.leads.qualify'],
+        'sort' => 5,
+    ], [
+        'key' => 'leads.status.change',
+        'name' => 'Change Lifecycle Status',
+        'route' => ['admin.leads.status.update'],
+        'sort' => 6,
+    ], [
+        'key' => 'leads.disqualify',
+        'name' => 'admin::app.acl.disqualify',
+        'route' => ['admin.leads.disqualify'],
+        'sort' => 6,
+    ], [
         'key' => 'activities',
         'name' => 'admin::app.acl.activities',
         'route' => 'admin.activities.index',

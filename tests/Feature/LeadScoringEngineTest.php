@@ -10,6 +10,9 @@ it('calculates score based on dynamic rules', function () {
     $this->loginAsAdmin();
     $repo = app(LeadRepository::class);
 
+    // Disable default seeded rules for accurate test calculation
+    LeadScoreRule::query()->update(['is_active' => false]);
+
     // Create rules
     LeadScoreRule::create([
         'name' => 'Qualified Status',
@@ -45,6 +48,8 @@ it('calculates score based on dynamic rules', function () {
 
     $engine = app(LeadScoringEngine::class);
     $engine->evaluateLead($lead);
+
+
 
     // Expected: 25 (Qualified) + 10 (Name) - 20 (Stale) = 15
     expect($lead->lead_score)->toEqual(15);

@@ -10,7 +10,16 @@ it('renders lead attributes in a compact 2-column property grid', function () {
     $admin = User::first();
     $this->actingAs($admin);
 
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     Attribute::where('code', 'test_custom_attribute')->delete();
 
@@ -35,7 +44,16 @@ it('handles large field collections with show more toggle', function () {
     $admin = User::first();
     $this->actingAs($admin);
 
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     $customAttrsCount = Attribute::where('entity_type', 'leads')
         ->where('is_user_defined', 1)
@@ -77,7 +95,16 @@ it('handles leads with 10, 30, and 50+ attributes without breaking layout', func
     $admin = User::first();
     $this->actingAs($admin);
 
-    $lead = Lead::first();
+    
+    $pipeline = \Webkul\Lead\Models\Pipeline::first() ?? \Webkul\Lead\Models\Pipeline::create(['name' => 'Default']);
+    $stage = \Webkul\Lead\Models\Stage::first() ?? \Webkul\Lead\Models\Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+    $lead = \Webkul\Lead\Models\Lead::create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
+        'user_id' => 1,
+    ]);
+
 
     $response = $this->get(route('admin.leads.view', $lead->id));
 

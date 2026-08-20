@@ -17,6 +17,8 @@ class LeadAssignment extends Model implements LeadAssignmentContract
         'assigned_by',
         'previous_owner',
         'reason',
+        'previous_group_id',
+        'assigned_group_id',
     ];
 
     public function lead()
@@ -39,12 +41,22 @@ class LeadAssignment extends Model implements LeadAssignmentContract
         return $this->belongsTo(UserProxy::modelClass(), 'previous_owner');
     }
 
+    public function assignedGroup()
+    {
+        return $this->belongsTo(\Webkul\User\Models\GroupProxy::modelClass(), 'assigned_group_id');
+    }
+
+    public function previousGroup()
+    {
+        return $this->belongsTo(\Webkul\User\Models\GroupProxy::modelClass(), 'previous_group_id');
+    }
+
     protected static function booted()
     {
         static::created(function ($model) {
             $activityRepo = app(ActivityRepository::class);
 
-            $assignedToName = $model->assignedTo ? $model->assignedTo->name : 'System';
+            $assignedToName = $model->assignedTo ? $model->assignedTo->name : ($model->assignedGroup ? $model->assignedGroup->name . ' (Team)' : 'System');
             $assignedByName = $model->assignedBy ? $model->assignedBy->name : 'System';
 
             $title = "Lead assigned to {$assignedToName} by {$assignedByName}";

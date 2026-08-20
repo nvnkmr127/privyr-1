@@ -129,6 +129,23 @@ Route::prefix('settings')->group(function () {
     });
 
     /**
+     * Lead Assignment Rules Routes.
+     */
+    Route::controller(\Webkul\Admin\Http\Controllers\Settings\LeadAssignmentRuleController::class)->prefix('lead-assignment-rules')->group(function () {
+        Route::get('', 'index')->name('admin.settings.lead_assignment_rules.index');
+
+        Route::get('create', 'create')->name('admin.settings.lead_assignment_rules.create');
+
+        Route::post('create', 'store')->name('admin.settings.lead_assignment_rules.store');
+
+        Route::get('edit/{id?}', 'edit')->name('admin.settings.lead_assignment_rules.edit');
+
+        Route::put('edit/{id}', 'update')->name('admin.settings.lead_assignment_rules.update');
+
+        Route::delete('{id}', 'destroy')->name('admin.settings.lead_assignment_rules.delete');
+    });
+
+    /**
      * Webhook Routes.
      */
     Route::controller(WebhookController::class)->prefix('webhooks')->group(function () {

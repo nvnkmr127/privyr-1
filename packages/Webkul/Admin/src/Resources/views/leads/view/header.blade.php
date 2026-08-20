@@ -87,6 +87,17 @@
             </a>
 
 
+            <!-- Assign Lead trigger -->
+            @if (bouncer()->hasPermission('leads.edit'))
+                <button
+                    type="button"
+                    onclick="document.getElementById('assignLeadModal').classList.remove('hidden')"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800"
+                >
+                    <span>Assign</span>
+                </button>
+            @endif
+
             <!-- Merge Lead trigger -->
             <button
                 type="button"
@@ -504,6 +515,48 @@
             <div class="flex justify-end gap-2.5">
                 <button type="button" onclick="document.getElementById('mergeLeadModal').classList.add('hidden')" class="px-3 py-1.5 rounded border text-xs font-medium bg-gray-50 text-gray-700 hover:bg-gray-100">Cancel</button>
                 <button type="submit" class="px-3 py-1.5 rounded text-xs font-bold bg-brandColor text-white shadow-sm hover:opacity-90">Confirm Merge</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Assign Lead Modal -->
+<div id="assignLeadModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/50">
+    <div class="bg-white dark:bg-gray-900 rounded-xl max-w-md w-full p-6 shadow-xl border dark:border-gray-800">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Assign Lead</h3>
+        <p class="text-xs text-slate-500 mb-4">Assign this lead to a specific user or team.</p>
+        
+        <form action="{{ route('admin.leads.assign', $lead->id) }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Assign To User</label>
+                @php
+                    $users = app(\Webkul\User\Repositories\UserRepository::class)->all();
+                @endphp
+                <select name="user_id" class="w-full rounded border border-gray-300 px-3 py-2 text-xs font-medium dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                    <option value="">-- Unassigned --</option>
+                    @foreach ($users as $u)
+                        <option value="{{ $u->id }}" {{ $lead->user_id == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Assign To Team</label>
+                @php
+                    $groups = app(\Webkul\User\Repositories\GroupRepository::class)->all();
+                @endphp
+                <select name="group_id" class="w-full rounded border border-gray-300 px-3 py-2 text-xs font-medium dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+                    <option value="">-- Unassigned --</option>
+                    @foreach ($groups as $g)
+                        <option value="{{ $g->id }}" {{ $lead->group_id == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="flex justify-end gap-2.5">
+                <button type="button" onclick="document.getElementById('assignLeadModal').classList.add('hidden')" class="px-3 py-1.5 rounded border text-xs font-medium bg-gray-50 text-gray-700 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-3 py-1.5 rounded text-xs font-bold bg-brandColor text-white shadow-sm hover:opacity-90">Assign</button>
             </div>
         </form>
     </div>

@@ -16,6 +16,7 @@ use Webkul\Lead\Repositories\StageRepository;
 use Webkul\Lead\Repositories\TypeRepository;
 use Webkul\Tag\Repositories\TagRepository;
 use Webkul\User\Repositories\UserRepository;
+use Webkul\Lead\Services\LeadFilterService;
 
 class LeadDataGrid extends DataGrid
 {
@@ -38,6 +39,7 @@ class LeadDataGrid extends DataGrid
         protected TypeRepository $typeRepository,
         protected UserRepository $userRepository,
         protected TagRepository $tagRepository,
+        protected LeadFilterService $leadFilterService,
     ) {
         if (request('pipeline_id')) {
             $this->pipeline = $this->pipelineRepository->find(request('pipeline_id'));
@@ -58,19 +60,42 @@ class LeadDataGrid extends DataGrid
                 'leads.id',
                 'leads.title',
                 'leads.status',
+                'leads.temperature',
                 'leads.lead_value',
                 'leads.expected_close_date',
                 'leads.priority',
                 'leads.location',
                 'leads.lead_score',
                 'leads.qualification_status',
+                'leads.origin',
+                'leads.campaign',
+                'leads.first_origin',
+                'leads.first_campaign',
+                'leads.first_medium',
+                'leads.first_landing_page',
+                'leads.first_form',
+                'leads.latest_origin',
+                'leads.latest_campaign',
+                'leads.ingestion_status',
+                'leads.duplicate_status',
+                'leads.is_merged',
+                'leads.nurtured_at',
+                'leads.nurture_reengagement_date',
+                'leads.nurture_reason_id',
+                'leads.last_activity_at',
+                'leads.last_contacted_at',
+                'leads.next_follow_up_at',
+                'leads.stage_changed_at',
                 'lead_sources.name as lead_source_name',
+                'first_source.name as first_source_name',
+                'latest_source.name as latest_source_name',
                 'lead_types.name as lead_type_name',
                 'leads.created_at',
                 'lead_pipeline_stages.name as stage',
                 'lead_tags.tag_id as tag_id',
                 'users.id as user_id',
                 'users.name as sales_person',
+                'groups.name as team_name',
                 'leads.person_name as person_name',
                 'leads.contact_numbers as contact_numbers',
                 'tags.name as tag_name',
@@ -79,15 +104,19 @@ class LeadDataGrid extends DataGrid
                 DB::raw('CASE WHEN DATEDIFF(NOW(),'.$tablePrefix.'leads.created_at) >='.$tablePrefix.'lead_pipelines.rotten_days THEN 1 ELSE 0 END as rotten_lead'),
             )
             ->leftJoin('users', 'leads.user_id', '=', 'users.id')
+            ->leftJoin('groups', 'leads.group_id', '=', 'groups.id')
             ->leftJoin('lead_types', 'leads.lead_type_id', '=', 'lead_types.id')
             ->leftJoin('lead_pipeline_stages', 'leads.lead_pipeline_stage_id', '=', 'lead_pipeline_stages.id')
             ->leftJoin('lead_sources', 'leads.lead_source_id', '=', 'lead_sources.id')
+            ->leftJoin('lead_sources as first_source', 'leads.first_lead_source_id', '=', 'first_source.id')
+            ->leftJoin('lead_sources as latest_source', 'leads.latest_lead_source_id', '=', 'latest_source.id')
             ->leftJoin('lead_pipelines', 'leads.lead_pipeline_id', '=', 'lead_pipelines.id')
             ->leftJoin('lead_tags', 'leads.id', '=', 'lead_tags.lead_id')
             ->leftJoin('tags', 'tags.id', '=', 'lead_tags.tag_id')
             ->groupBy('leads.id')
             ->where('leads.lead_pipeline_id', $this->pipeline->id)
-            ->where('leads.is_archived', 0);
+            ->where('leads.is_archived', 0)
+            ->where('leads.is_merged', 0);
 
         /**
          * Custom (user defined) attribute values live in the EAV `attribute_values` table, so they
@@ -128,6 +157,7 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('id', 'leads.id');
         $this->addFilter('user', 'leads.user_id');
         $this->addFilter('sales_person', 'users.name');
+        $this->addFilter('team_name', 'groups.id');
         $this->addFilter('lead_source_name', 'lead_sources.id');
         $this->addFilter('lead_type_name', 'lead_types.id');
         $this->addFilter('person_name', 'leads.person_name');
@@ -141,6 +171,27 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('location', 'leads.location');
         $this->addFilter('lead_score', 'leads.lead_score');
         $this->addFilter('qualification_status', 'leads.qualification_status');
+        $this->addFilter('status', 'leads.status');
+        $this->addFilter('temperature', 'leads.temperature');
+        $this->addFilter('origin', 'leads.origin');
+        $this->addFilter('campaign', 'leads.campaign');
+        $this->addFilter('first_origin', 'leads.first_origin');
+        $this->addFilter('first_campaign', 'leads.first_campaign');
+        $this->addFilter('latest_origin', 'leads.latest_origin');
+        $this->addFilter('latest_campaign', 'leads.latest_campaign');
+        $this->addFilter('first_medium', 'leads.first_medium');
+        $this->addFilter('first_form', 'leads.first_form');
+        $this->addFilter('first_landing_page', 'leads.first_landing_page');
+        $this->addFilter('first_source_name', 'first_source.id');
+        $this->addFilter('latest_source_name', 'latest_source.id');
+        $this->addFilter('nurtured_at', 'leads.nurtured_at');
+        $this->addFilter('nurture_reengagement_date', 'leads.nurture_reengagement_date');
+        $this->addFilter('ingestion_status', 'leads.ingestion_status');
+        $this->addFilter('duplicate_status', 'leads.duplicate_status');
+        $this->addFilter('last_activity_at', 'leads.last_activity_at');
+        $this->addFilter('last_contacted_at', 'leads.last_contacted_at');
+        $this->addFilter('next_follow_up_at', 'leads.next_follow_up_at');
+        $this->addFilter('stage_changed_at', 'leads.stage_changed_at');
 
         return $queryBuilder;
     }
@@ -173,6 +224,32 @@ class LeadDataGrid extends DataGrid
                     'value' => 'name',
                 ],
             ],
+            'closure' => function ($row) {
+                if (!$row->sales_person && !$row->team_name) {
+                    return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">Unassigned</span>';
+                }
+                return $row->sales_person ?? '--';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'team_name',
+            'label' => 'Team',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'searchable_dropdown',
+            'filterable_options' => [
+                'repository' => \Webkul\User\Repositories\GroupRepository::class,
+                'column' => [
+                    'label' => 'name',
+                    'value' => 'id',
+                ],
+            ],
+            'closure' => function ($row) {
+                return $row->team_name ?? '--';
+            },
         ]);
 
         $this->addColumn([
@@ -192,6 +269,70 @@ class LeadDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'dropdown',
             'filterable_options' => $this->sourceRepository->all(['name as label', 'id as value'])->toArray(),
+        ]);
+
+        $this->addColumn([
+            'index' => 'origin',
+            'label' => 'Origin',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+        ]);
+
+        $this->addColumn([
+            'index' => 'campaign',
+            'label' => 'Campaign',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+        ]);
+
+        $this->addColumn([
+            'index' => 'first_source_name',
+            'label' => 'First Source',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'dropdown',
+            'filterable_options' => $this->sourceRepository->all(['name as label', 'id as value'])->toArray(),
+            'visibility' => false,
+        ]);
+
+        $this->addColumn([
+            'index' => 'latest_source_name',
+            'label' => 'Latest Source',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'dropdown',
+            'filterable_options' => $this->sourceRepository->all(['name as label', 'id as value'])->toArray(),
+            'visibility' => false,
+        ]);
+
+        $this->addColumn([
+            'index' => 'first_origin',
+            'label' => 'First Origin',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+            'visibility' => false,
+        ]);
+
+        $this->addColumn([
+            'index' => 'nurture_reengagement_date',
+            'label' => 'Re-engagement Date',
+            'type' => 'date',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'date_range',
+            'closure' => fn ($row) => $row->nurture_reengagement_date ? core()->formatDate($row->nurture_reengagement_date) : '--',
+            'visibility' => false,
         ]);
 
         $this->addColumn([
@@ -347,6 +488,87 @@ class LeadDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
+            'index' => 'duplicate_status',
+            'label' => 'Duplicate Status',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'dropdown',
+            'filterable_options' => [
+                ['label' => 'Clean', 'value' => 'clean'],
+                ['label' => 'Possible Duplicate', 'value' => 'possible_duplicate'],
+                ['label' => 'Confirmed Duplicate', 'value' => 'confirmed_duplicate'],
+            ],
+            'closure' => function ($row) {
+                if ($row->duplicate_status === 'possible_duplicate') {
+                    return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Possible</span>';
+                } elseif ($row->duplicate_status === 'confirmed_duplicate') {
+                    return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-800">Confirmed</span>';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Clean</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'status',
+            'label' => 'Status',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'dropdown',
+            'filterable_options' => [
+                ['label' => 'Open', 'value' => 'Open'],
+                ['label' => 'Working', 'value' => 'Working'],
+                ['label' => 'Nurturing', 'value' => 'Nurturing'],
+                ['label' => 'Converted', 'value' => 'Converted'],
+                ['label' => 'Lost', 'value' => 'Lost'],
+                ['label' => 'Junk', 'value' => 'Junk'],
+            ],
+            'closure' => function ($row) {
+                if ($row->status === 'Converted') {
+                    return '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">Converted</span>';
+                } elseif ($row->status === 'Lost') {
+                    return '<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300">Lost</span>';
+                } elseif ($row->status === 'Junk') {
+                    return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-900 dark:text-gray-300">Junk</span>';
+                } elseif ($row->status === 'Working') {
+                    return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">Working</span>';
+                } elseif ($row->status === 'Nurturing') {
+                    return '<span class="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">Nurturing</span>';
+                }
+                
+                return '<span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-900 dark:text-gray-300">Open</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'temperature',
+            'label' => 'Temperature',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'dropdown',
+            'filterable_options' => [
+                ['label' => 'Cold', 'value' => 'Cold'],
+                ['label' => 'Warm', 'value' => 'Warm'],
+                ['label' => 'Hot', 'value' => 'Hot'],
+            ],
+            'closure' => function ($row) {
+                if ($row->temperature === 'Hot') {
+                    return '<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300">Hot</span>';
+                } elseif ($row->temperature === 'Warm') {
+                    return '<span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-300">Warm</span>';
+                }
+                
+                return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">Cold</span>';
+            },
+        ]);
+
+        $this->addColumn([
             'index' => 'location',
             'label' => 'Location',
             'type' => 'string',
@@ -380,6 +602,50 @@ class LeadDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'date_range',
             'closure' => fn ($row) => core()->formatDate($row->created_at),
+        ]);
+
+        $this->addColumn([
+            'index' => 'last_activity_at',
+            'label' => 'Last Activity',
+            'type' => 'date',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'date_range',
+            'closure' => function ($row) {
+                if (!$row->last_activity_at) return '--';
+                return \Carbon\Carbon::parse($row->last_activity_at)->diffForHumans();
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'health',
+            'label' => 'Health',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => false,
+            'filterable' => false,
+            'closure' => function ($row) {
+                $inactiveDays = config('lead_health.inactivity.inactive_days', 14);
+                $needsAttentionDays = config('lead_health.inactivity.needs_attention_days', 7);
+
+                if ($row->next_follow_up_at && \Carbon\Carbon::parse($row->next_follow_up_at)->isPast()) {
+                    return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-800">Overdue</span>';
+                }
+
+                $lastActivity = $row->last_activity_at ?? $row->created_at;
+                if ($lastActivity) {
+                    $daysSince = \Carbon\Carbon::parse($lastActivity)->diffInDays(now());
+                    if ($daysSince >= $inactiveDays) {
+                        return '<span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-bold text-gray-700">Inactive</span>';
+                    }
+                    if ($daysSince >= $needsAttentionDays) {
+                        return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">Needs Attention</span>';
+                    }
+                }
+                
+                return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Active</span>';
+            },
         ]);
 
         /**
@@ -441,21 +707,181 @@ class LeadDataGrid extends DataGrid
      */
     public function prepareMassActions(): void
     {
-        $this->addMassAction([
-            'icon' => 'icon-delete',
-            'title' => trans('admin::app.leads.index.datagrid.mass-delete'),
-            'method' => 'POST',
-            'url' => route('admin.leads.mass_delete'),
-        ]);
+        $bulkUrl = route('admin.leads.bulk');
+
+        // 1. Assignment
+        $users = app(\Webkul\User\Repositories\UserRepository::class)->all()->map(fn ($user) => [
+            'label' => 'User: ' . $user->name,
+            'value' => 'user_' . $user->id,
+        ])->toArray();
+
+        $groups = app(\Webkul\User\Repositories\GroupRepository::class)->all()->map(fn ($group) => [
+            'label' => 'Team: ' . $group->name,
+            'value' => 'group_' . $group->id,
+        ])->toArray();
+
+        $unassigned = [['label' => 'Unassigned', 'value' => 'unassigned']];
 
         $this->addMassAction([
-            'title' => trans('admin::app.leads.index.datagrid.mass-update'),
-            'url' => route('admin.leads.mass_update'),
+            'title' => 'Assign',
+            'url' => $bulkUrl . '?action=assign',
+            'method' => 'POST',
+            'options' => array_merge($unassigned, $users, $groups),
+        ]);
+
+        // 2. Lifecycle (Stage)
+        $this->addMassAction([
+            'title' => 'Change Stage',
+            'url' => $bulkUrl . '?action=change_stage',
             'method' => 'POST',
             'options' => $this->pipeline->stages->map(fn ($stage) => [
                 'label' => $stage->name,
                 'value' => $stage->id,
             ])->toArray(),
         ]);
+
+        // 3. Status
+        $this->addMassAction([
+            'title' => 'Change Status',
+            'url' => $bulkUrl . '?action=change_status',
+            'method' => 'POST',
+            'options' => [
+                ['label' => 'Open', 'value' => 'Open'],
+                ['label' => 'Working', 'value' => 'Working'],
+                ['label' => 'Converted', 'value' => 'Converted'],
+                ['label' => 'Lost', 'value' => 'Lost'],
+                ['label' => 'Junk', 'value' => 'Junk'],
+            ],
+        ]);
+
+        // 4. Qualification
+        $this->addMassAction([
+            'title' => 'Qualification',
+            'url' => $bulkUrl . '?action=change_qualification',
+            'method' => 'POST',
+            'options' => [
+                ['label' => 'Qualified', 'value' => 'qualified'],
+                ['label' => 'Unqualified', 'value' => 'unqualified'],
+                ['label' => 'Disqualified', 'value' => 'disqualified'],
+                ['label' => 'In Review', 'value' => 'in_review'],
+            ],
+        ]);
+        
+        // 5. Priority
+        $this->addMassAction([
+            'title' => 'Change Priority',
+            'url' => $bulkUrl . '?action=change_priority',
+            'method' => 'POST',
+            'options' => [
+                ['label' => 'Low', 'value' => 'low'],
+                ['label' => 'Normal', 'value' => 'medium'],
+                ['label' => 'High', 'value' => 'high'],
+                ['label' => 'Urgent', 'value' => 'urgent'],
+            ],
+        ]);
+
+        // 6. Temperature
+        $this->addMassAction([
+            'title' => 'Change Temperature',
+            'url' => $bulkUrl . '?action=change_temperature',
+            'method' => 'POST',
+            'options' => [
+                ['label' => 'Cold', 'value' => 'Cold'],
+                ['label' => 'Warm', 'value' => 'Warm'],
+                ['label' => 'Hot', 'value' => 'Hot'],
+            ],
+        ]);
+
+        // 7. Add Tags
+        $tags = $this->tagRepository->all()->map(fn($t) => ['label' => $t->name, 'value' => $t->id])->toArray();
+        $this->addMassAction([
+            'title' => 'Add Tag',
+            'url' => $bulkUrl . '?action=add_tag',
+            'method' => 'POST',
+            'options' => $tags,
+        ]);
+        
+        // Remove Tags
+        $this->addMassAction([
+            'title' => 'Remove Tag',
+            'url' => $bulkUrl . '?action=remove_tag',
+            'method' => 'POST',
+            'options' => $tags,
+        ]);
+
+        // 8. Follow-up (Will need custom modal, we use options for type if we want simple, but user asked for date/time/notes. For now we will just use a generic post and intercept it if we can, or add it to our modal blade.)
+        $this->addMassAction([
+            'title' => 'Create Follow-up',
+            'url' => $bulkUrl . '?action=create_follow_up',
+            'method' => 'POST',
+            'options' => [
+                ['label' => 'Call', 'value' => 'Call'],
+                ['label' => 'Email', 'value' => 'Email'],
+                ['label' => 'Meeting', 'value' => 'Meeting'],
+            ], // Simplified for DataGrid dropdown if modal is too complex, but let's stick to this for now. We can enhance later.
+        ]);
+
+        // 9. Nurturing
+        $this->addMassAction([
+            'title' => 'Move to Nurturing',
+            'url' => $bulkUrl . '?action=move_to_nurturing',
+            'method' => 'POST',
+            // Simple generic nurturing without reason for now if we don't have modal
+        ]);
+
+        // 10. Export
+        $this->addMassAction([
+            'title' => 'Export',
+            'url' => $bulkUrl . '?action=export',
+            'method' => 'POST',
+            'options' => [
+                ['label' => 'CSV', 'value' => 'csv'],
+                ['label' => 'Excel', 'value' => 'xlsx'],
+            ],
+        ]);
+
+        // 11. Delete
+        $this->addMassAction([
+            'icon' => 'icon-delete',
+            'title' => trans('admin::app.leads.index.datagrid.mass-delete'),
+            'method' => 'POST',
+            'url' => $bulkUrl . '?action=delete',
+        ]);
+
+        // Add Custom EAV Attributes as Filterable Columns
+        $customAttributes = Attribute::where('entity_type', 'leads')->get();
+        foreach ($customAttributes as $attribute) {
+            $this->addColumn([
+                'index' => $attribute->code,
+                'label' => $attribute->name,
+                'type' => $attribute->type == 'date' || $attribute->type == 'datetime' ? $attribute->type : 'string',
+                'searchable' => false,
+                'sortable' => false,
+                'filterable' => true,
+                'visibility' => false,
+            ]);
+        }
+    }
+
+    /**
+     * Override processRequestedFilters to support Advanced Filters and ANY/ALL groups
+     */
+    protected function processRequestedFilters(array $requestedFilters)
+    {
+        $matchType = request('match_type') === 'any' ? 'any' : 'all';
+
+        // Extract available columns as an array of definitions for the service
+        $availableColumns = collect($this->columns)->map(function ($column) {
+            return method_exists($column, 'toArray') ? $column->toArray() : (array) $column;
+        })->all();
+
+        $this->queryBuilder = $this->leadFilterService->applyAdvancedFilters(
+            $this->queryBuilder,
+            $requestedFilters,
+            $matchType,
+            $availableColumns
+        );
+
+        return $this->queryBuilder;
     }
 }

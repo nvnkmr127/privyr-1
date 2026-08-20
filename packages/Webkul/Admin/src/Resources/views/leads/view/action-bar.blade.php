@@ -139,4 +139,55 @@
             }).then(() => window.location.reload());
         }
     }
+
+    function changeLeadStatus(status) {
+        let reason = '';
+        if (status === 'Lost') {
+            reason = prompt('Reason for marking as Lost?');
+            if (reason === null) return;
+        } else if (status === 'Junk') {
+            reason = prompt('Reason for marking as Junk?');
+            if (reason === null) return;
+        } else if (status === 'Reopen') {
+            reason = prompt('Reason for reopening?');
+            if (reason === null) return;
+        }
+
+        fetch('{{ route("admin.leads.status.update", $lead->id) }}', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                status: status,
+                reason: reason
+            })
+        }).then(res => {
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to update status.');
+            }
+        });
+    }
 </script>
+
+<div class="mt-6">
+    <div class="mb-4 flex items-center justify-between">
+        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Lifecycle Status: {{ $lead->status ?? 'Open' }}
+        </span>
+    </div>
+    <div class="flex flex-wrap gap-2 text-xs">
+        @if (in_array($lead->status, ['Lost', 'Junk']))
+            <button type="button" onclick="changeLeadStatus('Reopen')" class="rounded-lg bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100 transition">Reopen Lead</button>
+        @else
+            <button type="button" onclick="changeLeadStatus('Working')" class="rounded-lg bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100 transition">Mark Working</button>
+            <button type="button" onclick="changeLeadStatus('Nurturing')" class="rounded-lg bg-purple-50 px-3 py-1.5 text-[10px] font-bold text-purple-600 hover:bg-purple-100 transition">Mark Nurturing</button>
+            <button type="button" onclick="changeLeadStatus('Converted')" class="rounded-lg bg-green-50 px-3 py-1.5 text-[10px] font-bold text-green-600 hover:bg-green-100 transition">Convert Lead</button>
+            <button type="button" onclick="changeLeadStatus('Lost')" class="rounded-lg bg-red-50 px-3 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-100 transition">Mark Lost</button>
+            <button type="button" onclick="changeLeadStatus('Junk')" class="rounded-lg bg-gray-50 px-3 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-100 transition">Mark Junk</button>
+        @endif
+    </div>
+</div>

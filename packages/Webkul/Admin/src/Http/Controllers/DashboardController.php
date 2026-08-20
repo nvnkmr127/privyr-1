@@ -5,6 +5,8 @@ namespace Webkul\Admin\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Webkul\Admin\Helpers\LeadProductivityDashboard;
+use Webkul\Admin\Http\Requests\DashboardFilterRequest;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class DashboardController extends Controller
 {
@@ -14,7 +16,8 @@ class DashboardController extends Controller
      * @return void
      */
     public function __construct(
-        protected LeadProductivityDashboard $dashboardHelper
+        protected LeadProductivityDashboard $dashboardHelper,
+        protected LeadRepository $leadRepository
     ) {}
 
     /**
@@ -22,11 +25,22 @@ class DashboardController extends Controller
      *
      * @return View
      */
-    public function index()
+    public function index(DashboardFilterRequest $request)
     {
+        $filters = $request->validated();
+        
+        // Include new leads list for the dashboard if needed, or rely on existing routes for full grids.
+        // We will fetch new and unassigned leads for the quick views.
+        
+        $newLeads = $this->leadRepository->getInboxLeads('new', null, $filters, 5);
+        $unassignedLeads = $this->leadRepository->getInboxLeads('unassigned', null, $filters, 5);
+
         return view('admin::dashboard.index')->with([
-            'metrics' => $this->dashboardHelper->getMetrics(),
-            'nextActions' => $this->dashboardHelper->getMyNextActions(),
+            'metrics' => $this->dashboardHelper->getMetrics($filters),
+            'nextActions' => $this->dashboardHelper->getMyNextActions($filters),
+            'newLeads' => $newLeads,
+            'unassignedLeads' => $unassignedLeads,
+            'filters' => $filters,
         ]);
     }
 
@@ -35,10 +49,10 @@ class DashboardController extends Controller
      *
      * @return JsonResponse
      */
-    public function stats()
+    public function stats(DashboardFilterRequest $request)
     {
         return response()->json([
-            'metrics' => $this->dashboardHelper->getMetrics(),
+            'metrics' => $this->dashboardHelper->getMetrics($request->validated()),
         ]);
     }
 }
