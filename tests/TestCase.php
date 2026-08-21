@@ -11,6 +11,12 @@ abstract class TestCase extends BaseTestCase
 {
     use DatabaseTransactions;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Webkul\Lead\Models\Lead::unguard();
+    }
+
     public function loginAsAdmin(): User
     {
         $admin = getDefaultAdmin();

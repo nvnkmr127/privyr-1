@@ -6,7 +6,6 @@ All 15 core packages from `packages/Webkul` have been analyzed and documented:
 
 ## 2. Features Covered
 - Lead Management (Pipelines, Stages, Sources, Types)
-- Contact Management (Persons, Organizations)
 - Activity Management (Calls, Meetings, Notes, Emails)
 - Automation (Rule-based workflows)
 - Marketing (Email campaigns)
@@ -18,8 +17,6 @@ All 15 core packages from `packages/Webkul` have been analyzed and documented:
 
 ## 3. CRUD Entities Covered
 - Leads
-- Persons
-- Organizations
 - Activities
 - Workflows
 - Campaigns

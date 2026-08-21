@@ -12,7 +12,7 @@
 
 Most small businesses don't lose leads because they lack a CRM — they lose leads because their CRM is either too rigid to fit how they actually work, or too expensive and complicated to bother with. So they run their sales on WhatsApp, a phone's contact list, and memory.
 
-This product is the fix: a **lead CRM that's as easy as WhatsApp but shaped like the business using it.** Think "Notion for lead management" — one flexible core, and each industry (interior design, HVAC, jewellery, real estate, education, coaching) shapes it into their own pipeline, their own fields, their own follow-up flow. Capture every lead automatically, get pinged the second one arrives, and work it to a close from your phone.
+This product is the fix: a **lead CRM that's as easy as WhatsApp but shaped like the business using it.** Think "Notion for lead management" — one flexible core, and each industry (interior design, HVAC, jewellery, real estate, education, coaching) shapes it into their own pipeline, their own fields, their own follow-up flow. Capture every lead automatically, get pinged the second one arrives, and work it to a close from your phone. Note: The scope of this product is strictly Lead Operations only.
 
 ## Who it's for
 

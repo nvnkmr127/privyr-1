@@ -9,8 +9,6 @@ This document provides a comprehensive inventory of all major features identifie
 | **Stages** | Lead | Settings | `StageController` | `lead_pipeline_stages` | Full | Yes | Implemented |
 | **Sources** | Lead | Settings | `SourceController` | `lead_sources` | Full | Yes | Implemented |
 | **Types** | Lead | Settings | `TypeController` | `lead_types` | Full | Yes | Implemented |
-| **Persons** | Contact | List | `PersonController` | `persons` | Full | Yes | Implemented |
-| **Organizations** | Contact | List | `OrganizationController`| `organizations`| Full | Yes | Implemented |
 | **Activities** | Activity | List | `ActivityController` | `activities` | Full | Yes | Implemented |
 | **Users (Staff)** | User | Settings | `UserController` | `users` | Full | Yes | Implemented |
 | **Roles** | User | Settings | `RoleController` | `roles` | Full | Yes | Implemented |

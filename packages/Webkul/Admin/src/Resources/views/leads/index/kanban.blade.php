@@ -595,9 +595,6 @@
                             this.updateKanbans();
 
                             return response;
-                        })
-                        .catch(error => {
-                            console.log(error)
                         });
                 },
 

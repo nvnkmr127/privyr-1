@@ -189,8 +189,6 @@
                 if (this.value) {
                     this.selectedItem = this.value;
                 }
-
-                console.log(this.placeholder);
             },
 
             created() {

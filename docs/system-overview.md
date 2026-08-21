@@ -11,7 +11,7 @@ The system is designed to help businesses manage their leads, contacts, activiti
 - **Support**: Interaction with contacts and tickets (if integrated).
 
 **Main Business Objectives:**
-- Centralize customer information (Leads, Contacts).
+- Centralize customer information (Leads).
 - Track interactions and activities (Emails, Calls, Meetings).
 - Automate workflows and marketing.
 - Manage sales pipelines and performance.
@@ -49,7 +49,6 @@ Based on the system's package structure, the major modules are:
 6. **DataGrid**: Reusable table component for listing, filtering, sorting, and pagination.
 7. **Email / EmailTemplate**: Integration for sending and tracking emails and template management.
 8. **Lead**: The core sales pipeline module (managing leads, stages, and pipelines).
-9. **Contact**: Managing people and organizations.
 10. **Marketing**: Managing campaigns and segments.
 11. **Tag**: Categorization and labeling system.
 12. **User**: Authentication, roles, permissions, and team management.
@@ -69,8 +68,7 @@ Lead
 
 Activity
  ├── User (Participant/Creator)
- ├── Lead (Context)
- └── Contact (Context)
+ └── Lead (Context)
 
 Automation
  ├── Lead (Triggers)

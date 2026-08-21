@@ -37,6 +37,11 @@ class ExecuteWorkflowActionJob implements ShouldQueue
     }
 
     /**
+     * @var int
+     */
+    public static $executionDepth = 0;
+
+    /**
      * Execute the job.
      *
      * @return void
@@ -58,14 +63,13 @@ class ExecuteWorkflowActionJob implements ShouldQueue
             ]
         );
 
-        // If execution is already completed, it's a duplicate event, exit early.
-        if ($execution->status === 'completed' && ! $execution->wasRecentlyCreated) {
+        // If execution is already completed or pending, it's a duplicate event, exit early.
+        if (in_array($execution->status, ['completed', 'pending']) && ! $execution->wasRecentlyCreated) {
             return;
         }
 
         // Execution depth for loop prevention
-        $executionDepth = session()->get('automation_execution_depth', 0);
-        if ($executionDepth > 3) {
+        if (self::$executionDepth > 3) {
             $execution->update([
                 'status' => 'failed',
                 'error' => 'Automation loop detected (execution depth > 3).',
@@ -74,7 +78,8 @@ class ExecuteWorkflowActionJob implements ShouldQueue
 
             return;
         }
-        session()->put('automation_execution_depth', $executionDepth + 1);
+        
+        self::$executionDepth++;
 
         try {
             $workflowEntity = app(config('workflows.trigger_entities.'.$this->workflow->entity_type.'.class'));
@@ -96,7 +101,7 @@ class ExecuteWorkflowActionJob implements ShouldQueue
 
             throw $e;
         } finally {
-            session()->put('automation_execution_depth', session()->get('automation_execution_depth') - 1);
+            self::$executionDepth--;
         }
     }
 
