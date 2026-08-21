@@ -335,9 +335,10 @@ class Lead extends Model implements LeadContract
     {
         if ($this->relationLoaded('activities')) {
             return $this->activities->where('status', 'pending')
-                ->filter(fn($a) => $a->schedule_from && $a->schedule_from >= now())
+                ->filter(fn ($a) => $a->schedule_from && $a->schedule_from >= now())
                 ->sortBy('schedule_from')->first();
         }
+
         return $this->activities()->where('status', 'pending')->where('schedule_from', '>=', now())->orderBy('schedule_from', 'asc')->first();
     }
 
@@ -349,6 +350,7 @@ class Lead extends Model implements LeadContract
         if ($this->relationLoaded('activities')) {
             return $this->activities->where('status', 'completed')->sortByDesc('completed_at')->first();
         }
+
         return $this->activities()->where('status', 'completed')->orderBy('completed_at', 'desc')->first();
     }
 
@@ -360,6 +362,7 @@ class Lead extends Model implements LeadContract
         if ($this->relationLoaded('activities')) {
             return $this->activities->where('status', 'pending')->count();
         }
+
         return $this->activities()->where('status', 'pending')->count();
     }
 
@@ -371,6 +374,7 @@ class Lead extends Model implements LeadContract
         if ($this->relationLoaded('activities')) {
             return $this->activities->where('status', 'completed')->count();
         }
+
         return $this->activities()->where('status', 'completed')->count();
     }
 
@@ -381,8 +385,9 @@ class Lead extends Model implements LeadContract
     {
         if ($this->relationLoaded('activities')) {
             return $this->activities->where('status', 'pending')
-                ->filter(fn($a) => $a->schedule_from && $a->schedule_from < now())->count();
+                ->filter(fn ($a) => $a->schedule_from && $a->schedule_from < now())->count();
         }
+
         return $this->activities()->where('status', 'pending')->where('schedule_from', '<', now())->count();
     }
 
