@@ -8,7 +8,7 @@ The system is designed to help businesses manage their leads, contacts, activiti
 **Main User Types:**
 - **Admin**: Full access to all modules, configurations, and user management.
 - **Sales/Marketing Users**: Access to leads, contacts, activities, and communication tools.
-- **Support**: Interaction with contacts and tickets (if integrated).
+- **Support**: Interaction with tickets (if integrated).
 
 **Main Business Objectives:**
 - Centralize customer information (Leads).
@@ -49,10 +49,9 @@ Based on the system's package structure, the major modules are:
 6. **DataGrid**: Reusable table component for listing, filtering, sorting, and pagination.
 7. **Email / EmailTemplate**: Integration for sending and tracking emails and template management.
 8. **Lead**: The core sales pipeline module (managing leads, stages, and pipelines).
-10. **Marketing**: Managing campaigns and segments.
-11. **Tag**: Categorization and labeling system.
-12. **User**: Authentication, roles, permissions, and team management.
-13. **WebForm**: Capture leads from external websites.
+9. **Tag**: Categorization and labeling system.
+10. **User**: Authentication, roles, permissions, and team management.
+11. **WebForm**: Capture leads from external websites.
 
 ## 4. Module Dependencies
 
@@ -61,7 +60,6 @@ Based on the system's package structure, the major modules are:
 ```text
 Lead
  ├── User (Owner assigned)
- ├── Contact (Person/Organization related)
  ├── Tag (Labeling)
  ├── Attribute (Custom fields)
  └── Activity (Interactions)

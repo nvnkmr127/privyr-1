@@ -171,10 +171,13 @@ class LeadFollowUpService
 
         foreach ($pendingActivities as $activity) {
             $activity->update([
-                'status' => 'completed', // Treating as completed/cancelled
+                'status' => 'cancelled',
                 'is_done' => 1,
-                'completed_at' => Carbon::now(),
-                'completed_by_id' => auth()->id() ?? $lead->user_id,
+                'additional' => array_merge($activity->additional ?? [], [
+                    'cancelled_at' => Carbon::now()->toIso8601String(),
+                    'cancelled_by_id' => auth()->id() ?? $lead->user_id,
+                    'cancellation_reason' => 'Lead closure',
+                ]),
                 'comment' => $activity->comment ? $activity->comment."\nCancelled due to lead closure" : 'Cancelled due to lead closure',
             ]);
         }

@@ -28,21 +28,45 @@ it('audits lead creation', function () {
 
 it('audits lead updates for trackable fields', function () {
     $lead = Lead::factory()->create([
+        'lead_pipeline_stage_id' => 1,
         'status' => 'New',
+        'user_id' => $this->user->id,
+        'expected_close_date' => '2025-01-01',
+        'rotten_days' => 5,
+        'is_qualified' => false,
+        'qualification_status' => 'Pending',
     ]);
 
     $lead->update([
+        'lead_pipeline_stage_id' => 2,
         'status' => 'Qualified',
+        'user_id' => null,
+        'expected_close_date' => '2025-02-01',
+        'rotten_days' => 10,
+        'is_qualified' => true,
+        'qualification_status' => 'Qualified',
     ]);
 
-    $audit = LeadAudit::where('lead_id', $lead->id)
-        ->where('action', 'updated')
-        ->where('field', 'status')
-        ->first();
+    $expectedChanges = [
+        'lead_pipeline_stage_id' => [1, 2],
+        'status' => ['New', 'Qualified'],
+        'user_id' => [$this->user->id, null],
+        'expected_close_date' => ['2025-01-01', '2025-02-01'], // Use string formats for typical date fields
+        'rotten_days' => [5, 10],
+        'is_qualified' => [false, true],
+        'qualification_status' => ['Pending', 'Qualified'],
+    ];
 
-    expect($audit)->not->toBeNull();
-    expect($audit->old_value)->toBe('New');
-    expect($audit->new_value)->toBe('Qualified');
+    foreach ($expectedChanges as $field => [$old, $new]) {
+        $audit = LeadAudit::where('lead_id', $lead->id)
+            ->where('action', 'updated')
+            ->where('field', $field)
+            ->first();
+
+        expect($audit)->not->toBeNull();
+        expect((string) $audit->old_value)->toBe((string) $old);
+        expect((string) $audit->new_value)->toBe((string) $new);
+    }
 });
 
 it('prevents audit records from being updated', function () {

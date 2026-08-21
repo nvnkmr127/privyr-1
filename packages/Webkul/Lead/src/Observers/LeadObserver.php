@@ -132,5 +132,30 @@ class LeadObserver
                 'new' => core()->formatBasePrice($newVal),
             ]);
         }
+
+        // Status Change
+        if (array_key_exists('status', $changes)) {
+            $oldStatus = $original['status'] ?? 'None';
+            $newStatus = $changes['status'] ?? 'None';
+
+            $logger->log($lead, 'Status Changed', [
+                'event' => 'status_change',
+                'old' => ucfirst($oldStatus),
+                'new' => ucfirst($newStatus),
+            ]);
+        }
+
+        // Rotten Days Change
+        if (array_key_exists('rotten_days', $changes)) {
+            $oldDays = $original['rotten_days'] ?? 0;
+            $newDays = $changes['rotten_days'] ?? 0;
+
+            $logger->log($lead, 'Rotten Days Updated', [
+                'event' => 'rotten_days_change',
+                'old' => $oldDays,
+                'new' => $newDays,
+            ]);
+        }
+
     }
 }

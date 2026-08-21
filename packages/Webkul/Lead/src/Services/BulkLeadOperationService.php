@@ -18,7 +18,8 @@ class BulkLeadOperationService
         protected LeadAssignmentService $assignmentService,
         protected LeadFollowUpService $followUpService,
         protected LeadNurtureService $nurtureService,
-        protected TagRepository $tagRepository
+        protected TagRepository $tagRepository,
+        protected LeadQualificationService $qualificationService
     ) {}
 
     /**
@@ -208,11 +209,14 @@ class BulkLeadOperationService
                 break;
 
             case 'change_qualification':
-                // Use LeadLifecycleService to handle qualification explicitly
-                if (method_exists($this->lifecycleService, 'changeQualificationStatus')) {
-                    $this->lifecycleService->changeQualificationStatus($lead, $value, 'Bulk qualification');
+                if ($value === 'qualified') {
+                    $this->qualificationService->qualify($lead);
+                } elseif ($value === 'disqualified') {
+                    $this->qualificationService->disqualify($lead, 'Bulk disqualification');
+                } elseif ($value === 'in_review') {
+                    $this->qualificationService->requalify($lead);
                 } else {
-                    $this->leadRepository->update(['qualification_status' => $value], $lead->id);
+                    throw new \Exception("Unknown qualification status: {$value}");
                 }
                 break;
 

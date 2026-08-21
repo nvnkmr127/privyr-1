@@ -4,6 +4,7 @@ namespace Webkul\Admin\Http\Controllers\Lead;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Services\LeadCaptureService;
@@ -27,8 +28,6 @@ class PublicLeadCaptureController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid or inactive webhook token'], 404);
         }
 
-        // Meta Lead Ads subscription verification challenge (GET). Echo the
-        // challenge only when the verify token matches (when one is configured).
         if ($request->has('hub_challenge')) {
             $expected = config('services.facebook.webhook_verify_token');
             $provided = $request->input('hub_verify_token');
@@ -38,6 +37,10 @@ class PublicLeadCaptureController extends Controller
             }
 
             return response((string) $request->input('hub_challenge'), 200);
+        }
+
+        if ($this->isReplay($request, $connector)) {
+            return response()->json(['status' => 'success', 'message' => 'Lead captured successfully (replay)'], 200);
         }
 
         try {
@@ -71,6 +74,10 @@ class PublicLeadCaptureController extends Controller
             return response()->json(['RESPONSE' => 'ERROR', 'CODE' => 404, 'MESSAGE' => 'Invalid or missing connector token. Use your connector\'s webhook URL.'], 404);
         }
 
+        if ($this->isReplay($request, $connector)) {
+            return response()->json(['RESPONSE' => 'SUCCESS', 'CODE' => 200, 'MESSAGE' => 'IndiaMART lead processed successfully (replay)']);
+        }
+
         $lead = $this->leadCaptureService->processIncomingPayload($connector, $request->all());
 
         return response()->json([
@@ -92,6 +99,10 @@ class PublicLeadCaptureController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid or missing connector token. Use your connector\'s webhook URL.'], 404);
         }
 
+        if ($this->isReplay($request, $connector)) {
+            return response()->json(['status' => 'success', 'message' => 'JustDial lead processed (replay)']);
+        }
+
         $lead = $this->leadCaptureService->processIncomingPayload($connector, $request->all());
 
         return response()->json([
@@ -111,6 +122,10 @@ class PublicLeadCaptureController extends Controller
 
         if (! $connector) {
             return response()->json(['status' => 'error', 'message' => 'Invalid or missing connector token. Use your connector\'s webhook URL.'], 404);
+        }
+
+        if ($this->isReplay($request, $connector)) {
+            return response()->json(['status' => 'success', 'message' => 'Portal lead processed (replay)']);
         }
 
         $lead = $this->leadCaptureService->processIncomingPayload($connector, $request->all());
@@ -142,6 +157,15 @@ class PublicLeadCaptureController extends Controller
         }
 
         return $query->first();
+    }
+
+    /**
+     * Check if the incoming request is a replay.
+     */
+    protected function isReplay(Request $request, LeadSourceConnector $connector): bool
+    {
+        $hash = hash('sha256', $connector->id . '|' . $request->getContent());
+        return ! Cache::add('lead_capture_replay_' . $hash, true, now()->addDays(7));
     }
 
     /**

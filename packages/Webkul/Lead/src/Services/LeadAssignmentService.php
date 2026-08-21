@@ -127,6 +127,21 @@ class LeadAssignmentService
             case '!=':
             case 'not_equals':
                 return strtolower((string) $leadValue) !== strtolower((string) $ruleValue);
+            case 'in':
+                $values = array_map('trim', explode(',', strtolower((string) $ruleValue)));
+                return in_array(strtolower((string) $leadValue), $values, true);
+            case 'not_in':
+                $values = array_map('trim', explode(',', strtolower((string) $ruleValue)));
+                return ! in_array(strtolower((string) $leadValue), $values, true);
+            case 'is_null':
+                return empty($leadValue);
+            case 'is_not_null':
+                return ! empty($leadValue);
+            case 'matches':
+                if (empty($ruleValue)) return false;
+                $isRegexValid = @preg_match($ruleValue, '') !== false;
+                if (!$isRegexValid) return false;
+                return preg_match($ruleValue, $leadValue) === 1;
         }
 
         return false;
@@ -249,13 +264,23 @@ class LeadAssignmentService
         return false;
     }
 
+    protected static array $assignmentsInProgress = [];
+
     protected function performAssignment(Lead $lead, $assignedUserId, $assignedGroupId, $reason): bool
     {
-        $previousOwner = $lead->user_id;
-        $previousGroup = $lead->group_id;
+        if (isset(self::$assignmentsInProgress[$lead->id])) {
+            return false;
+        }
 
-        // Bypass updating Lead updated_at timestamp to avoid infinite loops if triggered via observers
-        $lead->assign($assignedUserId, $assignedGroupId);
+        self::$assignmentsInProgress[$lead->id] = true;
+
+        try {
+            $previousOwner = $lead->user_id;
+            $previousGroup = $lead->group_id;
+
+            $lead->user_id = $assignedUserId;
+            $lead->group_id = $assignedGroupId;
+            $lead->saveQuietly();
 
         // Log history
         app(LeadAssignmentRepository::class)->create([
@@ -275,5 +300,8 @@ class LeadAssignmentService
         }
 
         return true;
+        } finally {
+            unset(self::$assignmentsInProgress[$lead->id]);
+        }
     }
 }

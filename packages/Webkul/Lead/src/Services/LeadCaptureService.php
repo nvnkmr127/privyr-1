@@ -221,8 +221,12 @@ class LeadCaptureService
     {
         $secret = config('services.facebook.client_secret');
 
-        if (! $secret || ! $signature || $rawBody === null) {
+        if (! $secret) {
             return;
+        }
+
+        if (! $signature || $rawBody === null) {
+            throw new \RuntimeException('Missing Facebook webhook signature or body.');
         }
 
         $expected = 'sha256='.hash_hmac('sha256', $rawBody, $secret);

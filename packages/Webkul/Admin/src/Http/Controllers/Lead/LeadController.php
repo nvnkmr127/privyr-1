@@ -156,6 +156,8 @@ class LeadController extends Controller
             return response()->json(['message' => trans('admin::app.leads.inbox.lead-not-found')], 404);
         }
 
+        $this->authorize('update', $lead);
+
         switch ($action) {
             case 'mark_read':
                 $lead->update(['is_unread' => false]);
@@ -198,66 +200,7 @@ class LeadController extends Controller
         ]);
     }
 
-    /**
-     * Handle bulk actions on multiple leads.
-     */
-    public function bulkAction(): JsonResponse
-    {
-        $leadIds = request()->input('lead_ids', []);
-        $action = request()->input('action');
 
-        if (empty($leadIds) || ! is_array($leadIds)) {
-            return response()->json(['message' => trans('admin::app.leads.inbox.select-leads')], 400);
-        }
-
-        switch ($action) {
-            case 'archive':
-                $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['is_archived' => true]);
-                break;
-            case 'unarchive':
-                $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['is_archived' => false]);
-                break;
-            case 'mark_read':
-                $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['is_unread' => false]);
-                break;
-            case 'change_priority':
-                if ($priority = request()->input('priority')) {
-                    $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['priority' => $priority]);
-                }
-                break;
-            case 'reassign':
-                if ($userId = request()->input('user_id')) {
-                    $leads = $this->leadRepository->getModel()->whereIn('id', $leadIds)->get();
-                    foreach ($leads as $lead) {
-                        $previousOwner = $lead->user_id;
-                        $lead->update(['user_id' => $userId]);
-
-                        app(LeadAssignmentRepository::class)->create([
-                            'lead_id' => $lead->id,
-                            'assigned_to' => $userId,
-                            'assigned_by' => auth()->check() ? auth()->id() : null,
-                            'previous_owner' => $previousOwner,
-                            'reason' => 'Bulk Reassignment',
-                        ]);
-                    }
-                }
-                break;
-            case 'change_stage':
-                if ($stageId = request()->input('stage_id')) {
-                    $this->leadRepository->getModel()->whereIn('id', $leadIds)->update(['lead_pipeline_stage_id' => $stageId]);
-                }
-                break;
-            case 'delete':
-                foreach ($leadIds as $id) {
-                    $this->leadRepository->delete($id);
-                }
-                break;
-        }
-
-        return response()->json([
-            'message' => trans('admin::app.leads.inbox.bulk-success'),
-        ]);
-    }
 
     /**
      * Returns a listing of the resource.
@@ -423,9 +366,6 @@ class LeadController extends Controller
                 'data' => new LeadResource($lead),
             ]);
         }
-
-        Event::dispatch('lead.create.after', $lead);
-
         session()->flash('success', trans('admin::app.leads.create-success'));
 
         if (! empty($data['lead_pipeline_id'])) {

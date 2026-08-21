@@ -131,8 +131,6 @@ class LeadIngestionService implements LeadIngestionServiceContract
 
             $this->leadAttributionService->recordHistory($lead, $leadData);
 
-            Event::dispatch('lead.create.after', $lead);
-
             // 5. Success
             $this->updateLog($logId, 'Created', $lead->id, $startTime);
             Event::dispatch('lead.ingestion.created', $lead);

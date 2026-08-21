@@ -4,7 +4,7 @@
 Tags Management
 
 ## 2. What Is This Feature?
-Tags provide a flexible, free-form way to categorize and label records (Leads, Persons, Organizations) across the CRM.
+Tags provide a flexible, free-form way to categorize and label records (Leads) across the CRM.
 
 ## 3. How Is It Useful?
 Instead of creating rigid custom attributes for every minor categorization, users can quickly create and apply tags (e.g., "VIP", "Needs Follow-up", "Cold"). Tags are color-coded for quick visual identification on Kanban boards and Datagrids.

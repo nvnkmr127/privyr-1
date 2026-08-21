@@ -4,7 +4,7 @@
 Activity Management
 
 ## 2. What Is This Feature?
-Activity Management is a core operational feature that tracks all interactions and scheduled tasks associated with Leads, Persons, or Organizations. It logs emails, notes, phone calls, and meetings to keep a unified timeline of interactions.
+Activity Management is a core operational feature that tracks all interactions and scheduled tasks associated with Leads. It logs emails, notes, phone calls, and meetings to keep a unified timeline of interactions.
 
 ## 3. How Is It Useful?
 It provides users (sales/support staff) with a centralized history of communication. Users can see what has happened (Notes/Emails) and what is scheduled to happen (Calls/Meetings) without leaving the CRM. It ensures context is never lost when dealing with a client.
@@ -23,7 +23,7 @@ It provides users (sales/support staff) with a centralized history of communicat
 ### UI Components
 - **DataGrid**: Tabular list of activities (Calls, Meetings, Tasks).
 - **Filter Sidebar**: By Activity Type, Due Date, Status (Planned/Done).
-- **Timeline/History Component**: This is embedded inside the detail views of Leads, Persons, and Organizations. It lists activities in chronological order.
+- **Timeline/History Component**: This is embedded inside the detail views of Leads. It lists activities in chronological order.
 
 ### Available User Options
 ```text
@@ -42,9 +42,9 @@ Actions
 | Title | Text | Yes | Short summary or subject. |
 | Comment/Body | Rich Text | No | The detailed content of the note/email. |
 | Schedule From/To | Datetime | Conditional | Required for Calls and Meetings. |
-| Participants | Lookup | Conditional | Users or Persons involved in the meeting/call. |
+| Participants | Lookup | Conditional | Users involved in the meeting/call. |
 | Status | Dropdown | Yes | Planned or Done (for calls/meetings). |
-| Linked To | Hidden/Lookup| Yes | The Lead/Person this activity belongs to. |
+| Linked To | Hidden/Lookup| Yes | The Lead this activity belongs to. |
 
 ## 6. User Workflow
 ```text
@@ -95,14 +95,14 @@ Purpose: Mark a scheduled activity as 'Done'.
 **Tables**: `activities`, `activity_participants`
 
 - `activities`: `id`, `title`, `type` (note/call/meeting/email), `comment`, `schedule_from`, `schedule_to`, `is_done`, `user_id`.
-- `activity_participants`: `id`, `activity_id`, `user_id`, `person_id`.
+- `activity_participants`: `id`, `activity_id`, `user_id`.
 
 ## 10. Relationships
 ```text
 Activity
  ├── belongs to → User (Creator)
- ├── has many → Participants (Users/Persons via activity_participants)
- ├── polymorphic many-to-many → Can be attached to Leads, Persons, Organizations
+ ├── has many → Participants (Users via activity_participants)
+ ├── polymorphic many-to-many → Can be attached to Leads
 ```
 *(Krayin manages these relationships either via direct FKs or pivot tables depending on the exact schema structure; often it's a polymorphic relation for timeline attachments).*
 
@@ -110,7 +110,7 @@ Activity
 - "Notes" and "Emails" do not have scheduled times; they happen instantly.
 - "Calls" and "Meetings" must have a `schedule_from` and `schedule_to` time.
 - Only the creator or an admin can edit an activity.
-- An activity must be linked to a parent record (Lead, Person, or Organization) when created from a detail view.
+- An activity must be linked to a parent record (Lead) when created from a detail view.
 
 ## 12. Permissions and Authorization
 - `activities.view`, `activities.create`, `activities.edit`, `activities.delete`.

@@ -18,42 +18,17 @@ class DuplicateMatchingService
      */
     public function findDuplicate(array $emails, array $contactNumbers, ?string $externalId = null, ?string $origin = null)
     {
-        $query = $this->leadRepository->getModel()->newQuery();
+        $leadData = [
+            'emails' => array_map(fn($e) => is_array($e) ? $e : ['value' => $e], $emails),
+            'contact_numbers' => array_map(fn($p) => is_array($p) ? $p : ['value' => $p], $contactNumbers),
+        ];
 
-        $query->where(function ($q) use ($emails, $contactNumbers, $externalId, $origin) {
-            // Check external ID if provided
-            if ($externalId && $origin) {
-                $q->orWhere(function ($subQ) use ($externalId, $origin) {
-                    $subQ->where('external_id', $externalId)
-                        ->where('origin', $origin);
-                });
-            }
+        $result = app(LeadDuplicateService::class)->detect($leadData, $origin ?? '', $externalId);
 
-            // Check Emails
-            if (! empty($emails)) {
-                $q->orWhere(function ($subQ) use ($emails) {
-                    foreach ($emails as $email) {
-                        $value = is_array($email) ? ($email['value'] ?? null) : $email;
-                        if ($value) {
-                            $subQ->orWhereJsonContains('emails', ['value' => $value]);
-                        }
-                    }
-                });
-            }
+        if ($result && isset($result['existing_lead_id'])) {
+            return $this->leadRepository->find($result['existing_lead_id']);
+        }
 
-            // Check Phones
-            if (! empty($contactNumbers)) {
-                $q->orWhere(function ($subQ) use ($contactNumbers) {
-                    foreach ($contactNumbers as $phone) {
-                        $value = is_array($phone) ? ($phone['value'] ?? null) : $phone;
-                        if ($value) {
-                            $subQ->orWhereJsonContains('contact_numbers', ['value' => $value]);
-                        }
-                    }
-                });
-            }
-        });
-
-        return $query->first();
+        return null;
     }
 }

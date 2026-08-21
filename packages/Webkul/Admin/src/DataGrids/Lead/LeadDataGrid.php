@@ -127,36 +127,7 @@ class LeadDataGrid extends DataGrid
             ->where('leads.is_archived', 0)
             ->where('leads.is_merged', 0);
 
-        /**
-         * Custom (user defined) attribute values live in the EAV `attribute_values` table, so they
-         * are pulled in as correlated sub-selects only when exporting. They are hidden from the
-         * grid display (see prepareColumns) but included in the exported file.
-         */
-        if (request()->boolean('export')) {
-            foreach ($this->getCustomAttributes() as $attribute) {
-                $valueColumn = AttributeValue::$attributeTypeFields[$attribute->type] ?? 'text_value';
-
-                $queryBuilder->addSelect(DB::raw(
-                    '(SELECT '.$tablePrefix.'attribute_values.'.$valueColumn.
-                    ' FROM '.$tablePrefix.'attribute_values'.
-                    ' WHERE '.$tablePrefix.'attribute_values.entity_id = '.$tablePrefix.'leads.id'.
-                    ' AND '.$tablePrefix.'attribute_values.attribute_id = '.(int) $attribute->id.
-                    ' AND '.$tablePrefix."attribute_values.entity_type = 'leads'".
-                    ' LIMIT 1) as '.$attribute->code
-                ));
-            }
-        }
-
-        // Add SLA subqueries
-        $queryBuilder->addSelect(DB::raw(
-            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Assignment" ORDER BY created_at DESC LIMIT 1) as assignment_sla_status'
-        ))->addSelect(DB::raw(
-            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "First Action" ORDER BY created_at DESC LIMIT 1) as first_action_sla_status'
-        ))->addSelect(DB::raw(
-            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Follow-up" ORDER BY created_at DESC LIMIT 1) as follow_up_sla_status'
-        ))->addSelect(DB::raw(
-            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Stage" ORDER BY created_at DESC LIMIT 1) as stage_sla_status'
-        ));
+        // Custom (user defined) attribute values are preloaded in formatRecords() for better performance during export.
 
         $user = auth()->guard('user')->user();
         if ($user) {
@@ -234,6 +205,52 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('data_quality_state', 'leads.data_quality_state');
 
         return $queryBuilder;
+    }
+
+    /**
+     * Format records.
+     */
+    protected function formatRecords($records): mixed
+    {
+        if (request()->boolean('export') && is_iterable($records) && count($records) > 0) {
+            $leadIds = [];
+            foreach ($records as $record) {
+                if (isset($record->id)) {
+                    $leadIds[] = $record->id;
+                }
+            }
+
+            if (! empty($leadIds)) {
+                $attributes = $this->getCustomAttributes();
+                if ($attributes->isNotEmpty()) {
+                    $attributeIds = $attributes->pluck('id')->toArray();
+
+                    $attributeValues = DB::table('attribute_values')
+                        ->whereIn('entity_id', $leadIds)
+                        ->where('entity_type', 'leads')
+                        ->whereIn('attribute_id', $attributeIds)
+                        ->get();
+
+                    $valuesByLead = [];
+                    foreach ($attributeValues as $val) {
+                        $valuesByLead[$val->entity_id][$val->attribute_id] = $val;
+                    }
+
+                    foreach ($records as $record) {
+                        foreach ($attributes as $attribute) {
+                            $valueColumn = AttributeValue::$attributeTypeFields[$attribute->type] ?? 'text_value';
+                            if (isset($valuesByLead[$record->id][$attribute->id])) {
+                                $record->{$attribute->code} = $valuesByLead[$record->id][$attribute->id]->{$valueColumn};
+                            } else {
+                                $record->{$attribute->code} = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return parent::formatRecords($records);
     }
 
     /**
@@ -788,88 +805,7 @@ class LeadDataGrid extends DataGrid
             'visibility' => false,
         ]);
 
-        $slaStatuses = [
-            'On Track' => 'bg-emerald-100 text-emerald-800',
-            'Due Soon' => 'bg-amber-100 text-amber-800',
-            'Breached' => 'bg-rose-100 text-rose-800',
-            'Resolved' => 'bg-slate-100 text-slate-600',
-        ];
 
-        $this->addColumn([
-            'index' => 'assignment_sla_status',
-            'label' => 'Assignment SLA',
-            'type' => 'string',
-            'searchable' => false,
-            'sortable' => true,
-            'filterable' => true,
-            'visibility' => false,
-            'closure' => function ($row) use ($slaStatuses) {
-                $status = $row->assignment_sla_status ?? null;
-                if (! $status) {
-                    return '--';
-                }
-                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
-            },
-        ]);
-
-        $this->addColumn([
-            'index' => 'first_action_sla_status',
-            'label' => 'First Action SLA',
-            'type' => 'string',
-            'searchable' => false,
-            'sortable' => true,
-            'filterable' => true,
-            'visibility' => false,
-            'closure' => function ($row) use ($slaStatuses) {
-                $status = $row->first_action_sla_status ?? null;
-                if (! $status) {
-                    return '--';
-                }
-                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
-            },
-        ]);
-
-        $this->addColumn([
-            'index' => 'follow_up_sla_status',
-            'label' => 'Follow-up SLA',
-            'type' => 'string',
-            'searchable' => false,
-            'sortable' => true,
-            'filterable' => true,
-            'visibility' => false,
-            'closure' => function ($row) use ($slaStatuses) {
-                $status = $row->follow_up_sla_status ?? null;
-                if (! $status) {
-                    return '--';
-                }
-                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
-            },
-        ]);
-
-        $this->addColumn([
-            'index' => 'stage_sla_status',
-            'label' => 'Stage SLA',
-            'type' => 'string',
-            'searchable' => false,
-            'sortable' => true,
-            'filterable' => true,
-            'visibility' => false,
-            'closure' => function ($row) use ($slaStatuses) {
-                $status = $row->stage_sla_status ?? null;
-                if (! $status) {
-                    return '--';
-                }
-                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
-            },
-        ]);
 
         /**
          * User defined attributes are hidden from the grid but included in the export so the data

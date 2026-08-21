@@ -27,7 +27,9 @@ class LeadLifecycleService
 
     public function __construct(
         protected LeadRepository $leadRepository,
-        protected LeadStatusHistoryRepository $leadStatusHistoryRepository
+        protected LeadStatusHistoryRepository $leadStatusHistoryRepository,
+        protected LeadNurtureService $leadNurtureService,
+        protected LeadFollowUpService $leadFollowUpService
     ) {}
 
     /**

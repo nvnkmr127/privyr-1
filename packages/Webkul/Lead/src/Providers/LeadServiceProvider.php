@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Webkul\Lead\Console\Commands\EvaluateLeadHealth;
 use Webkul\Lead\Contracts\LeadIngestionService;
-use Webkul\Lead\Listeners\LeadAuditSubscriber;
+
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Observers\LeadObserver;
 use Webkul\Lead\Policies\LeadPolicy;
@@ -28,8 +28,6 @@ class LeadServiceProvider extends ServiceProvider
         Gate::policy(Lead::class, LeadPolicy::class);
 
         Lead::observe(LeadObserver::class);
-
-        Event::subscribe(LeadAuditSubscriber::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

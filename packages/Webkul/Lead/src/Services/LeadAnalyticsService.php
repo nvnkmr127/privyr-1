@@ -38,19 +38,6 @@ class LeadAnalyticsService
             'leads_by_source' => $this->sourceAnalytics->getMetrics($startDate, $endDate, $userId),
             'leads_by_pipeline' => $this->pipelineAnalytics->getMetrics($startDate, $endDate, $userId),
             'leads_by_owner' => $this->ownerAnalytics->getMetrics($startDate, $endDate),
-
-            // Note: score_distribution, avg_response_time_hours, and aging_leads_avg_days
-            // are temporarily mocked/omitted from this top level response as they require
-            // complex subqueries or materialized views to calculate efficiently on large datasets.
-            'aging_leads_avg_days' => 0,
-            'score_distribution' => [
-                '0-20' => 0,
-                '21-40' => 0,
-                '41-60' => 0,
-                '61-80' => 0,
-                '81-100' => 0,
-            ],
-            'avg_response_time_hours' => 0,
         ];
     }
 }

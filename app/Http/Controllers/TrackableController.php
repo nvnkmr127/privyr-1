@@ -27,7 +27,7 @@ class TrackableController extends Controller
         }
 
         $expected = md5($leadId.config('app.key'));
-        if ($hash !== 'demo' && ! hash_equals($expected, (string) $hash)) {
+        if (! hash_equals($expected, (string) $hash)) {
             abort(404);
         }
 
@@ -38,16 +38,15 @@ class TrackableController extends Controller
         $activity = $this->activityRepository->create([
             'type' => 'note',
             'comment' => "📄 🔥 Prospect opened shared brochure/catalogue (IP: {$ip})",
-            'user_id' => $leadRecord->user_id ?? 1,
+            'user_id' => $leadRecord->user_id,
             'lead_id' => $leadId,
             'is_done' => 1,
         ]);
 
         // Send instant Engagement Push Alert to assigned agent
         $user = DB::table('users')->where('id', $leadRecord->user_id)->first();
-        $person = DB::table('persons')->where('id', $leadRecord->person_id)->first();
-        $prospectName = $person->name ?? 'Prospect';
-        $phone = json_decode($person->contact_numbers ?? '[]', true)[0]['value'] ?? '';
+        $prospectName = $leadRecord->person_name ?: 'Prospect';
+        $phone = json_decode($leadRecord->contact_numbers ?? '[]', true)[0]['value'] ?? '';
 
         Log::info("🔥 Engagement alert triggered for Lead #{$leadId} opened by {$prospectName}");
 

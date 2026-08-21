@@ -45,7 +45,7 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
 
     Route::post('inbox/swipe', 'swipeAction')->name('admin.leads.inbox.swipe');
 
-    Route::post('inbox/bulk', 'bulkAction')->name('admin.leads.inbox.bulk');
+    Route::post('inbox/bulk', [BulkActionController::class, 'execute'])->name('admin.leads.inbox.bulk');
 
     Route::post('bulk', [BulkActionController::class, 'execute'])->name('admin.leads.bulk');
 
