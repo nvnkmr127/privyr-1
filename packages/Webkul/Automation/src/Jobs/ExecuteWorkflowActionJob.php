@@ -78,7 +78,7 @@ class ExecuteWorkflowActionJob implements ShouldQueue
 
             return;
         }
-        
+
         self::$executionDepth++;
 
         try {
