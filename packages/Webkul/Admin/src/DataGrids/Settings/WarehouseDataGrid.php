@@ -22,7 +22,7 @@ class WarehouseDataGrid extends DataGrid
                 'warehouses.name',
                 'warehouses.contact_name',
                 'warehouses.contact_emails',
-                'warehouses.contact_numbers',
+                'warehouses.phones',
                 'warehouses.created_at',
             )
             ->addSelect(DB::raw('count(DISTINCT '.DB::getTablePrefix().'product_inventories.product_id) as products'))
@@ -81,12 +81,12 @@ class WarehouseDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index' => 'contact_numbers',
+            'index' => 'phones',
             'label' => trans('admin::app.settings.warehouses.index.datagrid.contact-numbers'),
             'type' => 'string',
             'sortable' => false,
             'closure' => function ($row) {
-                $numbers = json_decode($row->contact_numbers, true);
+                $numbers = json_decode($row->phones, true);
 
                 if ($numbers) {
                     return collect($numbers)->pluck('value')->join(', ');

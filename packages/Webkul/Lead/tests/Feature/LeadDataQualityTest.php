@@ -14,18 +14,18 @@ beforeEach(function () {
 
 it('normalizes phone and email correctly', function () {
     $data = [
-        'person_name' => '  John   Doe  ',
+        'name' => '  John   Doe  ',
         'emails' => [['value' => ' JOHN.DOE@example.com ', 'label' => 'work']],
-        'contact_numbers' => [['value' => ' +1 (555) 123-4567 ', 'label' => 'work']],
+        'phones' => [['value' => ' +1 (555) 123-4567 ', 'label' => 'work']],
         'title' => '<h1>New Lead</h1>',
     ];
 
     $normalized = $this->dataQualityService->normalize($data);
 
-    expect($normalized['person_name'])->toBe('John Doe')
+    expect($normalized['name'])->toBe('John Doe')
         ->and($normalized['emails'][0]['value'])->toBe('john.doe@example.com')
         ->and($normalized['normalized_primary_email'])->toBe('john.doe@example.com')
-        ->and($normalized['contact_numbers'][0]['value'])->toBe('+15551234567')
+        ->and($normalized['phones'][0]['value'])->toBe('+15551234567')
         ->and($normalized['normalized_primary_phone'])->toBe('+15551234567')
         ->and($normalized['title'])->toBe('New Lead');
 });
@@ -36,11 +36,11 @@ it('calculates data quality state as complete when all required fields are prese
     // Create a lead with all necessary fields
     $lead = app(LeadRepository::class)->create([
         'entity_type' => 'leads',
-        'person_name' => 'Valid Name',
+        'name' => 'Valid Name',
         'lead_source_id' => 1,
         'user_id' => 1,
         'emails' => [['value' => 'valid@example.com', 'label' => 'work']],
-        'contact_numbers' => [['value' => '+15551234567', 'label' => 'work']],
+        'phones' => [['value' => '+15551234567', 'label' => 'work']],
     ]);
 
     $this->dataQualityService->calculateQualityState($lead);
@@ -54,7 +54,7 @@ it('calculates data quality state as complete when all required fields are prese
 it('calculates data quality state as needs_review for missing some fields', function () {
     $lead = app(LeadRepository::class)->create([
         'entity_type' => 'leads',
-        'person_name' => 'Valid Name',
+        'name' => 'Valid Name',
         'lead_source_id' => null, // Missing source
         'user_id' => 1,
         'emails' => [['value' => 'valid@example.com', 'label' => 'work']],
@@ -70,7 +70,7 @@ it('calculates data quality state as needs_review for missing some fields', func
 it('calculates data quality state as incomplete for severely missing fields', function () {
     $lead = app(LeadRepository::class)->create([
         'entity_type' => 'leads',
-        'person_name' => null,
+        'name' => null,
         'lead_source_id' => null,
         'user_id' => null,
     ]);

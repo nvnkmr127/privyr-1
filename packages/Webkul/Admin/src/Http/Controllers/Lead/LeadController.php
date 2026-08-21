@@ -30,6 +30,7 @@ use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\Lead\Repositories\StageRepository;
 use Webkul\Lead\Repositories\TypeRepository;
+use Webkul\Lead\Services\LeadArchiveService;
 use Webkul\Lead\Services\LeadAssignmentService;
 use Webkul\Lead\Services\LeadDuplicateService;
 use Webkul\Lead\Services\LeadFilterService;
@@ -61,7 +62,8 @@ class LeadController extends Controller
         protected PipelineRepository $pipelineRepository,
         protected StageRepository $stageRepository,
         protected LeadRepository $leadRepository,
-        protected LeadDuplicateService $leadDuplicateService
+        protected LeadDuplicateService $leadDuplicateService,
+        protected LeadArchiveService $leadArchiveService
     ) {
         request()->request->add(['entity_type' => 'leads']);
     }
@@ -176,10 +178,10 @@ class LeadController extends Controller
                 ]);
                 break;
             case 'archive':
-                $lead->update(['is_archived' => true]);
+                $this->leadArchiveService->archive($lead, 'Swiped to archive');
                 break;
             case 'unarchive':
-                $lead->update(['is_archived' => false]);
+                $this->leadArchiveService->restore($lead, 'Swiped to unarchive');
                 break;
             case 'change_stage':
                 if ($stageId = $request->input('stage_id')) {
@@ -865,7 +867,7 @@ class LeadController extends Controller
                 'visibility' => true,
             ],
             [
-                'index' => 'person_name',
+                'index' => 'name',
                 'label' => trans('admin::app.leads.index.kanban.columns.contact-person'),
                 'type' => 'string',
                 'searchable' => true,
@@ -1077,9 +1079,9 @@ class LeadController extends Controller
                     'title' => $rawLead['title'],
                     'description' => $rawLead['description'] ?? null,
                     'lead_value' => $rawLead['lead_value'] ?? 0,
-                    'person_name' => $rawLead['person']['name'] ?? 'Unknown',
+                    'name' => $rawLead['person']['name'] ?? 'Unknown',
                     'emails' => $rawLead['person']['emails'] ?? [],
-                    'contact_numbers' => $rawLead['person']['contact_numbers'] ?? [],
+                    'phones' => $rawLead['person']['phones'] ?? [],
                 ],
                 'metadata' => ['ip' => request()->ip()],
             ]);

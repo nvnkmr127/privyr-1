@@ -86,7 +86,7 @@ class LeadFilterService
                     // Normalized phone search
                     $cleanPhone = preg_replace('/[^0-9]/', '', $value);
                     if ($cleanPhone) {
-                        $subQuery->orWhere('leads.contact_numbers', 'LIKE', '%"value":"%'.$cleanPhone.'%"%');
+                        $subQuery->orWhere('leads.phones', 'LIKE', '%"value":"%'.$cleanPhone.'%"%');
                     }
 
                     // Case-insensitive email search handled natively by LIKE in most SQL
@@ -97,12 +97,12 @@ class LeadFilterService
                         if ($col['searchable'] && ! ($col['is_custom'] ?? false)) {
                             // Extract actual db column mapping if available, else use index
                             $dbColumn = $col['index'];
-                            if ($dbColumn === 'person_name' || $dbColumn === 'title') {
+                            if ($dbColumn === 'name' || $dbColumn === 'title') {
                                 $dbColumn = 'leads.'.$dbColumn;
                             }
                             // Avoid searching on computed columns or complex relationships during global text search if not mapped properly,
                             // But fallback to standard DataGrid behavior where appropriate.
-                            if (strpos($dbColumn, '.') !== false || in_array($dbColumn, ['leads.title', 'leads.person_name'])) {
+                            if (strpos($dbColumn, '.') !== false || in_array($dbColumn, ['leads.title', 'leads.name'])) {
                                 $subQuery->orWhere($dbColumn, 'LIKE', '%'.$value.'%');
                             }
                         }

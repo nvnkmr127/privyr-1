@@ -20,14 +20,40 @@ class LeadDuplicateService
             return null;
         }
 
-        $isPlus = str_starts_with(trim($phone), '+');
+        $phone = trim($phone);
+        $isPlus = str_starts_with($phone, '+');
         $normalized = preg_replace('/[^0-9]/', '', $phone);
 
         if (empty($normalized)) {
             return null;
         }
 
-        return $isPlus ? '+'.$normalized : $normalized;
+        if ($isPlus) {
+            return '+' . $normalized;
+        }
+
+        // Replace leading 00 with plus (international format)
+        if (str_starts_with($normalized, '00')) {
+            return '+' . substr($normalized, 2);
+        }
+
+        // India-first heuristics
+        // Exact 10 digits without country code
+        if (strlen($normalized) === 10) {
+            return '+91' . $normalized;
+        }
+
+        // 11 digits starting with 0 (Indian local format)
+        if (strlen($normalized) === 11 && str_starts_with($normalized, '0')) {
+            return '+91' . substr($normalized, 1);
+        }
+
+        // 12 digits starting with 91 but no plus
+        if (strlen($normalized) === 12 && str_starts_with($normalized, '91')) {
+            return '+' . $normalized;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -52,8 +78,8 @@ class LeadDuplicateService
     {
         // Extract fields
         $email = $this->normalizeEmail($leadData['person']['emails'] ?? $leadData['emails'][0]['value'] ?? null);
-        $phone = $this->normalizePhone($leadData['person']['contact_numbers'] ?? $leadData['contact_numbers'][0]['value'] ?? null);
-        $name = trim($leadData['person_name'] ?? $leadData['person']['name'] ?? '');
+        $phone = $this->normalizePhone($leadData['person']['phones'] ?? $leadData['phones'][0]['value'] ?? null);
+        $name = trim($leadData['name'] ?? $leadData['person']['name'] ?? '');
 
         // 1. Exact Source + External ID Match (High Confidence)
         if ($origin && $externalId) {
@@ -89,7 +115,7 @@ class LeadDuplicateService
         // 4. Medium Confidence Matches (Phone/Email + Name)
         // Since we didn't find exact matches on primary, we might check JSON fields just in case,
         // or check if similar name exists with the same phone/email (but they didn't match exactly above).
-        // If the normalized primary didn't match, we can check the JSON arrays `emails` or `contact_numbers`
+        // If the normalized primary didn't match, we can check the JSON arrays `emails` or `phones`
         // just in case they have it as a secondary contact.
 
         $mediumQuery = clone $query;
@@ -99,14 +125,14 @@ class LeadDuplicateService
             if ($email && $name) {
                 $q->orWhere(function ($sub) use ($email, $name) {
                     $sub->where('emails', 'LIKE', '%'.$email.'%')
-                        ->where('person_name', 'LIKE', '%'.$name.'%');
+                        ->where('name', 'LIKE', '%'.$name.'%');
                 });
                 $hasMediumQuery = true;
             }
             if ($phone && $name) {
                 $q->orWhere(function ($sub) use ($phone, $name) {
-                    $sub->where('contact_numbers', 'LIKE', '%'.$phone.'%')
-                        ->where('person_name', 'LIKE', '%'.$name.'%');
+                    $sub->where('phones', 'LIKE', '%'.$phone.'%')
+                        ->where('name', 'LIKE', '%'.$name.'%');
                 });
                 $hasMediumQuery = true;
             }
@@ -119,7 +145,7 @@ class LeadDuplicateService
                 if ($email && str_contains(json_encode($existing->emails), $email)) {
                     return $this->buildResult($existing, 'fuzzy_email_name', 'medium');
                 }
-                if ($phone && str_contains(json_encode($existing->contact_numbers), $phone)) {
+                if ($phone && str_contains(json_encode($existing->phones), $phone)) {
                     return $this->buildResult($existing, 'fuzzy_phone_name', 'medium');
                 }
             }
@@ -139,7 +165,7 @@ class LeadDuplicateService
             'confidence' => $confidence,
             'existing_lead_data' => [
                 'title' => $lead->title,
-                'person_name' => $lead->person_name,
+                'name' => $lead->name,
                 'owner' => $lead->user ? $lead->user->name : 'Unassigned',
                 'status' => $lead->status,
                 'stage' => $lead->stage ? $lead->stage->name : null,

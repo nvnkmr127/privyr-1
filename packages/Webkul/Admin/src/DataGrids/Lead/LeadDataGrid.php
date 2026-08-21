@@ -103,8 +103,8 @@ class LeadDataGrid extends DataGrid
                 'users.id as user_id',
                 'users.name as sales_person',
                 'groups.name as team_name',
-                'leads.person_name as person_name',
-                'leads.contact_numbers as contact_numbers',
+                'leads.name as name',
+                'leads.phones as phones',
                 'tags.name as tag_name',
                 'follow_up_owners.name as follow_up_owner_name',
                 'lead_pipelines.rotten_days as pipeline_rotten_days',
@@ -167,7 +167,7 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('team_name', 'groups.id');
         $this->addFilter('lead_source_name', 'lead_sources.id');
         $this->addFilter('lead_type_name', 'lead_types.id');
-        $this->addFilter('person_name', 'leads.person_name');
+        $this->addFilter('name', 'leads.name');
         $this->addFilter('type', 'lead_pipeline_stages.code');
         $this->addFilter('stage', 'lead_pipeline_stages.id');
         $this->addFilter('tag_name', 'tags.name');
@@ -433,7 +433,7 @@ class LeadDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index' => 'person_name',
+            'index' => 'name',
             'label' => trans('admin::app.leads.index.datagrid.contact-person'),
             'type' => 'string',
             'searchable' => true,
@@ -464,10 +464,10 @@ class LeadDataGrid extends DataGrid
             'searchable' => false,
             'sortable' => false,
             'closure' => function ($row) {
-                if (! $row->contact_numbers) {
+                if (! $row->phones) {
                     return '--';
                 }
-                $numbers = json_decode($row->contact_numbers, true) ?? [];
+                $numbers = json_decode($row->phones, true) ?? [];
                 $phone = $numbers[0]['value'] ?? null;
                 if (! $phone) {
                     return '--';

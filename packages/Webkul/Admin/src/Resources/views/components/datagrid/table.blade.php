@@ -337,7 +337,7 @@
                         // Primary columns
                         if (['id'].includes(column.index)) {
                             width = 'minmax(60px, max-content)';
-                        } else if (['title', 'sales_person', 'person_name'].includes(column.index)) {
+                        } else if (['title', 'sales_person', 'name'].includes(column.index)) {
                             width = 'minmax(200px, 2fr)';
                         } else if (['lead_value'].includes(column.index)) {
                             width = 'minmax(130px, 1.5fr)';

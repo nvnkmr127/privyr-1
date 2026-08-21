@@ -65,7 +65,7 @@ class MagicAI
             'lead_value' => 'required|numeric|min:0',
             'person.name' => 'required|string|max:255',
             'person.emails.value' => 'required|email',
-            'person.contact_numbers.value' => 'required|string|max:20',
+            'person.phones.value' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -98,10 +98,10 @@ class MagicAI
                         'label' => $finalData->person->emails->label ?? 'work',
                     ],
                 ],
-                'contact_numbers' => [
+                'phones' => [
                     [
-                        'value' => $finalData->person->contact_numbers->value ?? null,
-                        'label' => $finalData->person->contact_numbers->label ?? 'work',
+                        'value' => $finalData->person->phones->value ?? null,
+                        'label' => $finalData->person->phones->label ?? 'work',
                     ],
                 ],
             ],

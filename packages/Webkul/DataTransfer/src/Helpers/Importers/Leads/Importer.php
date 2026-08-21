@@ -40,10 +40,10 @@ class Importer extends AbstractImporter
         'lead_pipeline_id',
         'lead_pipeline_stage_id',
         'expected_close_date',
-        'person_name',
+        'name',
         'emails',
-        'contact_numbers',
-        'organization_name',
+        'phones',
+        'organization',
         'lead_score',
         'utm_source',
         'utm_medium',
@@ -357,8 +357,8 @@ class Importer extends AbstractImporter
                 $native['emails'] = json_encode([['label' => 'work', 'value' => $native['emails']]]);
             }
 
-            if (isset($native['contact_numbers']) && is_string($native['contact_numbers'])) {
-                $native['contact_numbers'] = json_encode([['label' => 'work', 'value' => $native['contact_numbers']]]);
+            if (isset($native['phones']) && is_string($native['phones'])) {
+                $native['phones'] = json_encode([['label' => 'work', 'value' => $native['phones']]]);
             }
 
             if (isset($rowData['id'])) {

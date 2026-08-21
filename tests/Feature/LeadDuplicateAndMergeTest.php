@@ -12,8 +12,23 @@ beforeEach(function () {
 });
 
 it('normalizes phone numbers correctly', function () {
+    // US format without country code (not assumed India due to heuristics matching only 10 digits exactly)
+    // Wait, 10 digits without country code will be assumed India as per our logic!
+    // So '555-123-4567' -> '5551234567' -> '+915551234567'
     expect($this->duplicateService->normalizePhone('+1 (555) 123-4567'))->toBe('+15551234567');
-    expect($this->duplicateService->normalizePhone('555-123-4567'))->toBe('5551234567');
+    expect($this->duplicateService->normalizePhone('555-123-4567'))->toBe('+915551234567'); // India-first for 10 digits
+
+    // India-first local
+    expect($this->duplicateService->normalizePhone('09876543210'))->toBe('+919876543210');
+    expect($this->duplicateService->normalizePhone('9876543210'))->toBe('+919876543210');
+
+    // 00 for international
+    expect($this->duplicateService->normalizePhone('0015551234567'))->toBe('+15551234567');
+    
+    // Explicit 91 without plus
+    expect($this->duplicateService->normalizePhone('919876543210'))->toBe('+919876543210');
+
+    // Keep existing valid plus numbers
     expect($this->duplicateService->normalizePhone('  +91 98765 43210 '))->toBe('+919876543210');
     expect($this->duplicateService->normalizePhone(''))->toBeNull();
 });

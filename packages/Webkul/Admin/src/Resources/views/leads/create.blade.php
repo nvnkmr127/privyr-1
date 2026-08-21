@@ -109,11 +109,11 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="text"
-                                        name="person_name"
+                                        name="name"
                                         rules="required"
                                         placeholder="e.g. John Doe"
                                     />
-                                    <x-admin::form.control-group.error control-name="person_name" />
+                                    <x-admin::form.control-group.error control-name="name" />
                                 </x-admin::form.control-group>
 
                                 <x-admin::form.control-group>
@@ -122,7 +122,7 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="text"
-                                        name="organization_name"
+                                        name="organization"
                                         placeholder="e.g. Acme Corp"
                                     />
                                 </x-admin::form.control-group>
@@ -144,7 +144,7 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="text"
-                                        name="contact_numbers[]"
+                                        name="phones[]"
                                         placeholder="+1 234 567 8900"
                                     />
                                 </x-admin::form.control-group>

@@ -235,12 +235,12 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="text"
-                                        name="person_name"
+                                        name="name"
                                         rules="required"
-                                        v-model="lead.person_name"
+                                        v-model="lead.name"
                                         placeholder="e.g. John Doe"
                                     />
-                                    <x-admin::form.control-group.error control-name="person_name" />
+                                    <x-admin::form.control-group.error control-name="name" />
                                 </x-admin::form.control-group>
 
                                 <x-admin::form.control-group>
@@ -249,8 +249,8 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="text"
-                                        name="organization_name"
-                                        v-model="lead.organization_name"
+                                        name="organization"
+                                        v-model="lead.organization"
                                         placeholder="e.g. Acme Corp"
                                     />
                                 </x-admin::form.control-group>
@@ -273,8 +273,8 @@
                                     </x-admin::form.control-group.label>
                                     <x-admin::form.control-group.control
                                         type="text"
-                                        name="contact_numbers"
-                                        :value="lead.contact_numbers ? lead.contact_numbers.join(', ') : ''"
+                                        name="phones"
+                                        :value="lead.phones ? lead.phones.join(', ') : ''"
                                         placeholder="+1 234 567 8900"
                                     />
                                 </x-admin::form.control-group>

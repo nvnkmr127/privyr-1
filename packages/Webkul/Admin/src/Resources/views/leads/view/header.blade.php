@@ -1,8 +1,8 @@
 @php
-    $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first();
+    $phone = collect($lead->phones ?? [])->pluck('value')->filter()->first();
     $cleanPhone = preg_replace('/[^0-9]/', '', $phone ?? '');
     $email = collect($lead->emails ?? [])->pluck('value')->filter()->first();
-    $personName = $lead->person_name ?? 'there';
+    $personName = $lead->name ?? 'there';
     $leadTitle = $lead->title ?? $personName;
     $leadValue = $lead->lead_value ? core()->formatBasePrice($lead->lead_value) : null;
     $pipelineName = $lead->pipeline?->name ?? 'Default Pipeline';
@@ -215,10 +215,10 @@
                     <span class="font-semibold text-slate-700 dark:text-slate-300 truncate">
                         {{ $personName }}
                     </span>
-                    @if ($lead->organization_name)
+                    @if ($lead->organization)
                         <span class="text-slate-300 dark:text-slate-600">•</span>
                         <span class="truncate">
-                            {{ $lead->organization_name }}
+                            {{ $lead->organization }}
                         </span>
                     @endif
                 </div>
@@ -503,7 +503,7 @@
                 <select name="target_lead_id" required class="w-full rounded border border-gray-300 px-3 py-2 text-xs font-medium dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
                     <option value="">-- Select Target Lead --</option>
                     @foreach ($otherLeads as $oLead)
-                        <option value="{{ $oLead->id }}">{{ $oLead->title }} ({{ $oLead->person_name ?? 'No Contact' }})</option>
+                        <option value="{{ $oLead->id }}">{{ $oLead->title }} ({{ $oLead->name ?? 'No Contact' }})</option>
                     @endforeach
                 </select>
             </div>

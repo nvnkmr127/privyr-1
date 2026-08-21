@@ -41,7 +41,7 @@ return new class extends Migration
         LeadScoreRule::create([
             'name' => 'Has Contact Info',
             'type' => 'attribute',
-            'conditions' => ['attribute' => 'person_name', 'operator' => 'not_null'],
+            'conditions' => ['attribute' => 'name', 'operator' => 'not_null'],
             'points' => 10,
         ]);
 

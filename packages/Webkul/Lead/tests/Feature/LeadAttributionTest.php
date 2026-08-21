@@ -21,7 +21,7 @@ it('preserves first touch attribution on update', function () {
         origin: 'webform',
         leadData: [
             'title' => 'Test Lead',
-            'person_name' => 'Test Person',
+            'name' => 'Test Person',
             'emails' => [['value' => 'test@example.com', 'label' => 'work']],
         ],
         sourceId: $source->id,
@@ -43,7 +43,7 @@ it('preserves first touch attribution on update', function () {
         origin: 'api',
         leadData: [
             'title' => 'Test Lead',
-            'person_name' => 'Test Person',
+            'name' => 'Test Person',
             'emails' => [['value' => 'test@example.com', 'label' => 'work']],
         ],
         sourceId: $newSource->id,

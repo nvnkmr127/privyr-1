@@ -288,7 +288,7 @@
                 },
 
                 updateOrCreate(params) {
-                    this.inputValue = params.contact_numbers || this.inputValue;
+                    this.inputValue = params.phones || this.inputValue;
 
                     if (this.url) {
                         this.isProcessing = true;
@@ -297,7 +297,7 @@
                                 [this.name]: this.inputValue,
                             })
                             .then((response) => {
-                                this.contactNumbers = response.data.data.contact_numbers || this.contactNumbers;
+                                this.contactNumbers = response.data.data.phones || this.contactNumbers;
 
                                 this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
                             })

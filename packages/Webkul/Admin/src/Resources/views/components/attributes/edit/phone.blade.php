@@ -154,13 +154,13 @@
                         /**
                          * Check if the phone number is unique. This support is only for person phone numbers only.
                          */
-                         if (this.attribute.code === 'person[contact_numbers]') {
+                         if (this.attribute.code === 'person[phones]') {
                             try {
                                 const { data } = await this.$axios.get('{{ route('admin.settings.attributes.check_unique_validation') }}', {
                                     params: {
                                         entity_id: this.attribute.id,
                                         entity_type: 'persons',
-                                        attribute_code: 'contact_numbers',
+                                        attribute_code: 'phones',
                                         attribute_value: value
                                     }
                                 });

@@ -26,7 +26,7 @@ it('calculates score based on dynamic rules', function () {
     LeadScoreRule::create([
         'name' => 'Has Name',
         'type' => 'attribute',
-        'conditions' => ['attribute' => 'person_name', 'operator' => 'not_null'],
+        'conditions' => ['attribute' => 'name', 'operator' => 'not_null'],
         'points' => 10,
     ]);
 
@@ -45,7 +45,7 @@ it('calculates score based on dynamic rules', function () {
         'title' => 'Test Scoring Lead',
         'lead_pipeline_id' => $pipeline->id,
         'lead_pipeline_stage_id' => $stage->id,
-        'person_name' => 'John Doe',
+        'name' => 'John Doe',
         'qualification_status' => 'qualified',
         'last_contacted_at' => Carbon::now()->subDays(10), // Triggers stale penalty
     ]);
