@@ -2,413 +2,322 @@
 
 Repository: `nvnkmr127/privyr-1`
 
-Audited ref: `e47d3de0f48897b5fb8205edf9f7d4a56263951f`
+Audited commit: `84f2347fde7a12d0f945aa76eb5f2adcc3c17c9b`
 
-Scope: Lead Operations only. No application fixes were made.
+Audit branch: `audit/full-codebase-audit-2026-08-21`
+
+Scope: Lead Operations only.
+
+No application code was changed during the audit.
 
 ## P0. Release blockers
 
-### P0-001. PHP syntax error in Lead status endpoint
+### P0-001. External Leads use an invalid lifecycle default
 
-File: `packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`
+File: `packages/Webkul/Lead/src/Repositories/LeadRepository.php`
 
-Line: 623-648
+Function: `create()`
 
-Function: `updateStatus()`
+Evidence: the repository assigns `status` using `$data['status'] ?? 'Active'`.
 
-Finding: Two identical `catch (\\Exception $exception)` clauses are consecutive.
+Related file: `packages/Webkul/Lead/src/Services/LeadLifecycleService.php`
 
-Expected: A single catch block must handle the lifecycle exception.
+Expected: every Lead must enter a lifecycle status supported by the lifecycle service: Open, Working, Nurturing, Converted, Lost or Junk.
 
-Impact: PHP cannot parse the controller correctly. This blocks controller execution and is a production release blocker.
+Impact: external API, webhook and import Leads may enter `Active`, while manual Leads explicitly enter Open. The product therefore has two incompatible initial states.
 
-Severity: P0
+Recommended fix: define one canonical initial state in a Lead creation service and test every Lead entry point against the same invariant.
 
-Recommended Fix: Remove the duplicate catch, add a status endpoint test for success and failure, then run the full Pest suite.
+### P0-002. Nurture status changes are stripped before persistence
 
-### P0-002. Inbox swipe mutation lacks object-level authorization
+Files:
+- `packages/Webkul/Lead/src/Services/LeadNurtureService.php`
+- `packages/Webkul/Lead/src/Repositories/LeadRepository.php`
 
-File: `packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`
+Functions: `startNurturing()`, `completeNurturing()`, `update()`
 
-Line: 143-194
+Evidence: nurture passes `status` to `LeadRepository::update()`. The repository explicitly removes `status` before calling the parent update.
 
-Function: `swipeAction()`
+Expected: starting or ending nurture must change the lifecycle status atomically and record the transition.
 
-Finding: The method reads `lead_id` directly from the request and updates the Lead. It does not call `authorize()` or a LeadVisibilityService check before mutation.
+Impact: the system may create nurture history and activities while leaving the Lead in its previous status.
 
-Expected: Every Lead mutation must prove access to the target Lead using the same policy used by Lead view/update/delete.
+Recommended fix: route status changes through `LeadLifecycleService` and let the repository persist attributes rather than own lifecycle decisions.
 
-Impact: A user may attempt to mutate another user's Lead by replacing the Lead ID. Route ACL alone is not object-level access control.
+### P0-003. Duplicate detection has no database concurrency guard
 
-Severity: P0 pending verification with an authenticated non-owner test.
+File: `packages/Webkul/Lead/src/Database/Migrations/2026_08_18_182409_add_duplicate_fields_to_leads_table.php`
 
-Recommended Fix: Delegate swipe actions to a policy-aware Lead operation service. Reject any Lead outside the caller's visibility scope.
+Function: migration `up()`
 
-### P0-003. Legacy Inbox bulk mutation lacks per-record policy enforcement
+Evidence: normalized email, normalized phone, duplicate state and merge references are indexed, but the migration does not establish a uniqueness rule for the business duplicate identity.
 
-File: `packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`
+Expected: duplicate detection must remain correct when two matching requests arrive concurrently.
 
-Line: 199-260
+Impact: both requests may pass the application-level lookup before either transaction inserts the Lead.
 
-Function: `bulkAction()`
-
-Finding: Direct `whereIn('id', $leadIds)->update(...)` calls modify arbitrary Lead IDs supplied by the client. Reassignment and stage changes also use direct model updates.
-
-Expected: Bulk actions must resolve the requested IDs through LeadVisibilityService, then call the same domain services as single-record mutations.
-
-Impact: Potential cross-owner modification, skipped stage history, skipped lifecycle rules, skipped automation side effects, and incomplete audit trails.
-
-Severity: P0 pending authorization test.
-
-Recommended Fix: Remove this legacy mutation path or route it through `BulkLeadOperationService` with policy checks and per-action service dispatch.
+Recommended fix: define a database-level uniqueness strategy compatible with null values and approved duplicate semantics, then retain the application duplicate matcher for warning and merge behavior.
 
 ## P1. Security and data integrity
 
-### P1-001. SLA storage dependency is unverified
+### P1-001. Full Lead capture payloads are written to application logs
 
-File: `packages/Webkul/Admin/src/DataGrids/Lead/LeadDataGrid.php`
+File: `app/Http/Controllers/Api/LeadCaptureController.php`
 
-Line: 145-163
+Function: `capture()`
 
-Finding: LeadDataGrid executes four correlated SQL subqueries against `lead_slas`.
+Evidence: `Log::info(..., $data)` records the full inbound request payload.
 
-Expected: `lead_slas` must have a migration, model, service, scheduler, writers, indexes, and tests.
+Impact: Lead identity data and message content enter standard application logs.
 
-Impact: Lead listing or export may fail at runtime if the table is absent. Even if created outside the Lead package, the lifecycle remains unverified.
+Recommended fix: remove raw payload logging in production or use explicit redaction and a restricted debug channel.
 
-Severity: P1
+### P1-002. Raw exception messages are returned from the public capture API
 
-Recommended Fix: Verify schema and producers. Complete SLA lifecycle before treating SLA metrics as implemented.
+File: `app/Http/Controllers/Api/LeadCaptureController.php`
 
-### P1-002. Facebook signature validation accepts missing signatures
+Function: `capture()` catch block
 
-File: `packages/Webkul/Lead/src/Services/LeadCaptureService.php`
+Evidence: the HTTP 500 response includes `$e->getMessage()`.
 
-Line: 225-242
+Impact: internal implementation details may be exposed to external callers.
 
-Function: `assertValidFacebookSignature()`
+Recommended fix: return a stable public error code and generic message. Keep detailed exception context server-side.
 
-Finding: Missing secret, missing signature, or missing raw body returns without rejection.
+### P1-003. Generic capture accepts a secret in a query parameter
 
-Expected: Configured signed endpoints must reject unsigned requests.
+File: `app/Http/Controllers/Api/LeadCaptureController.php`
 
-Impact: Provider authenticity is optional rather than enforced.
+Function: `capture()`
 
-Severity: P1
+Evidence: the controller reads `X-Capture-Secret` or the `key` query parameter.
 
-Recommended Fix: Make verification mode explicit per connector and reject missing signatures whenever signed delivery is required.
+Impact: query-string secrets are more likely to appear in reverse-proxy, load-balancer and monitoring logs.
 
-### P1-003. Public connector replay protection is missing
+Recommended fix: require the secret in an authentication header and replace the shared global secret model with connector-scoped credentials.
 
-File: `packages/Webkul/Admin/src/Http/Controllers/Lead/PublicLeadCaptureController.php`
-
-Line: 18-115 plus provider handlers
-
-Finding: Connector tokens identify the destination, but no common timestamp, nonce, event ID, or replay window is enforced.
-
-Expected: Each provider delivery must be idempotent and replay-safe.
-
-Impact: Replayed requests may create duplicate processing attempts or repeatedly trigger downstream actions.
-
-Severity: P1
-
-Recommended Fix: Persist a provider event key and enforce uniqueness. Require timestamp/signature for providers that support signed envelopes.
-
-### P1-004. Duplicate detection is split into two engines
+### P1-004. Public capture lacks a common replay ledger
 
 Files:
-`packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`
-`packages/Webkul/Lead/src/Services/LeadIngestionService.php`
-`packages/Webkul/Lead/src/Services/LeadDuplicateService.php`
-`packages/Webkul/Lead/src/Services/DuplicateMatchingService.php`
+- `routes/api.php`
+- `app/Http/Controllers/Api/LeadCaptureController.php`
+- public connector capture controllers
 
-Finding: Manual flows use `LeadDuplicateService`, while canonical ingestion calls `DuplicateMatchingService`. The services do not use identical matching criteria.
+Expected: provider event ID, delivery ID or a generated idempotency key should be persisted before processing.
 
-Expected: One duplicate domain service should own normalization and matching rules.
+Impact: replayed provider deliveries can re-enter parsing and duplicate checks.
 
-Impact: A Lead may be considered a duplicate by one entry point and unique by another.
+Recommended fix: add one webhook delivery ledger with connector ID, external event ID, signature status, first seen time, processing state and response status.
 
-Severity: P1
+### P1-005. WhatsApp chat import fabricates a phone number
 
-Recommended Fix: Consolidate matching into one service and expose explicit policies for phone, email, external ID, and merge suggestions.
+File: `app/Http/Controllers/Api/LeadCaptureController.php`
 
-### P1-005. Create-after event may fire twice
+Function: `importWhatsAppChat()`
+
+Evidence: when no phone is extracted, code defaults to `9999999999`.
+
+Impact: fabricated identity data can create false duplicate matches and polluted Lead records.
+
+Recommended fix: reject the import or store the contact as missing, never fabricate an identity field.
+
+### P1-006. Duplicate engines are split
 
 Files:
-`packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`, lines 367-420
-`packages/Webkul/Lead/src/Services/LeadIngestionService.php`, lines 99-132
-`packages/Webkul/Lead/src/Repositories/LeadRepository.php`
+- `packages/Webkul/Lead/src/Services/LeadDuplicateService.php`
+- `packages/Webkul/Lead/src/Services/DuplicateMatchingService.php`
 
-Finding: Repository creation already dispatches a Lead create-after event. Higher-level controller/ingestion code dispatches it again in paths that reach those lines.
+Finding: manual Lead creation and canonical ingestion do not use the same duplicate implementation.
 
-Expected: Exactly one authoritative create-after event for a successful Lead create.
+Impact: identical Lead data may receive different duplicate results depending on entry point.
 
-Impact: Duplicate workflows, duplicate notifications, duplicate audit consumers, or duplicate integration calls.
+Recommended fix: one duplicate engine, one normalization contract, one result schema.
 
-Severity: P1
+### P1-007. Nested duplicate payload can violate the duplicate service type contract
 
-Recommended Fix: Choose one event boundary, preferably the application service/repository boundary, and remove duplicate dispatches.
+File: `packages/Webkul/Lead/src/Services/LeadDuplicateService.php`
 
-### P1-006. Lifecycle service has incomplete dependency injection
+Function: `detect()`
 
-File: `packages/Webkul/Lead/src/Services/LeadLifecycleService.php`
+Finding: `person.contact_numbers` is passed into `normalizePhone(?string)`. A nested array payload therefore does not match the method contract.
 
-Line: 20-175
+Impact: some integration payloads can fail during duplicate detection instead of returning a deterministic match result.
 
-Finding: `convertLead`, `markLost`, and `markJunk` reference `$this->leadNurtureService` and `$this->leadFollowUpService`, but those properties are not declared in the constructor shown in the implementation.
+Recommended fix: normalize accepted input shapes before calling scalar normalization methods.
 
-Expected: Every service dependency used by runtime methods must be injected and covered by tests.
-
-Impact: Calling those methods may produce undefined property errors.
-
-Severity: P1
-
-Recommended Fix: Inject required services and create tests for converting, losing, and junking a Lead from every relevant starting state.
-
-### P1-007. Nurture completion accepts arbitrary status values
+### P1-008. Manual Lead creation bypasses canonical ingestion
 
 File: `packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`
-Lines: approximately 673-704
 
-File: `packages/Webkul/Lead/src/Services/LeadNurtureService.php`
+Function: `store()`
 
-Finding: Controller validates `outcome` as a string, and service writes it to `leads.status` without checking it against the Lead lifecycle status set.
+Finding: manual creation checks duplicates and then calls `LeadRepository::create()` instead of entering `LeadIngestionService`.
 
-Expected: Nurture outcomes must be an explicit enum or allowlisted set.
+Impact: manual, import, API and webhook Leads do not share one complete normalization, attribution and ingestion-log contract.
 
-Impact: Invalid Lead lifecycle values may enter the database.
+Recommended fix: introduce a shared Lead creation command/service with source-specific adapters feeding it.
 
-Severity: P1
+### P1-009. SLA evaluation is not operationally wired
 
-Recommended Fix: Validate against `LeadLifecycleService::getValidStatuses()` and enforce transition rules.
+Files:
+- `packages/Webkul/Lead/src/Jobs/EvaluateLeadSlasJob.php`
+- `packages/Webkul/Lead/src/Services/Sla/SlaEvaluatorService.php`
+- `routes/console.php`
 
-### P1-008. Bulk qualification falls back to direct database mutation
+Finding: the job and evaluator exist, but the scheduler registers other Lead commands and no `EvaluateLeadSlasJob::dispatch` was found in repository search.
 
-File: `packages/Webkul/Lead/src/Services/BulkLeadOperationService.php`
+Impact: SLA due-soon and breach states may never advance automatically.
 
-Line: 207-215
+Recommended fix: register a dedicated scheduled command or job dispatch and add scheduler integration tests.
 
-Finding: The code checks for `changeQualificationStatus`. If absent, it directly updates `qualification_status` through `LeadRepository`.
+### P1-010. Assignment fallback deliberately allows unassigned Leads
 
-Expected: Qualification must always use `LeadQualificationService`, which records history, events, and scoring.
+Files:
+- `packages/Webkul/Lead/src/Services/LeadAssignmentService.php`
+- `packages/Webkul/Lead/src/Repositories/LeadRepository.php`
 
-Impact: Bulk qualification may bypass validation, history, and scoring behavior.
+Finding: `assignLead()` returns false when no active rule matches, and the create path accepts the no-match outcome.
 
-Severity: P1
+Impact: assignment SLA and action-center reliability depend on manual recovery.
 
-Recommended Fix: Add a first-class bulk qualification service operation and remove the direct field fallback.
+Recommended fix: define an explicit default queue or fallback assignment policy and record failures as operational events.
 
-### P1-009. Rule-based assignment bypasses Lead persistence events
+### P1-011. Lifecycle rules are split between service and repository
 
-File: `packages/Webkul/Lead/src/Services/LeadAssignmentService.php`
+Files:
+- `LeadLifecycleService.php`
+- `LeadRepository.php`
+- `LeadController.php`
 
-Line: 245-280
+Finding: repository update strips lifecycle fields while lifecycle/nurture services rely on repository update for those fields.
 
-Function: `performAssignment()`
+Impact: behavior depends on which service is used.
 
-Finding: The service writes `user_id` and `group_id` using `DB::table('leads')->update()`.
+Recommended fix: make lifecycle service the only owner of lifecycle state transitions.
 
-Expected: Assignment changes should pass through one business service that owns persistence and downstream event behavior.
+### P1-012. Workflow idempotency policy is too coarse
 
-Impact: Eloquent observers and any update-based auditing are bypassed.
+File: `packages/Webkul/Automation/src/Jobs/ExecuteWorkflowActionJob.php`
 
-Severity: P1
+Finding: idempotency key is generated from workflow ID, entity ID and event name.
 
-Recommended Fix: Use one repository/service mutation boundary with explicit event dispatch, while preventing recursion at the service level instead of bypassing all model events.
+Impact: two legitimate repeated events with the same triple are treated as the same execution.
 
-### P1-010. Follow-up cancellation is represented as completion
+Recommended fix: define an event delivery ID or execution UUID and use it in the idempotency key. Keep a separate dedupe key for exact duplicate deliveries.
 
-File: `packages/Webkul/Lead/src/Services/LeadFollowUpService.php`
+### P1-013. Workflow loop protection is process-local
 
-Line: 160-183
+File: `packages/Webkul/Automation/src/Jobs/ExecuteWorkflowActionJob.php`
 
-Finding: `cancelOpenFollowUps()` sets `status` to `completed` and `is_done` to `1`, then appends a cancellation message to the comment.
+Finding: execution depth is stored in a static PHP property.
 
-Expected: Cancelled follow-ups should have a distinct state from completed follow-ups.
+Impact: queued workflow chains crossing worker boundaries are not governed by one durable execution chain ID.
 
-Impact: Analytics, SLA metrics, completion rates, and audit histories become inaccurate.
+Recommended fix: persist a workflow chain ID and depth in the execution record and pass it across jobs.
 
-Severity: P1
+### P1-014. Merge service does not enforce its own ACL boundary
 
-Recommended Fix: Introduce a distinct `cancelled` state and track cancellation metadata.
+File: `packages/Webkul/Lead/src/Services/LeadMergeService.php`
 
-### P1-011. Follow-up completion contains debug output
+Finding: the service comment explicitly leaves ACL checking to the controller.
 
-File: `packages/Webkul/Lead/src/Services/LeadFollowUpService.php`
+Impact: future callers could reuse merge logic without the required policy check.
 
-Line: 119-151
+Recommended fix: enforce Lead visibility and merge permission at the service boundary as defense in depth, while retaining controller authorization.
 
-Finding: `dump()` is executed during follow-up completion.
+## P2. Architecture and quality
 
-Expected: Production services should not emit debugging output during normal requests.
+### P2-001. LeadRepository is a domain orchestration layer
 
-Impact: Polluted logs/responses and unpredictable UI behavior.
+File: `packages/Webkul/Lead/src/Repositories/LeadRepository.php`
 
-Severity: P1
+Finding: create/update perform qualification history, assignment, scoring, data quality, attribution-related work and event dispatching.
 
-Recommended Fix: Remove debug output and replace with structured logging when diagnostic information is required.
+Impact: repository changes affect many domains and make alternate entry paths harder to reason about.
 
-## P2. Functional completeness and architecture
+Recommended fix: move orchestration to explicit application/domain services and keep repository operations persistence-focused.
 
-### P2-001. Lead analytics contains explicit mocked metrics
+### P2-002. Analytics facade does not expose all injected analytics capabilities
 
 File: `packages/Webkul/Lead/src/Services/LeadAnalyticsService.php`
 
-Line: 25-48
+Finding: `LeadTrendAnalyticsService` is injected but not returned by `getMetrics()`.
 
-Finding: Average aging, score distribution, and average response time return zeros/empty buckets with comments saying they are mocked or omitted.
+Impact: part of the analytics architecture is not connected to the facade used by the UI/API.
 
-Expected: Metrics shown as available must be backed by real calculations.
+Recommended fix: either expose trend metrics through the public contract or remove the unused dependency.
 
-Impact: Management analytics provide misleading numbers.
-
-Severity: P2
-
-Recommended Fix: Implement real metrics or hide them until implemented.
-
-### P2-002. Lead field audit uses `getDirty()` inside the updated event
-
-File: `packages/Webkul/Lead/src/Listeners/LeadAuditSubscriber.php`
-
-Line: 25-51
-
-Finding: The subscriber iterates `getDirty()` inside an Eloquent `updated` listener.
-
-Expected: Post-update change auditing should use a post-update change set such as `getChanges()` or capture originals before save.
-
-Impact: Field-level audit rows may be incomplete or empty after updates.
-
-Severity: P2
-
-Recommended Fix: Use `getChanges()` and add tests for every audited field.
-
-### P2-003. Lead export uses correlated EAV subqueries
-
-File: `packages/Webkul/Admin/src/DataGrids/Lead/LeadDataGrid.php`
-
-Line: 100-145
-
-Finding: Every exported custom attribute is loaded through a correlated subquery.
-
-Expected: Export should use a set-based query or batch extraction strategy.
-
-Impact: Export latency and database load scale poorly with many Leads and attributes.
-
-Severity: P2
-
-Recommended Fix: Preload EAV values in one grouped query or build an export projection table.
-
-### P2-004. Lead model follow-up accessors create repeated queries
-
-File: `packages/Webkul/Lead/src/Models/Lead.php`
-
-Functions: `getNextFollowUpAttribute`, `getLastContactedAttribute`, `getFollowUpCountAttribute`, `getCompletedFollowUpsAttribute`, `getOverdueFollowUpsAttribute`
-
-Finding: Each accessor issues its own Activity query.
-
-Expected: Collection views should use eager-loaded aggregates.
-
-Impact: Lead list serialization may create N+1 query patterns.
-
-Severity: P2
-
-Recommended Fix: Add query scopes / `withCount` / eager aggregates and use them in grids and resources.
-
-### P2-005. Assignment rule condition language is limited
-
-File: `packages/Webkul/Lead/src/Services/LeadAssignmentService.php`
-
-Line: 120-143
-
-Finding: Supported condition operators are equals, contains, greater than, less than, and not equals. There is no compound AND/OR tree or richer type-aware matching.
-
-Expected: Assignment rules should support the product's required targeting complexity.
-
-Impact: Rule builders become hard to express and users need multiple overlapping rules.
-
-Severity: P2
-
-Recommended Fix: Introduce a validated condition tree and evaluate it through one shared rules engine.
-
-### P2-006. Field-level Lead permissions are absent
-
-Finding: LeadPolicy protects whole records. No equivalent field-level read/write authorization layer was verified for sensitive Lead fields.
-
-Expected: Sensitive custom attributes and operational fields should have optional field-level restrictions.
-
-Impact: Users with Lead edit access may modify more fields than intended.
-
-Severity: P2
-
-Recommended Fix: Add field permissions to role configuration and enforce them in request validation and serialization.
-
-### P2-007. Legacy Contact/Quote/Product dependencies remain inside Lead scope
+### P2-003. Data quality is enforced through multiple layers
 
 Files:
-`packages/Webkul/Lead/src/Database/Migrations/2021_04_22_164215_create_leads_table.php`
-`packages/Webkul/Admin/src/Http/Requests/LeadForm.php`
-`packages/Webkul/Admin/src/Http/Controllers/Lead/QuoteController.php`
-`packages/Webkul/Automation/src/Helpers/Entity/Person.php`
-`packages/Webkul/Automation/src/Helpers/Entity/Quote.php`
+- `LeadDataQualityService.php`
+- `LeadForm`
+- `LeadRepository.php`
 
-Finding: The new product boundary is Lead-only, but Contact/Person/Organization and Quote/Product code remains in the runtime graph.
+Impact: manual and external Leads may receive different validation guarantees.
 
-Expected: The Lead product should not require or expose those concepts.
+Recommended fix: define a common Lead input contract and use source-specific adapters only for parsing.
 
-Impact: Product complexity, database coupling, permissions, and maintenance burden remain high.
+### P2-004. Contact terminology remains after Contact table cleanup
 
-Severity: P2
+Evidence:
+- `packages/Webkul/Admin/src/Resources/views/leads/common/contact.blade.php`
+- `person_name`, `organization_name`, `contact_numbers` in Lead model/services
+- Contact documentation files
 
-Recommended Fix: Complete dependency map, migrate required data to Lead-owned fields, then remove obsolete packages and routes in a separate cleanup phase.
+Impact: product terminology and code architecture remain inconsistent.
+
+Recommended fix: finish dependency cleanup after verifying no runtime consumers remain.
+
+### P2-005. Archive and restore need a first-class domain contract
+
+Finding: archive state is represented by `is_archived` and Inbox behavior, but history, retention, restore permissions and downstream effects are not centralized.
+
+Recommended fix: implement archive, restore and permanent delete as separate audited operations.
+
+### P2-006. Import retry boundary is coarse
+
+File: `packages/Webkul/Lead/src/Jobs/LeadIngestionBatch.php`
+
+Finding: a single queued job processes every pending batch and every row inside each batch.
+
+Impact: large imports create long job durations and broad retry scopes.
+
+Recommended fix: dispatch smaller batch jobs and persist row-level checkpoints.
+
+### P2-007. Phone normalization is deterministic but not country-aware
+
+File: `LeadDataQualityService.php`
+
+Finding: normalization strips punctuation and preserves plus, without country-specific parsing.
+
+Impact: equivalent local and international numbers may remain distinct.
+
+Recommended fix: define business phone normalization rules and test India-first and international formats.
 
 ## P3. Cleanup
 
-### P3-001. Duplicate import statement
+### P3-001. Lead-only documentation rewrite
 
-File: `packages/Webkul/Lead/src/Services/LeadIngestionService.php`
+Supplied documentation still describes Persons, Organizations and Contact-linked Lead flows. The documentation should be rewritten after code cleanup so it describes the actual Lead-only product rather than the inherited Krayin model.
 
-Line: 9-10
+### P3-002. Remove obsolete integration branches after connector migration
 
-Finding: `LeadCaptureLog` is imported twice.
+Keep current provider adapters until connector-based ingestion coverage is proven. Do not delete them before migration tests exist.
 
-Severity: P3.
+## Immediate fix order
 
-### P3-002. Documentation drift
-
-The supplied docs still describe Persons, Organizations, Campaigns, and broader CRM concepts as first-class features, even though the new product scope excludes them. This documentation must be regenerated after the architecture cleanup.
-
-Severity: P3.
-
-### P3-003. Multiple bulk implementations
-
-The repository has the legacy Inbox bulk path and the newer `BulkLeadOperationService`. Consolidation should follow functional stabilization.
-
-Severity: P3.
-
-### P3-004. Multiple audit/event layers
-
-`LeadObserver`, `LeadAuditSubscriber`, repository events, and domain service events overlap. This needs a clear ownership model.
-
-Severity: P3.
-
-## Risk ordering
-
-1. Runtime parser failure
-2. Object-level Lead authorization
-3. Webhook authenticity and replay protection
-4. SLA runtime dependency
-5. Duplicate event dispatch
-6. Duplicate detection consolidation
-7. Lifecycle dependency repair
-8. Nurture status enforcement
-9. Bulk mutation consolidation
-10. Assignment persistence consistency
-11. Follow-up state machine
-12. Automation idempotency
-13. Analytics truthfulness
-14. Scope cleanup
-15. Performance and refactoring
-
-## Release gate
-
-The system should not be marked production-ready until all P0 issues are closed, P1 security/data integrity issues have explicit tests, and every Lead entry point passes the same canonical flow.
+1. Initial lifecycle state.
+2. Nurture lifecycle transition.
+3. Duplicate concurrency protection.
+4. Public payload log redaction.
+5. Public exception sanitization.
+6. Connector replay ledger.
+7. Remove fabricated WhatsApp data.
+8. SLA scheduler wiring.
+9. Consolidate duplicate engines.
+10. Make manual, import, API and webhook creation use one Lead creation contract.
+11. Enforce service-level merge authorization.
+12. Strengthen automation execution identity.
+13. Complete Contact/Person/Organization dependency cleanup.
+14. Run complete automated regression coverage.
