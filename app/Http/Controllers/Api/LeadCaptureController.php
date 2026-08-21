@@ -4,16 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\LeadCreatedEvent;
 use App\Http\Controllers\Controller;
-use App\Services\LeadDistributionService;
 use App\Services\OAuthTokenService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Webkul\Admin\Http\Controllers\Lead\PublicLeadCaptureController;
-use Webkul\Contact\Repositories\PersonRepository;
-use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Repositories\PipelineRepository;
-use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Services\LeadCaptureService;
 
 /**
@@ -28,11 +24,6 @@ use Webkul\Lead\Services\LeadCaptureService;
 class LeadCaptureController extends Controller
 {
     public function __construct(
-        protected LeadRepository $leadRepository,
-        protected PersonRepository $personRepository,
-        protected SourceRepository $sourceRepository,
-        protected PipelineRepository $pipelineRepository,
-        protected LeadDistributionService $distributionService,
         protected OAuthTokenService $oauthTokenService
     ) {}
 
@@ -62,17 +53,27 @@ class LeadCaptureController extends Controller
             $data = $request->all();
             Log::info("Lead capture incoming payload [Provider: {$provider}]:", $data);
 
-            $secret = config('services.lead_capture.secret');
-            if ($secret && ! in_array(strtolower((string) $provider), ['facebook', 'google'], true)) {
+            $providerLower = strtolower((string) $provider);
+            $isFbOrGoogle = in_array($providerLower, ['facebook', 'google'], true);
+
+            if (! $isFbOrGoogle) {
+                $secret = config('services.lead_capture.secret');
+                if (! $secret) {
+                    return response()->json(['status' => 'error', 'message' => 'Capture secret not configured on server.'], 401);
+                }
                 $provided = $request->header('X-Capture-Secret') ?? $request->query('key');
                 if (! is_string($provided) || ! hash_equals($secret, $provided)) {
                     return response()->json(['status' => 'error', 'message' => 'Unauthorized secret.'], 401);
                 }
-            }
-
-            $fbSecret = config('services.facebook.client_secret');
-            $fbSignature = $request->header('X-Hub-Signature-256');
-            if ($fbSecret && $fbSignature) {
+            } else {
+                $fbSecret = config('services.facebook.client_secret');
+                if (! $fbSecret) {
+                    return response()->json(['status' => 'error', 'message' => 'Facebook client secret not configured on server.'], 401);
+                }
+                $fbSignature = $request->header('X-Hub-Signature-256');
+                if (! $fbSignature) {
+                    return response()->json(['status' => 'error', 'message' => 'Missing FB signature.'], 401);
+                }
                 $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $fbSecret);
                 if (! hash_equals($expected, $fbSignature)) {
                     return response()->json(['status' => 'error', 'message' => 'Invalid FB signature.'], 401);
@@ -97,66 +98,28 @@ class LeadCaptureController extends Controller
                 ], 422);
             }
 
-            // 1. De-duplicate or Create Person Contact
-            $person = null;
-            if (! empty($extracted['phone'])) {
-                $cleanPhone = preg_replace('/[^0-9]/', '', $extracted['phone']);
-                $person = DB::table('persons')
-                    ->whereRaw("REPLACE(REPLACE(REPLACE(contact_numbers, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$cleanPhone}%"])
-                    ->first();
-            }
-
-            if (! $person && ! empty($extracted['email'])) {
-                $person = DB::table('persons')
-                    ->where('emails', 'like', "%{$extracted['email']}%")
-                    ->first();
-            }
-
-            $assignedUserId = $this->distributionService->resolveAssignedUserId($extracted);
-
-            if (! $person) {
-                $personData = [
-                    'entity_type' => 'persons',
-                    'name' => $extracted['name'],
+            $payload = LeadIngestionPayload::fromArray([
+                'origin' => $provider ?: 'api',
+                'sourceName' => $extracted['source'] ?? null,
+                'externalId' => $extracted['external_id'] ?? null,
+                'duplicateAction' => 'reject',
+                'leadData' => [
+                    'title' => $extracted['title'].($extracted['name'] ? " - {$extracted['name']}" : ''),
+                    'description' => $extracted['description'] ?? null,
+                    'lead_value' => $extracted['value'] ?? null,
+                    'person_name' => $extracted['name'] ?? null,
                     'emails' => ! empty($extracted['email']) ? [['value' => $extracted['email'], 'label' => 'work']] : [],
                     'contact_numbers' => ! empty($extracted['phone']) ? [['value' => $extracted['phone'], 'label' => 'mobile']] : [],
-                    'user_id' => $assignedUserId,
-                ];
-
-                $person = $this->personRepository->create($personData);
-            }
-
-            // 2. Resolve or Create Lead Source
-            $source = $this->sourceRepository->findOneByField('name', $extracted['source']);
-            if (! $source) {
-                $source = $this->sourceRepository->create(['name' => $extracted['source']]);
-            }
-
-            // 3. Resolve Default Pipeline & Stage
-            $pipeline = $this->pipelineRepository->getDefaultPipeline();
-            $stage = $pipeline->stages->first();
-
-            // 4. Create Lead
-            $leadData = [
-                'entity_type' => 'leads',
-                'title' => $extracted['title'].($extracted['name'] ? " - {$extracted['name']}" : ''),
-                'description' => $extracted['description'],
-                'lead_value' => $extracted['value'],
-                'user_id' => $assignedUserId,
-                'person_id' => $person->id,
-                'lead_source_id' => $source->id,
-                'lead_pipeline_id' => $pipeline->id,
-                'lead_pipeline_stage_id' => $stage->id,
-                'status' => 1,
-            ];
-
-            $lead = $this->leadRepository->create($leadData);
+                ],
+                'metadata' => ['ip' => request()->ip()],
+            ]);
+            $lead = app(LeadIngestionService::class)->ingest($payload);
 
             event(new LeadCreatedEvent([
                 'id' => $lead->id,
                 'title' => $lead->title,
-                'source' => $source->name,
-                'assigned_user_id' => $assignedUserId,
+                'source' => $extracted['source'] ?? ($provider ?: 'api'),
+                'assigned_user_id' => $lead->user_id,
             ]));
 
             return response()->json([
@@ -164,9 +127,8 @@ class LeadCaptureController extends Controller
                 'message' => 'Lead captured and assigned successfully.',
                 'data' => [
                     'lead_id' => $lead->id,
-                    'person_id' => $person->id,
-                    'assigned_user_id' => $assignedUserId,
-                    'source' => $source->name,
+                    'assigned_user_id' => $lead->user_id,
+                    'source' => $extracted['source'] ?? ($provider ?: 'api'),
                 ],
             ], 201);
         } catch (\Throwable $e) {

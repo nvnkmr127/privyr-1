@@ -2,24 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\LeadDistributionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Webkul\Contact\Repositories\PersonRepository;
-use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Repositories\PipelineRepository;
-use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 
 class ShareableCaptureController extends Controller
 {
-    public function __construct(
-        protected LeadRepository $leadRepository,
-        protected PersonRepository $personRepository,
-        protected SourceRepository $sourceRepository,
-        protected PipelineRepository $pipelineRepository,
-        protected LeadDistributionService $distributionService
-    ) {}
-
     /**
      * Display public shareable lead capture form.
      */
@@ -87,48 +75,22 @@ class ShareableCaptureController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $phone = $request->input('phone');
-        $email = $request->input('email');
-        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-
-        // De-duplicate Person. Stored contact_numbers is JSON holding the *formatted*
-        // number, so strip separators before matching (same as LeadCaptureController).
-        $person = DB::table('persons')
-            ->whereRaw("REPLACE(REPLACE(REPLACE(contact_numbers, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$cleanPhone}%"])
-            ->first();
-
-        $assignedUserId = $this->distributionService->getNextAssignedUserId();
-
-        if (! $person) {
-            $person = $this->personRepository->create([
-                'entity_type' => 'persons',
-                'name' => $request->input('name'),
-                'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
-                'contact_numbers' => [['value' => $phone, 'label' => 'mobile']],
-                'user_id' => $assignedUserId,
-            ]);
-        }
-
-        $source = $this->sourceRepository->findOneByField('name', 'QR / Capture Link');
-        if (! $source) {
-            $source = $this->sourceRepository->create(['name' => 'QR / Capture Link']);
-        }
-
-        $pipeline = $this->pipelineRepository->getDefaultPipeline();
-        $stage = $pipeline->stages->first();
-
-        $this->leadRepository->create([
-            'entity_type' => 'leads',
-            'title' => 'Web Form Inquiry - '.$request->input('name'),
-            'description' => $request->input('description'),
-            'lead_value' => 0,
-            'user_id' => $assignedUserId,
-            'person_id' => $person->id,
-            'lead_source_id' => $source->id,
-            'lead_pipeline_id' => $pipeline->id,
-            'lead_pipeline_stage_id' => $stage->id,
-            'status' => 1,
+        $payload = LeadIngestionPayload::fromArray([
+            'origin' => 'shareable_link',
+            'sourceName' => 'QR / Capture Link',
+            'duplicateAction' => 'reject',
+            'leadData' => [
+                'title' => 'Web Form Inquiry - '.$request->input('name'),
+                'description' => $request->input('description'),
+                'lead_value' => 0,
+                'person_name' => $request->input('name'),
+                'emails' => $request->input('email') ? [['value' => $request->input('email'), 'label' => 'work']] : [],
+                'contact_numbers' => $request->input('phone') ? [['value' => $request->input('phone'), 'label' => 'mobile']] : [],
+            ],
+            'metadata' => ['ip' => request()->ip()],
         ]);
+
+        app(LeadIngestionService::class)->ingest($payload);
 
         return response()->make('
             <!DOCTYPE html>

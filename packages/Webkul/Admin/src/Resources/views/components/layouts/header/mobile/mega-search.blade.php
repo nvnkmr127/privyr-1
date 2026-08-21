@@ -425,9 +425,6 @@
 
                     searchedResults: {
                         leads: [],
-                        quotes: [],
-                        products: [],
-                        persons: [],
                         settings: [],
                         configurations: [],
                     },

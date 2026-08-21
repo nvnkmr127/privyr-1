@@ -2,7 +2,6 @@
 
 namespace Webkul\Admin\Traits;
 
-use Webkul\Contact\Repositories\OrganizationRepository;
 use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\User\Repositories\UserRepository;
 use Webkul\Warehouse\Repositories\WarehouseRepository;
@@ -143,33 +142,6 @@ trait ProvideDropdownOptions
         return [
             [
                 'label' => trans('admin::app.common.select-users'),
-                'value' => '',
-                'disabled' => true,
-                'selected' => true,
-            ],
-            ...$options,
-        ];
-    }
-
-    /**
-     * Get organization dropdown options.
-     */
-    public function getOrganizationDropdownOptions(): array
-    {
-        $options = app(OrganizationRepository::class)
-            ->get(['id as value', 'name as label'])
-            ->map(function ($item, $key) {
-                $item->disabled = false;
-
-                $item->selected = false;
-
-                return $item;
-            })
-            ->toArray();
-
-        return [
-            [
-                'label' => trans('admin::app.common.select-organization'),
                 'value' => '',
                 'disabled' => true,
                 'selected' => true,

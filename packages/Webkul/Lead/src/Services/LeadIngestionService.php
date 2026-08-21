@@ -10,9 +10,9 @@ use Webkul\Lead\Contracts\LeadIngestionService as LeadIngestionServiceContract;
 use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Exceptions\LeadIngestionException;
 use Webkul\Lead\Models\LeadCaptureLog;
-use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
+use Webkul\Lead\Repositories\SourceRepository;
 
 class LeadIngestionService implements LeadIngestionServiceContract
 {

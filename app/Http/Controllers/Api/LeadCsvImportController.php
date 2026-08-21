@@ -3,24 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\LeadDistributionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Webkul\Contact\Repositories\PersonRepository;
-use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Repositories\PipelineRepository;
-use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 
 class LeadCsvImportController extends Controller
 {
-    public function __construct(
-        protected LeadRepository $leadRepository,
-        protected PersonRepository $personRepository,
-        protected SourceRepository $sourceRepository,
-        protected PipelineRepository $pipelineRepository,
-        protected LeadDistributionService $distributionService
-    ) {}
-
     /**
      * Import array of rows with custom header mapping dictionary.
      */
@@ -33,11 +21,6 @@ class LeadCsvImportController extends Controller
 
         $rows = $request->input('rows');
         $mapping = $request->input('mapping');
-
-        $pipeline = $this->pipelineRepository->getDefaultPipeline();
-        $stage = $pipeline->stages->first();
-        $source = $this->sourceRepository->findOneByField('name', 'CSV Import')
-            ?? $this->sourceRepository->create(['name' => 'CSV Import']);
 
         $importedCount = 0;
         $skippedCount = 0;
@@ -64,44 +47,22 @@ class LeadCsvImportController extends Controller
                 continue;
             }
 
-            $person = null;
-            if (! empty($extracted['phone'])) {
-                $cleanPhone = preg_replace('/[^0-9]/', '', $extracted['phone']);
-                $person = DB::table('persons')
-                    ->whereRaw("REPLACE(REPLACE(REPLACE(contact_numbers, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$cleanPhone}%"])
-                    ->first();
-            }
-
-            if (! $person && ! empty($extracted['email'])) {
-                $person = DB::table('persons')
-                    ->where('emails', 'like', "%{$extracted['email']}%")
-                    ->first();
-            }
-
-            $assignedUserId = $this->distributionService->getNextAssignedUserId();
-
-            if (! $person) {
-                $person = $this->personRepository->create([
-                    'entity_type' => 'persons',
-                    'name' => $extracted['name'] ?? 'CSV Prospect',
+            $payload = LeadIngestionPayload::fromArray([
+                'origin' => 'csv_import',
+                'sourceName' => 'CSV Import',
+                'duplicateAction' => 'update',
+                'leadData' => [
+                    'title' => ($extracted['title'] ?: 'CSV Lead').($extracted['name'] ? " - {$extracted['name']}" : ''),
+                    'description' => $extracted['description'],
+                    'lead_value' => (float) $extracted['value'],
+                    'person_name' => $extracted['name'] ?? 'CSV Prospect',
                     'emails' => ! empty($extracted['email']) ? [['value' => $extracted['email'], 'label' => 'work']] : [],
                     'contact_numbers' => ! empty($extracted['phone']) ? [['value' => $extracted['phone'], 'label' => 'mobile']] : [],
-                    'user_id' => $assignedUserId,
-                ]);
-            }
-
-            $this->leadRepository->create([
-                'entity_type' => 'leads',
-                'title' => ($extracted['title'] ?: 'CSV Lead').($extracted['name'] ? " - {$extracted['name']}" : ''),
-                'description' => $extracted['description'],
-                'lead_value' => (float) $extracted['value'],
-                'user_id' => $assignedUserId,
-                'person_id' => $person->id,
-                'lead_source_id' => $source->id,
-                'lead_pipeline_id' => $pipeline->id,
-                'lead_pipeline_stage_id' => $stage->id,
-                'status' => 1,
+                ],
+                'metadata' => ['ip' => request()->ip()],
             ]);
+
+            app(LeadIngestionService::class)->ingest($payload);
 
             $importedCount++;
         }

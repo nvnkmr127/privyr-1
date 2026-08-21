@@ -124,23 +124,6 @@ return [
             ],
         ],
 
-        'persons' => [
-            'name' => 'Persons',
-            'class' => 'Webkul\Automation\Helpers\Entity\Person',
-            'events' => [
-                [
-                    'event' => 'contacts.person.create.after',
-                    'name' => 'Created',
-                ], [
-                    'event' => 'contacts.person.update.after',
-                    'name' => 'Updated',
-                ], [
-                    'event' => 'contacts.person.delete.before',
-                    'name' => 'Deleted',
-                ],
-            ],
-        ],
-
         'quotes' => [
             'name' => 'Quotes',
             'class' => 'Webkul\Automation\Helpers\Entity\Quote',

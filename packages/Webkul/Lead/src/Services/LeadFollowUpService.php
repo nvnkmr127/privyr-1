@@ -129,7 +129,7 @@ class LeadFollowUpService
             ->orderBy('schedule_from', 'asc')
             ->first();
 
-        dump('Next activity found in complete:', $nextActivity ? $nextActivity->id : 'null');
+
 
         if ($nextActivity) {
             $updated = $nextActivity->update([
@@ -140,7 +140,7 @@ class LeadFollowUpService
                 'comment' => $note ? ($nextActivity->comment ? $nextActivity->comment."\n".$note : $note) : $nextActivity->comment,
             ]);
 
-            dump('Update result:', $updated);
+
 
             $this->markContacted($lead);
             $this->syncNextAction($lead);

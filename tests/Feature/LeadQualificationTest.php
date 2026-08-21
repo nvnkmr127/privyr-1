@@ -1,8 +1,6 @@
 <?php
 
 use Webkul\Lead\Models\Lead;
-use Webkul\Lead\Models\Lead;
-use Webkul\Lead\Models\LeadQualification;
 use Webkul\Lead\Models\LeadQualification;
 
 it('identifies missing required fields', function () {

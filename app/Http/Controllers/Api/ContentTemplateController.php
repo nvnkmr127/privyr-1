@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MessageTemplate;
 use App\Services\MessageTemplateService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class ContentTemplateController extends Controller
 {
@@ -35,6 +35,8 @@ class ContentTemplateController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(bouncer()->hasPermission('settings'), 403, 'Unauthorized');
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
@@ -51,6 +53,8 @@ class ContentTemplateController extends Controller
      */
     public function update(Request $request, $id)
     {
+        abort_unless(bouncer()->hasPermission('settings'), 403, 'Unauthorized');
+
         $template = MessageTemplate::find($id);
 
         if (! $template) {
@@ -72,6 +76,8 @@ class ContentTemplateController extends Controller
      */
     public function destroy($id)
     {
+        abort_unless(bouncer()->hasPermission('settings'), 403, 'Unauthorized');
+
         MessageTemplate::where('id', $id)->delete();
 
         return response()->json(['status' => 'success', 'message' => 'Template deleted.']);
@@ -82,11 +88,9 @@ class ContentTemplateController extends Controller
      */
     public function preview(Request $request, $lead)
     {
-        $leadRecord = is_object($lead) ? $lead : DB::table('leads')->where('id', $lead)->first();
+        $leadRecord = is_object($lead) ? $lead : app(LeadRepository::class)->findOrFail($lead);
 
-        if (! $leadRecord) {
-            return response()->json(['status' => 'error', 'message' => 'Lead not found.'], 404);
-        }
+        $this->authorize('view', $leadRecord);
 
         $templateText = $request->input('template', 'Hi {name}, thanks for reaching out regarding {title}!');
         $personalized = $this->templateService->parse($templateText, $leadRecord);

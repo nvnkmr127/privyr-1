@@ -1,30 +1,6 @@
 @php
     $canCreateLead = bouncer()->hasPermission('leads.create.quick-create');
     $canCreateMail = bouncer()->hasPermission('mail.compose.quick-create');
-    $canCreatePerson = bouncer()->hasPermission('contacts.persons.create.quick-create');
-    $canCreateOrganization = bouncer()->hasPermission('contacts.organizations.create.quick-create');
-    $canCreateProduct = bouncer()->hasPermission('products.create.quick-create');
-
-    $hasAnyQuickAddPermission = $canCreateLead
-        || $canCreateMail
-        || $canCreatePerson
-        || $canCreateOrganization
-        || $canCreateProduct;
-
-    $defaultQuickAddTab = match (true) {
-        $canCreateLead => 'lead',
-        $canCreatePerson => 'person',
-        $canCreateOrganization => 'organization',
-        $canCreateProduct => 'product',
-        $canCreateMail => 'mail',
-        default => '',
-    };
-@endphp
-
-<div>
-    @if ($hasAnyQuickAddPermission)
-        <v-quick-add></v-quick-add>
-    @endif
 
     @pushOnce('scripts')
         <script
@@ -103,55 +79,7 @@
                                     </div>
                                 @endif
 
-                                @if ($canCreatePerson)
-                                    <div v-show="selectedType == 'person'">
-                                        <x-admin::form
-                                            v-slot="{ meta, errors, handleSubmit }"
-                                            as="div"
-                                            ref="personFormWrapper"
-                                        >
-                                            <form
-                                                @submit="handleSubmit($event, createPerson)"
-                                                ref="personForm"
-                                            >
-                                                <input type="hidden" name="quick_add" value="person" />
-                                                <input type="hidden" name="entity_type" value="persons" />
 
-                                                <x-admin::attributes
-                                                    :custom-attributes="app('Webkul\Attribute\Repositories\AttributeRepository')->findWhere([
-                                                        'entity_type' => 'persons',
-                                                        'quick_add' => 1,
-                                                    ])"
-                                                />
-                                            </form>
-                                        </x-admin::form>
-                                    </div>
-                                @endif
-
-                                @if ($canCreateOrganization)
-                                    <div v-show="selectedType == 'organization'">
-                                        <x-admin::form
-                                            v-slot="{ meta, errors, handleSubmit }"
-                                            as="div"
-                                            ref="organizationFormWrapper"
-                                        >
-                                            <form
-                                                @submit="handleSubmit($event, createOrganization)"
-                                                ref="organizationForm"
-                                            >
-                                                <input type="hidden" name="quick_add" value="organization" />
-                                                <input type="hidden" name="entity_type" value="organizations" />
-
-                                                <x-admin::attributes
-                                                    :custom-attributes="app('Webkul\Attribute\Repositories\AttributeRepository')->findWhere([
-                                                        'entity_type' => 'organizations',
-                                                        'quick_add' => 1,
-                                                    ])"
-                                                />
-                                            </form>
-                                        </x-admin::form>
-                                    </div>
-                                @endif
 
                                 @if ($canCreateProduct)
                                     <div v-show="selectedType == 'product'">
@@ -343,12 +271,6 @@
                         types: [
                             @if ($canCreateLead)
                                 { name: 'lead',         label: "@lang('admin::app.layouts.lead')" },
-                            @endif
-                            @if ($canCreatePerson)
-                                { name: 'person',       label: "@lang('admin::app.layouts.person')" },
-                            @endif
-                            @if ($canCreateOrganization)
-                                { name: 'organization', label: "@lang('admin::app.layouts.organization')" },
                             @endif
                             @if ($canCreateProduct)
                                 { name: 'product',      label: "@lang('admin::app.layouts.product')" },

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Webkul\Activity\Repositories\ActivityRepository;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class LeadActivityLoggerController extends Controller
 {
@@ -24,18 +24,16 @@ class LeadActivityLoggerController extends Controller
             'mode' => 'nullable|string', // 'online', 'offline'
         ]);
 
-        $leadRecord = is_object($lead) ? $lead : DB::table('leads')->where('id', $lead)->first();
+        $leadRecord = is_object($lead) ? $lead : app(LeadRepository::class)->findOrFail($lead);
 
-        if (! $leadRecord) {
-            return response()->json(['status' => 'error', 'message' => 'Lead not found.'], 404);
-        }
+        $this->authorize('view', $leadRecord);
 
         $modeTag = $request->input('mode') === 'offline' ? '📍 [Offline Entry] ' : '🌐 [Online Entry] ';
 
         $activity = $this->activityRepository->create([
             'type' => 'note',
             'comment' => $modeTag.$request->input('comment'),
-            'user_id' => $leadRecord->user_id ?? 1,
+            'user_id' => auth()->id(),
             'lead_id' => $leadRecord->id,
             'is_done' => 1,
         ]);

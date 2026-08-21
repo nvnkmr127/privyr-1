@@ -123,10 +123,18 @@ class LeadRepository extends Repository
             $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
-        $lead = parent::create(array_merge([
+        $lead = $this->model->newInstance();
+        $lead->fill(array_merge([
             'lead_pipeline_id' => 1,
-            'lead_pipeline_stage_id' => 1,
         ], $data));
+
+        $lead->forceFill([
+            'lead_pipeline_stage_id' => $data['lead_pipeline_stage_id'] ?? 1,
+            'status' => $data['status'] ?? 'Active',
+            'user_id' => $data['user_id'] ?? null,
+            'qualification_status' => $data['qualification_status'] ?? null,
+        ]);
+        $lead->save();
 
         $this->attributeValueRepository->save(array_merge($data, [
             'entity_id' => $lead->id,

@@ -371,20 +371,14 @@
 
                         addedParticipants: {
                             users: [],
-
-                            persons: [],
                         },
 
                         searchedParticipants: {
                             users: [],
-
-                            persons: [],
                         },
 
                         searchEnpoints: {
                             users: "{{ route('admin.settings.users.search') }}",
-
-                            persons: "{{ route('admin.contacts.persons.search') }}",
                         },
                     };
                 },
@@ -392,8 +386,6 @@
                 watch: {
                     searchTerm(newVal, oldVal) {
                         this.search('users');
-
-                        this.search('persons');
                     },
                 },
 
@@ -401,8 +393,6 @@
                     @json($activity->participants).forEach(participant => {
                         if (participant.user) {
                             this.addedParticipants.users.push(participant.user);
-                        } else if (participant.person) {
-                            this.addedParticipants.persons.push(participant.person);
                         }
                     });
                 },
@@ -446,8 +436,6 @@
 
                         this.searchedParticipants = {
                             users: [],
-
-                            persons: [],
                         };
                     },
 

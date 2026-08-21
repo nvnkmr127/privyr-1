@@ -33,11 +33,9 @@ class Lead extends Model implements LeadContract
         'title',
         'description',
         'lead_value',
-        'status',
         'lost_reason',
         'expected_close_date',
         'closed_at',
-        'user_id',
         'person_name',
         'emails',
         'contact_numbers',
@@ -45,7 +43,6 @@ class Lead extends Model implements LeadContract
         'lead_source_id',
         'lead_type_id',
         'lead_pipeline_id',
-        'lead_pipeline_stage_id',
         'priority',
         'is_unread',
         'last_contacted_at',
@@ -56,7 +53,6 @@ class Lead extends Model implements LeadContract
         'utm_medium',
         'utm_campaign',
         'location',
-        'qualification_status',
         'next_action',
         'follow_up_owner_id',
         'first_lead_source_id',
@@ -615,6 +611,60 @@ class Lead extends Model implements LeadContract
         }
 
         return $events->sortByDesc('timestamp')->values();
+    }
+
+    public function assign(?int $userId, ?int $groupId = null): self
+    {
+        $this->user_id = $userId;
+        if (func_num_args() > 1) {
+            $this->group_id = $groupId;
+        }
+        $this->saveQuietly();
+        return $this;
+    }
+
+    public function changeStage(int $stageId): self
+    {
+        $oldStageId = $this->lead_pipeline_stage_id;
+        if ((int) $oldStageId !== $stageId) {
+            $this->lead_pipeline_stage_id = $stageId;
+            $this->stage_changed_at = \Carbon\Carbon::now();
+            $this->save();
+
+            $this->stageHistories()->create([
+                'previous_stage_id' => $oldStageId,
+                'new_stage_id' => $stageId,
+            ]);
+        }
+        return $this;
+    }
+
+    public function transitionStatus(string $status, ?string $reason = null): self
+    {
+        $oldStatus = $this->status;
+        if ($oldStatus !== $status) {
+            $this->status = $status;
+            
+            if ($status === 'Closed' || in_array(strtolower($status), ['won', 'lost'])) {
+                $this->closed_at = \Carbon\Carbon::now();
+            }
+
+            $this->save();
+
+            $this->statusHistories()->create([
+                'previous_status' => $oldStatus,
+                'new_status' => $status,
+                'reason' => $reason,
+            ]);
+        }
+        return $this;
+    }
+
+    public function changeQualificationStatus(?string $status): self
+    {
+        $this->qualification_status = $status;
+        $this->save();
+        return $this;
     }
 
     public static function boot()

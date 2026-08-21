@@ -19,7 +19,7 @@ class CampaignCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Process campaigns and send emails to the contact persons.';
+    protected $description = 'Process campaigns and send emails to the leads.';
 
     /**
      * Create a new command instance.

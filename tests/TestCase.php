@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Webkul\User\Models\Role;
 use Webkul\User\Models\User;
 
 abstract class TestCase extends BaseTestCase
@@ -14,7 +15,21 @@ abstract class TestCase extends BaseTestCase
     {
         $admin = getDefaultAdmin();
         if (! $admin) {
-            $admin = User::first() ?? User::factory()->create();
+            $role = Role::first();
+            if (! $role) {
+                $role = Role::create([
+                    'name' => 'Administrator',
+                    'description' => 'Admin role',
+                    'permission_type' => 'all',
+                ]);
+            }
+            $admin = User::first() ?? User::create([
+                'name' => 'Admin',
+                'email' => 'admin@example.com',
+                'password' => bcrypt('password'),
+                'role_id' => $role->id,
+                'status' => 1,
+            ]);
         }
         $this->actingAs($admin, 'user');
 

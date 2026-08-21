@@ -80,54 +80,6 @@ Breadcrumbs::for('activities.edit', function (BreadcrumbTrail $trail, $activity)
     $trail->push(trans('admin::app.activities.edit.title'), route('admin.activities.edit', $activity->id));
 });
 
-// Dashboard > Contacts
-Breadcrumbs::for('contacts', function (BreadcrumbTrail $trail) {
-    $trail->parent('dashboard');
-    $trail->push(menu()->getLabel('contacts', 'admin::app.layouts.contacts'), route('admin.contacts.persons.index'));
-});
-
-// Dashboard > Contacts > Persons
-Breadcrumbs::for('contacts.persons', function (BreadcrumbTrail $trail) {
-    $trail->parent('contacts');
-    $trail->push(menu()->getLabel('contacts.persons', 'admin::app.layouts.persons'), route('admin.contacts.persons.index'));
-});
-
-// Dashboard > Contacts > Persons > Create
-Breadcrumbs::for('contacts.persons.create', function (BreadcrumbTrail $trail) {
-    $trail->parent('contacts.persons');
-    $trail->push(trans('admin::app.contacts.persons.create.title'), route('admin.contacts.persons.create'));
-});
-
-// Dashboard > Contacts > Persons > Edit
-Breadcrumbs::for('contacts.persons.edit', function (BreadcrumbTrail $trail, $person) {
-    $trail->parent('contacts.persons');
-    $trail->push(trans('admin::app.contacts.persons.edit.title'), route('admin.contacts.persons.edit', $person->id));
-});
-
-// Dashboard > Contacts > Persons > View
-Breadcrumbs::for('contacts.persons.view', function (BreadcrumbTrail $trail, $person) {
-    $trail->parent('contacts.persons');
-    $trail->push('#'.$person->id, route('admin.contacts.persons.index'));
-});
-
-// Dashboard > Contacts > Organizations
-Breadcrumbs::for('contacts.organizations', function (BreadcrumbTrail $trail) {
-    $trail->parent('contacts');
-    $trail->push(menu()->getLabel('contacts.organizations', 'admin::app.layouts.organizations'), route('admin.contacts.organizations.index'));
-});
-
-// Dashboard > Contacts > Organizations > Create
-Breadcrumbs::for('contacts.organizations.create', function (BreadcrumbTrail $trail) {
-    $trail->parent('contacts.organizations');
-    $trail->push(trans('admin::app.contacts.organizations.create.title'), route('admin.contacts.organizations.create'));
-});
-
-// Dashboard > Contacts > Organizations > Edit
-Breadcrumbs::for('contacts.organizations.edit', function (BreadcrumbTrail $trail, $organization) {
-    $trail->parent('contacts.organizations');
-    $trail->push(trans('admin::app.contacts.organizations.edit.title'), route('admin.contacts.organizations.edit', $organization->id));
-});
-
 // Settings
 Breadcrumbs::for('settings', function (BreadcrumbTrail $trail) {
     $trail->parent('dashboard');

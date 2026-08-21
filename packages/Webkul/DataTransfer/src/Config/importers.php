@@ -1,11 +1,6 @@
 <?php
 
 return [
-    'persons' => [
-        'title' => 'admin::app.settings.data-transfer.importers.persons.title',
-        'importer' => 'Webkul\DataTransfer\Helpers\Importers\Persons\Importer',
-        'sample_path' => 'data-transfer/samples/persons.csv',
-    ],
 
     'products' => [
         'title' => 'admin::app.settings.data-transfer.importers.products.title',

@@ -255,12 +255,7 @@ class LeadAssignmentService
         $previousGroup = $lead->group_id;
 
         // Bypass updating Lead updated_at timestamp to avoid infinite loops if triggered via observers
-        DB::table('leads')->where('id', $lead->id)->update([
-            'user_id' => $assignedUserId,
-            'group_id' => $assignedGroupId,
-        ]);
-        $lead->user_id = $assignedUserId;
-        $lead->group_id = $assignedGroupId;
+        $lead->assign($assignedUserId, $assignedGroupId);
 
         // Log history
         app(LeadAssignmentRepository::class)->create([

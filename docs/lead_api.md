@@ -108,3 +108,11 @@ $signature = hash_hmac('sha256', $payload, $secret);
 
 ### Expiration
 Webhook requests older than 5 minutes will be rejected to prevent replay attacks.
+
+## Ingestion Path Architecture Decision
+
+We have decided to keep the global webhook endpoints at `/api/v1/lead-capture/*` alongside the authenticated endpoints at `/api/v1/webhooks/leads`. 
+
+The `LeadCaptureController` paths are brought under the same `throttle:60,1` middleware as the `Webkul\API` paths to ensure rate limiting consistency. Authentication for the global endpoints enforces fail-closed secret validation for generic webhooks and signature validation for Facebook/Google. 
+
+This ensures exactly one authenticated, throttled ingestion path per channel without duplicating persistence logic (both rely on `Webkul\Lead\Contracts\LeadIngestionService`).

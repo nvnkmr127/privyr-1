@@ -14,11 +14,6 @@ class MagicAI
     const LEAD_ENTITY = 'leads';
 
     /**
-     * Const Variable of PERSON_ENTITY.
-     */
-    const PERSON_ENTITY = 'persons';
-
-    /**
      * Mapped the receive Extracted AI data.
      */
     public static function mapAIDataToLead($aiData)
@@ -109,7 +104,6 @@ class MagicAI
                         'label' => $finalData->person->contact_numbers->label ?? 'work',
                     ],
                 ],
-                'entity_type' => self::PERSON_ENTITY,
             ],
             'entity_type' => self::LEAD_ENTITY,
         ];

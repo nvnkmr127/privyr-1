@@ -20,24 +20,6 @@ return [
                 'lead-pipeline-stage-id' => 'Stage',
             ],
 
-            'persons' => [
-                'contact-numbers' => 'Contact Numbers',
-                'emails' => 'Emails',
-                'job-title' => 'Job Title',
-                'name' => 'Name',
-                'organization' => 'Organization',
-                'sales-owner' => 'Sales Owner',
-                'user-id' => 'Sales Owner',
-                'organization-id' => 'Organization',
-            ],
-
-            'organizations' => [
-                'address' => 'Address',
-                'name' => 'Name',
-                'sales-owner' => 'Sales Owner',
-                'user-id' => 'Sales Owner',
-            ],
-
             'products' => [
                 'description' => 'Description',
                 'name' => 'Name',

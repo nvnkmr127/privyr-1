@@ -22,6 +22,8 @@ use Webkul\Admin\Http\Resources\StageResource;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\DataGrid\ColumnTypes\Date as DateColumn;
 use Webkul\DataGrid\Enums\DateRangeOptionEnum;
+use Webkul\Lead\Contracts\LeadIngestionService;
+use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Helpers\MagicAI;
 use Webkul\Lead\Repositories\LeadAssignmentRepository;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -650,7 +652,6 @@ class LeadController extends Controller
                 'message' => trans('admin::app.leads.update-success'),
             ]);
         } catch (\Exception $exception) {
-        } catch (\Exception $exception) {
             return response()->json([
                 'message' => $exception->getMessage(),
             ], 400);
@@ -1131,30 +1132,22 @@ class LeadController extends Controller
         $leads = [];
 
         foreach ($rawLeads as $rawLead) {
-            Event::dispatch('lead.create.before');
+            $payload = LeadIngestionPayload::fromArray([
+                'origin' => 'ai_import',
+                'sourceName' => 'AI Extracted',
+                'duplicateAction' => 'update',
+                'leadData' => [
+                    'title' => $rawLead['title'],
+                    'description' => $rawLead['description'] ?? null,
+                    'lead_value' => $rawLead['lead_value'] ?? 0,
+                    'person_name' => $rawLead['person']['name'] ?? 'Unknown',
+                    'emails' => $rawLead['person']['emails'] ?? [],
+                    'contact_numbers' => $rawLead['person']['contact_numbers'] ?? [],
+                ],
+                'metadata' => ['ip' => request()->ip()],
+            ]);
 
-            foreach ($rawLead['person']['emails'] as $email) {
-                $person = $this->personRepository
-                    ->whereJsonContains('emails', [['value' => $email['value']]])
-                    ->first();
-
-                if ($person) {
-                    $rawLead['person']['id'] = $person->id;
-
-                    break;
-                }
-            }
-
-            $pipeline = $this->pipelineRepository->getDefaultPipeline();
-
-            $stage = $pipeline->stages()->first();
-
-            $lead = $this->leadRepository->create(array_merge($rawLead, [
-                'lead_pipeline_id' => $pipeline->id,
-                'lead_pipeline_stage_id' => $stage->id,
-            ]));
-
-            Event::dispatch('lead.create.after', $lead);
+            $lead = app(LeadIngestionService::class)->ingest($payload);
 
             $leads[] = $lead;
         }
