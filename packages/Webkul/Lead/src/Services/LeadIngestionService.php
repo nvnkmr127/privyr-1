@@ -13,6 +13,7 @@ use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Repositories\TypeRepository;
 
 class LeadIngestionService implements LeadIngestionServiceContract
 {
@@ -219,7 +220,7 @@ class LeadIngestionService implements LeadIngestionServiceContract
 
         // Fallback Type
         if (empty($data['lead_type_id'])) {
-            $type = app(\Webkul\Lead\Repositories\TypeRepository::class)->first();
+            $type = app(TypeRepository::class)->first();
             if ($type) {
                 $data['lead_type_id'] = $type->id;
             }

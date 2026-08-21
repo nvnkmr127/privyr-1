@@ -24,7 +24,7 @@ it('normalizes phone numbers correctly', function () {
 
     // 00 for international
     expect($this->duplicateService->normalizePhone('0015551234567'))->toBe('+15551234567');
-    
+
     // Explicit 91 without plus
     expect($this->duplicateService->normalizePhone('919876543210'))->toBe('+919876543210');
 

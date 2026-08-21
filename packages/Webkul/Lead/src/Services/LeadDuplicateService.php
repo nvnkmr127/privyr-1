@@ -29,28 +29,28 @@ class LeadDuplicateService
         }
 
         if ($isPlus) {
-            return '+' . $normalized;
+            return '+'.$normalized;
         }
 
         // Replace leading 00 with plus (international format)
         if (str_starts_with($normalized, '00')) {
-            return '+' . substr($normalized, 2);
+            return '+'.substr($normalized, 2);
         }
 
         // India-first heuristics
         // Exact 10 digits without country code
         if (strlen($normalized) === 10) {
-            return '+91' . $normalized;
+            return '+91'.$normalized;
         }
 
         // 11 digits starting with 0 (Indian local format)
         if (strlen($normalized) === 11 && str_starts_with($normalized, '0')) {
-            return '+91' . substr($normalized, 1);
+            return '+91'.substr($normalized, 1);
         }
 
         // 12 digits starting with 91 but no plus
         if (strlen($normalized) === 12 && str_starts_with($normalized, '91')) {
-            return '+' . $normalized;
+            return '+'.$normalized;
         }
 
         return $normalized;

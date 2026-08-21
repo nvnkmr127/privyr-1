@@ -5,7 +5,7 @@ namespace Webkul\Admin\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Attribute\Repositories\AttributeValueRepository;
-use Webkul\Core\Contracts\Validations\Decimal;
+use Webkul\Lead\Services\LeadDataQualityService;
 
 class LeadForm extends FormRequest
 {
@@ -41,7 +41,7 @@ class LeadForm extends FormRequest
      */
     public function rules()
     {
-        $qualityService = app(\Webkul\Lead\Services\LeadDataQualityService::class);
+        $qualityService = app(LeadDataQualityService::class);
         $this->rules = $qualityService->getValidationRules(
             request()->all(),
             $this->id,

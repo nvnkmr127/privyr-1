@@ -16,11 +16,7 @@ class LeadArchiveService
 
     /**
      * Archive a Lead.
-     * 
-     * @param Lead $lead
-     * @param string|null $reason
-     * @param int|null $userId
-     * @return bool
+     *
      * @throws \Exception
      */
     public function archive(Lead $lead, ?string $reason = null, ?int $userId = null): bool
@@ -54,11 +50,7 @@ class LeadArchiveService
 
     /**
      * Restore an archived Lead.
-     * 
-     * @param Lead $lead
-     * @param string|null $reason
-     * @param int|null $userId
-     * @return bool
+     *
      * @throws \Exception
      */
     public function restore(Lead $lead, ?string $reason = null, ?int $userId = null): bool
@@ -90,10 +82,7 @@ class LeadArchiveService
 
     /**
      * Permanently delete a Lead.
-     * 
-     * @param Lead $lead
-     * @param int|null $userId
-     * @return bool
+     *
      * @throws \Exception
      */
     public function permanentDelete(Lead $lead, ?int $userId = null): bool

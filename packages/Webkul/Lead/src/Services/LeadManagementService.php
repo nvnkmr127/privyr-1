@@ -2,17 +2,11 @@
 
 namespace Webkul\Lead\Services;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Repositories\LeadAssignmentRepository;
 use Webkul\Lead\Repositories\LeadQualificationRepository;
 use Webkul\Lead\Repositories\LeadRepository;
-use Webkul\Lead\Services\LeadAssignmentService;
-use Webkul\Lead\Services\LeadDataQualityService;
-use Webkul\Lead\Services\LeadDuplicateService;
-use Webkul\Lead\Services\LeadLifecycleService;
-use Webkul\Lead\Services\LeadScoringEngine;
 
 class LeadManagementService
 {
@@ -109,7 +103,7 @@ class LeadManagementService
                 'user_id' => auth()->check() ? auth()->id() : null,
             ]);
 
-            if (empty($originalQualificationStatus) && !empty($lead->qualification_status)) {
+            if (empty($originalQualificationStatus) && ! empty($lead->qualification_status)) {
                 Event::dispatch('lead.qualification.started', $lead);
             }
 

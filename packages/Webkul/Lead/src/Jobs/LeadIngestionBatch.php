@@ -52,12 +52,12 @@ class LeadIngestionBatch implements ShouldQueue
         }
 
         $summary = $import->summary ?? ['created' => 0, 'updated' => 0, 'failed' => 0, 'duplicates' => 0];
-        
+
         $batchSummary = $batch->summary ?? [
             'last_processed_index' => -1,
             'success' => 0,
             'failed' => 0,
-            'errors' => []
+            'errors' => [],
         ];
 
         $data = is_string($batch->data) ? json_decode($batch->data, true) : $batch->data;
@@ -136,12 +136,12 @@ class LeadIngestionBatch implements ShouldQueue
 
             // Row-level checkpointing
             $batchSummary['last_processed_index'] = $rowIndex;
-            
+
             $importBatchRepository->update([
                 'summary' => $batchSummary,
             ], $batch->id);
-            
-            // Update master summary periodically per row or chunk, here we update it every row for precision 
+
+            // Update master summary periodically per row or chunk, here we update it every row for precision
             // since we are checkpointing, but for performance, doing it at batch end is often enough for the master.
             // Let's do it per row to be safe as requested.
             $importRepository->update(['summary' => $summary], $import->id);

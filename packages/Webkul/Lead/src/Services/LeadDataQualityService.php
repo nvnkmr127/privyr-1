@@ -5,13 +5,12 @@ namespace Webkul\Lead\Services;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
 use Webkul\Attribute\Repositories\AttributeRepository;
+use Webkul\Attribute\Repositories\AttributeValueRepository;
+use Webkul\Core\Contracts\Validations\Decimal;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\User\Repositories\UserRepository;
-
-use Webkul\Attribute\Repositories\AttributeValueRepository;
-use Webkul\Core\Contracts\Validations\Decimal;
 
 class LeadDataQualityService
 {
