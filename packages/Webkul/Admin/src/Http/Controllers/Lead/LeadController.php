@@ -25,7 +25,6 @@ use Webkul\DataGrid\Enums\DateRangeOptionEnum;
 use Webkul\Lead\Contracts\LeadIngestionService;
 use Webkul\Lead\DataTransferObjects\LeadIngestionPayload;
 use Webkul\Lead\Helpers\MagicAI;
-use Webkul\Lead\Repositories\LeadAssignmentRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
@@ -199,8 +198,6 @@ class LeadController extends Controller
             'lead' => $lead->fresh(['user', 'stage', 'source', 'type', 'tags']),
         ]);
     }
-
-
 
     /**
      * Returns a listing of the resource.

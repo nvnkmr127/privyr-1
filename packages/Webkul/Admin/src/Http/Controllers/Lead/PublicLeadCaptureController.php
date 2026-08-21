@@ -164,8 +164,9 @@ class PublicLeadCaptureController extends Controller
      */
     protected function isReplay(Request $request, LeadSourceConnector $connector): bool
     {
-        $hash = hash('sha256', $connector->id . '|' . $request->getContent());
-        return ! Cache::add('lead_capture_replay_' . $hash, true, now()->addDays(7));
+        $hash = hash('sha256', $connector->id.'|'.$request->getContent());
+
+        return ! Cache::add('lead_capture_replay_'.$hash, true, now()->addDays(7));
     }
 
     /**

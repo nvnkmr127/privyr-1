@@ -129,18 +129,25 @@ class LeadAssignmentService
                 return strtolower((string) $leadValue) !== strtolower((string) $ruleValue);
             case 'in':
                 $values = array_map('trim', explode(',', strtolower((string) $ruleValue)));
+
                 return in_array(strtolower((string) $leadValue), $values, true);
             case 'not_in':
                 $values = array_map('trim', explode(',', strtolower((string) $ruleValue)));
+
                 return ! in_array(strtolower((string) $leadValue), $values, true);
             case 'is_null':
                 return empty($leadValue);
             case 'is_not_null':
                 return ! empty($leadValue);
             case 'matches':
-                if (empty($ruleValue)) return false;
+                if (empty($ruleValue)) {
+                    return false;
+                }
                 $isRegexValid = @preg_match($ruleValue, '') !== false;
-                if (!$isRegexValid) return false;
+                if (! $isRegexValid) {
+                    return false;
+                }
+
                 return preg_match($ruleValue, $leadValue) === 1;
         }
 
@@ -282,24 +289,24 @@ class LeadAssignmentService
             $lead->group_id = $assignedGroupId;
             $lead->saveQuietly();
 
-        // Log history
-        app(LeadAssignmentRepository::class)->create([
-            'lead_id' => $lead->id,
-            'assigned_to' => $assignedUserId,
-            'assigned_group_id' => $assignedGroupId,
-            'assigned_by' => auth()->check() ? auth()->id() : null,
-            'previous_owner' => $previousOwner,
-            'previous_group_id' => $previousGroup,
-            'reason' => $reason,
-        ]);
+            // Log history
+            app(LeadAssignmentRepository::class)->create([
+                'lead_id' => $lead->id,
+                'assigned_to' => $assignedUserId,
+                'assigned_group_id' => $assignedGroupId,
+                'assigned_by' => auth()->check() ? auth()->id() : null,
+                'previous_owner' => $previousOwner,
+                'previous_group_id' => $previousGroup,
+                'reason' => $reason,
+            ]);
 
-        if ($previousOwner || $previousGroup) {
-            Event::dispatch('lead.reassigned', $lead);
-        } else {
-            Event::dispatch('lead.assigned', $lead);
-        }
+            if ($previousOwner || $previousGroup) {
+                Event::dispatch('lead.reassigned', $lead);
+            } else {
+                Event::dispatch('lead.assigned', $lead);
+            }
 
-        return true;
+            return true;
         } finally {
             unset(self::$assignmentsInProgress[$lead->id]);
         }

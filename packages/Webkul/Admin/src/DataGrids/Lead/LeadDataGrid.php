@@ -805,8 +805,6 @@ class LeadDataGrid extends DataGrid
             'visibility' => false,
         ]);
 
-
-
         /**
          * User defined attributes are hidden from the grid but included in the export so the data
          * entered into custom fields can be exported alongside the built-in columns.

@@ -3,12 +3,10 @@
 namespace Webkul\Lead\Providers;
 
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Webkul\Lead\Console\Commands\EvaluateLeadHealth;
 use Webkul\Lead\Contracts\LeadIngestionService;
-
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Observers\LeadObserver;
 use Webkul\Lead\Policies\LeadPolicy;
