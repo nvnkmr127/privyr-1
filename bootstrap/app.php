@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureCaptureSecret;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(CanInstall::class);
 
         $middleware->alias([
-            'capture.secret' => \App\Http\Middleware\EnsureCaptureSecret::class,
+            'capture.secret' => EnsureCaptureSecret::class,
         ]);
 
         $middleware->encryptCookies(except: [
