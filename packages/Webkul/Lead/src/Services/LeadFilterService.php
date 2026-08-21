@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Services;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Webkul\Attribute\Models\AttributeValue;
 use Webkul\Attribute\Repositories\AttributeRepository;
@@ -21,7 +22,7 @@ class LeadFilterService
      * @param  string  $matchType  'all' or 'any' (AND vs OR).
      * @param  array  $availableColumns  The definition of columns from the DataGrid.
      */
-    public function applyAdvancedFilters(Builder $query, array $filters, string $matchType = 'all', array $availableColumns = [])
+    public function applyAdvancedFilters(Builder|QueryBuilder $query, array $filters, string $matchType = 'all', array $availableColumns = [])
     {
         $booleanFn = $matchType === 'any' ? 'orWhere' : 'where';
 
@@ -51,7 +52,7 @@ class LeadFilterService
     /**
      * Apply EAV filter using EXISTS to prevent JOIN proliferation.
      */
-    protected function applyEavFilter(Builder $query, $attributeId, $attributeType, $values, $booleanFn)
+    protected function applyEavFilter(Builder|QueryBuilder $query, $attributeId, $attributeType, $values, $booleanFn)
     {
         $valueColumn = AttributeValue::$attributeTypeFields[$attributeType] ?? 'text_value';
 
@@ -78,7 +79,7 @@ class LeadFilterService
     /**
      * Apply global search across multiple core fields.
      */
-    protected function applyGlobalSearch(Builder $query, $requestedValues, $booleanFn, $availableColumns)
+    protected function applyGlobalSearch(Builder|QueryBuilder $query, $requestedValues, $booleanFn, $availableColumns)
     {
         $query->{$booleanFn}(function ($searchQuery) use ($requestedValues, $availableColumns) {
             foreach ($requestedValues as $value) {
@@ -115,7 +116,7 @@ class LeadFilterService
     /**
      * Standard column filtering.
      */
-    protected function applyStandardFilter(Builder $query, $columnName, $values, $booleanFn, $availableColumns)
+    protected function applyStandardFilter(Builder|QueryBuilder $query, $columnName, $values, $booleanFn, $availableColumns)
     {
         // Simple mapping to prevent SQL injection and map index to real DB columns
         $dbColumn = $columnName;
@@ -151,7 +152,7 @@ class LeadFilterService
         }
     }
 
-    protected function applyOperator(Builder $query, $column, $operator, $value)
+    protected function applyOperator(Builder|QueryBuilder $query, $column, $operator, $value)
     {
         switch (strtolower($operator)) {
             case 'contains':

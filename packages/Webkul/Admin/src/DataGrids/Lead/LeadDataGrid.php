@@ -849,6 +849,15 @@ class LeadDataGrid extends DataGrid
             ]);
         }
 
+        if (bouncer()->hasPermission('leads.edit')) {
+            $this->addAction([
+                'icon' => 'icon-edit',
+                'title' => trans('admin::app.leads.index.datagrid.edit'),
+                'method' => 'GET',
+                'url' => fn ($row) => route('admin.leads.edit', $row->id),
+            ]);
+        }
+
         if (bouncer()->hasPermission('leads.delete')) {
             $this->addAction([
                 'icon' => 'icon-delete',

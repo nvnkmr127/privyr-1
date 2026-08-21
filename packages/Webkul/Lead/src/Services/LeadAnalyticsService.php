@@ -39,6 +39,9 @@ class LeadAnalyticsService
             'leads_by_pipeline' => $this->pipelineAnalytics->getMetrics($startDate, $endDate, $userId),
             'leads_by_owner' => $this->ownerAnalytics->getMetrics($startDate, $endDate),
             'lead_trend' => $this->trendAnalytics->getMetrics($startDate, $endDate, $userId),
+            'aging_leads_avg_days' => $coreMetrics['aging_leads_avg_days'],
+            'avg_response_time_hours' => $coreMetrics['avg_response_time_hours'],
+            'score_distribution' => $coreMetrics['score_distribution'],
         ];
     }
 }

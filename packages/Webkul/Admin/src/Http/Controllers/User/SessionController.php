@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Core\Menu\MenuItem;
+use Webkul\User\Models\User;
 
 class SessionController extends Controller
 {
@@ -15,6 +16,13 @@ class SessionController extends Controller
      */
     public function create(): RedirectResponse|View
     {
+        if (app()->environment('local')) {
+            $user = User::first();
+            if ($user) {
+                auth()->guard('user')->login($user);
+            }
+        }
+
         if (auth()->guard('user')->check()) {
             return redirect()->route('admin.dashboard.index');
         }
