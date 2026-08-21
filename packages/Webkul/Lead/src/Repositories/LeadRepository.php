@@ -123,10 +123,13 @@ class LeadRepository extends Repository
             $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
+        $data['entity_type'] = $data['entity_type'] ?? 'leads';
         $lead = $this->model->newInstance();
+        $leadData = $data;
+        unset($leadData['entity_type']);
         $lead->fill(array_merge([
             'lead_pipeline_id' => 1,
-        ], $data));
+        ], $leadData));
 
         $lead->forceFill([
             'lead_pipeline_stage_id' => $data['lead_pipeline_stage_id'] ?? 1,
@@ -219,12 +222,14 @@ class LeadRepository extends Repository
         }
 
         // Prevent direct manipulation of lifecycle fields
-        unset($data['status'], $data['lost_reason'], $data['junk_reason'], $data['converted_at'], $data['converted_by']);
+        $data['entity_type'] = $data['entity_type'] ?? 'leads';
+        $leadData = $data;
+        unset($leadData['status'], $leadData['lost_reason'], $leadData['junk_reason'], $leadData['converted_at'], $leadData['converted_by'], $leadData['entity_type']);
 
         $originalLead = $this->find($id);
         $originalUserId = $originalLead ? $originalLead->user_id : null;
 
-        $lead = parent::update($data, $id);
+        $lead = parent::update($leadData, $id);
 
         if (isset($stage) && $stage->code === 'won') {
             app(MetaConversionsApiService::class)->sendConversionEvent($lead, 'Purchase');

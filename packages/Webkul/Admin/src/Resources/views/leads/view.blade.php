@@ -164,24 +164,7 @@
                 <!-- Activities -->
                 {!! view_render_event('admin.leads.view.activities.before', ['lead' => $lead]) !!}
 
-                <!-- Quick Actions -->
-                <div class="flex flex-wrap gap-2 mb-2">
-                    <a href="{{ route('admin.activities.create', ['lead_id' => $lead->id, 'type' => 'note']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
-                        <span class="icon-note text-amber-500"></span> Add Note
-                    </a>
-                    <a href="{{ route('admin.activities.create', ['lead_id' => $lead->id, 'type' => 'call']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
-                        <span class="icon-call text-blue-500"></span> Log Call
-                    </a>
-                    <a href="{{ route('admin.activities.create', ['lead_id' => $lead->id, 'type' => 'meeting']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
-                        <span class="icon-calendar text-emerald-500"></span> Schedule Meeting
-                    </a>
-                    <button type="button" onclick="document.querySelector('[data-drawer=followUpDrawer]').click()" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
-                        <span class="icon-calendar text-orange-500"></span> Schedule Follow-up
-                    </button>
-                    <a href="{{ route('admin.mail.create', ['lead_id' => $lead->id]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
-                        <span class="icon-mail text-purple-500"></span> Log Email
-                    </a>
-                </div>
+
 
                 @php
                     $extraTypes = [

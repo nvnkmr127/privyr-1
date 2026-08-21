@@ -2,6 +2,7 @@
 
 use Carbon\Carbon;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Stage;
 use Webkul\Lead\Repositories\LeadRepository;
 
@@ -9,12 +10,14 @@ it('logs system events correctly via observers', function () {
     $this->loginAsAdmin();
     $repo = app(LeadRepository::class);
 
+    $pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
+    $stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+
     // Create a lead
     $lead = $repo->create([
         'title' => 'Timeline Test Lead',
-        'entity_type' => 'leads',
-        'lead_pipeline_id' => 1,
-        'lead_pipeline_stage_id' => 1,
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
         'expected_close_date' => Carbon::now()->addDays(5)->format('Y-m-d'),
         'lead_value' => 5000,
     ]);

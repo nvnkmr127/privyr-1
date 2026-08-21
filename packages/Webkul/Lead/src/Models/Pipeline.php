@@ -19,7 +19,7 @@ class Pipeline extends Model implements PipelineContract
 
                 // If user is not global and has explicitly assigned pipelines, restrict to those.
                 if ($user->view_permission !== 'global') {
-                    $pipelineIds = $user->pipelines()->pluck('lead_pipelines.id')->toArray();
+                    $pipelineIds = $user->pipelines()->withoutGlobalScope('user_pipelines')->pluck('lead_pipelines.id')->toArray();
 
                     if (! empty($pipelineIds)) {
                         $builder->whereIn('lead_pipelines.id', $pipelineIds);
@@ -61,6 +61,6 @@ class Pipeline extends Model implements PipelineContract
      */
     public function users()
     {
-        return $this->belongsToMany(UserProxy::modelClass(), 'lead_pipeline_user');
+        return $this->belongsToMany(UserProxy::modelClass(), 'lead_pipeline_user', 'lead_pipeline_id', 'user_id');
     }
 }

@@ -1,8 +1,8 @@
 @php
-    $phone = collect($lead->person?->contact_numbers ?? [])->pluck('value')->filter()->first();
+    $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first();
     $cleanPhone = preg_replace('/[^0-9]/', '', $phone ?? '');
-    $email = collect($lead->person?->emails ?? [])->pluck('value')->filter()->first();
-    $personName = $lead->person?->name ?? 'there';
+    $email = collect($lead->emails ?? [])->pluck('value')->filter()->first();
+    $personName = $lead->person_name ?? 'there';
     
     $waGreeting = rawurlencode("Hi {$personName}, thanks for reaching out regarding {$lead->title}. How can we assist you today?");
     $waBrochure = rawurlencode("Hi {$personName}, here is our latest brochure/catalogue: " . route('trackable.document', ['lead' => $lead->id, 'hash' => md5($lead->id . config('app.key'))]));

@@ -3,6 +3,8 @@
 use Carbon\Carbon;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadScoreRule;
+use Webkul\Lead\Models\Pipeline;
+use Webkul\Lead\Models\Stage;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Services\LeadScoringEngine;
 
@@ -35,12 +37,14 @@ it('calculates score based on dynamic rules', function () {
         'points' => -20,
     ]);
 
+    $pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
+    $stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+
     // Create lead
     $lead = $repo->create([
         'title' => 'Test Scoring Lead',
-        'entity_type' => 'leads',
-        'lead_pipeline_id' => 1,
-        'lead_pipeline_stage_id' => 1,
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
         'person_name' => 'John Doe',
         'qualification_status' => 'qualified',
         'last_contacted_at' => Carbon::now()->subDays(10), // Triggers stale penalty
@@ -63,11 +67,13 @@ it('evaluates health state correctly', function () {
     $this->loginAsAdmin();
     $repo = app(LeadRepository::class);
 
+    $pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
+    $stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+
     $lead = $repo->create([
         'title' => 'Hot Lead',
-        'entity_type' => 'leads',
-        'lead_pipeline_id' => 1,
-        'lead_pipeline_stage_id' => 1,
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
         'last_contacted_at' => Carbon::now(),
     ]);
 

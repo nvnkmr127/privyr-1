@@ -11,9 +11,11 @@ use Webkul\Lead\Models\LeadAttributionHistory;
 use Webkul\Lead\Models\LeadMergeHistory;
 use Webkul\Lead\Models\LeadNurtureHistory;
 use Webkul\Lead\Models\LeadQualification;
+use Webkul\Lead\Models\LeadSla;
 use Webkul\Lead\Models\LeadStageHistory;
 use Webkul\Lead\Models\LeadStatusHistory;
 use Webkul\Lead\Models\Pipeline;
+use Webkul\Lead\Models\Sla;
 use Webkul\Lead\Models\Source;
 use Webkul\Lead\Models\Stage;
 use Webkul\Lead\Models\StageAction;
@@ -37,5 +39,7 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
         LeadStatusHistory::class,
         LeadAttributionHistory::class,
         LeadNurtureHistory::class,
+        LeadSla::class,
+        Sla::class,
     ];
 }

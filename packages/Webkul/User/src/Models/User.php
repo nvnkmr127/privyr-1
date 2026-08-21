@@ -93,7 +93,7 @@ class User extends Authenticatable implements UserContract
      */
     public function pipelines()
     {
-        return $this->belongsToMany(PipelineProxy::modelClass(), 'lead_pipeline_user');
+        return $this->belongsToMany(PipelineProxy::modelClass(), 'lead_pipeline_user', 'user_id', 'lead_pipeline_id');
     }
 
     /**

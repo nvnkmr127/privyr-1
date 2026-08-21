@@ -31,8 +31,8 @@
     @if ($lead->next_action)
         <div class="flex flex-col gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
             <div class="flex items-center justify-between">
-                <span class="text-sm font-medium {{ $nextFollowUp->schedule_from < now() ? 'text-red-600' : 'text-slate-700 dark:text-slate-300' }}">
-                    {{ $nextFollowUp->schedule_from->format('D M d, Y h:i A') }}
+                <span class="text-sm font-medium {{ ($nextFollowUp->schedule_from ? \Carbon\Carbon::parse($nextFollowUp->schedule_from) : now()) < now() ? 'text-red-600' : 'text-slate-700 dark:text-slate-300' }}">
+                    {{ $nextFollowUp->schedule_from ? \Carbon\Carbon::parse($nextFollowUp->schedule_from)->format('D M d, Y h:i A') : '' }}
                 </span>
                 <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
                     {{ ucfirst($nextFollowUp->type) }}

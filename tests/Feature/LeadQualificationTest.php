@@ -1,13 +1,21 @@
 <?php
 
-use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadQualification;
+use Webkul\Lead\Models\Pipeline;
+use Webkul\Lead\Models\Stage;
+use Webkul\Lead\Repositories\LeadRepository;
 
 it('identifies missing required fields', function () {
     $this->loginAsAdmin();
     config(['lead.qualification.required_attributes' => ['budget', 'timeline']]);
 
-    $lead = Lead::factory()->create([
+    $pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
+    $stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+
+    $lead = app(LeadRepository::class)->create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
         'budget' => null,
         'timeline' => null,
     ]);
@@ -20,7 +28,13 @@ it('qualifies a lead successfully when requirements are met', function () {
     $this->loginAsAdmin();
     config(['lead.qualification.required_attributes' => ['budget']]);
 
-    $lead = Lead::factory()->create([
+    $pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
+    $stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+
+    $lead = app(LeadRepository::class)->create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
         'budget' => '1000',
         'qualification_status' => 'in_review',
     ]);
@@ -39,7 +53,13 @@ it('qualifies a lead successfully when requirements are met', function () {
 it('disqualifies a lead with a reason', function () {
     $this->loginAsAdmin();
 
-    $lead = Lead::factory()->create([
+    $pipeline = Pipeline::first() ?? Pipeline::create(['name' => 'Default']);
+    $stage = Stage::first() ?? Stage::create(['name' => 'New', 'code' => 'new', 'lead_pipeline_id' => $pipeline->id]);
+
+    $lead = app(LeadRepository::class)->create([
+        'title' => 'Test Lead',
+        'lead_pipeline_id' => $pipeline->id,
+        'lead_pipeline_stage_id' => $stage->id,
         'qualification_status' => 'in_review',
     ]);
 

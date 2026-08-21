@@ -1,8 +1,8 @@
 @php
-    $phone = collect($lead->person?->contact_numbers ?? [])->pluck('value')->filter()->first();
+    $phone = collect($lead->contact_numbers ?? [])->pluck('value')->filter()->first();
     $cleanPhone = preg_replace('/[^0-9]/', '', $phone ?? '');
-    $email = collect($lead->person?->emails ?? [])->pluck('value')->filter()->first();
-    $personName = $lead->person?->name ?? 'there';
+    $email = collect($lead->emails ?? [])->pluck('value')->filter()->first();
+    $personName = $lead->person_name ?? 'there';
     $leadTitle = $lead->title ?? $personName;
     $leadValue = $lead->lead_value ? core()->formatBasePrice($lead->lead_value) : null;
     $pipelineName = $lead->pipeline?->name ?? 'Default Pipeline';
@@ -125,7 +125,7 @@
         <!-- Lead Identity (Avatar + Name + Contact Summary) -->
         <div class="flex items-center gap-3.5 min-w-0">
             <x-admin::avatar
-                :name="$lead->person?->name ?? $leadTitle"
+                :name="$personName ?? $leadTitle"
                 class="!w-11 !h-11 text-base font-bold shrink-0 rounded-xl"
             />
 
@@ -212,18 +212,14 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-0.5 min-w-0">
-                    @if ($lead->person)
-                        <span class="font-semibold text-slate-700 dark:text-slate-300 truncate">
-                            {{ $lead->person->name }}
+                    <span class="font-semibold text-slate-700 dark:text-slate-300 truncate">
+                        {{ $personName }}
+                    </span>
+                    @if ($lead->organization_name)
+                        <span class="text-slate-300 dark:text-slate-600">•</span>
+                        <span class="truncate">
+                            {{ $lead->organization_name }}
                         </span>
-                        @if ($lead->person->job_title || $lead->person->organization)
-                            <span class="text-slate-300 dark:text-slate-600">•</span>
-                            <span class="truncate">
-                                {{ $lead->person->job_title }}
-                                @if ($lead->person->job_title && $lead->person->organization) at @endif
-                                {{ $lead->person->organization?->name }}
-                            </span>
-                        @endif
                     @endif
                 </div>
             </div>
@@ -507,7 +503,7 @@
                 <select name="target_lead_id" required class="w-full rounded border border-gray-300 px-3 py-2 text-xs font-medium dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
                     <option value="">-- Select Target Lead --</option>
                     @foreach ($otherLeads as $oLead)
-                        <option value="{{ $oLead->id }}">{{ $oLead->title }} ({{ $oLead->person?->name ?? 'No Contact' }})</option>
+                        <option value="{{ $oLead->id }}">{{ $oLead->title }} ({{ $oLead->person_name ?? 'No Contact' }})</option>
                     @endforeach
                 </select>
             </div>
