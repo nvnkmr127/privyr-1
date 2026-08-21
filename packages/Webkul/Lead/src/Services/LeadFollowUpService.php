@@ -129,8 +129,6 @@ class LeadFollowUpService
             ->orderBy('schedule_from', 'asc')
             ->first();
 
-
-
         if ($nextActivity) {
             $updated = $nextActivity->update([
                 'status' => 'completed',
@@ -139,8 +137,6 @@ class LeadFollowUpService
                 'completed_by_id' => auth()->id() ?? $lead->user_id,
                 'comment' => $note ? ($nextActivity->comment ? $nextActivity->comment."\n".$note : $note) : $nextActivity->comment,
             ]);
-
-
 
             $this->markContacted($lead);
             $this->syncNextAction($lead);

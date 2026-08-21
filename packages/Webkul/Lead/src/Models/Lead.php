@@ -620,6 +620,7 @@ class Lead extends Model implements LeadContract
             $this->group_id = $groupId;
         }
         $this->saveQuietly();
+
         return $this;
     }
 
@@ -628,7 +629,7 @@ class Lead extends Model implements LeadContract
         $oldStageId = $this->lead_pipeline_stage_id;
         if ((int) $oldStageId !== $stageId) {
             $this->lead_pipeline_stage_id = $stageId;
-            $this->stage_changed_at = \Carbon\Carbon::now();
+            $this->stage_changed_at = Carbon::now();
             $this->save();
 
             $this->stageHistories()->create([
@@ -636,6 +637,7 @@ class Lead extends Model implements LeadContract
                 'new_stage_id' => $stageId,
             ]);
         }
+
         return $this;
     }
 
@@ -644,9 +646,9 @@ class Lead extends Model implements LeadContract
         $oldStatus = $this->status;
         if ($oldStatus !== $status) {
             $this->status = $status;
-            
+
             if ($status === 'Closed' || in_array(strtolower($status), ['won', 'lost'])) {
-                $this->closed_at = \Carbon\Carbon::now();
+                $this->closed_at = Carbon::now();
             }
 
             $this->save();
@@ -657,6 +659,7 @@ class Lead extends Model implements LeadContract
                 'reason' => $reason,
             ]);
         }
+
         return $this;
     }
 
@@ -664,6 +667,7 @@ class Lead extends Model implements LeadContract
     {
         $this->qualification_status = $status;
         $this->save();
+
         return $this;
     }
 
