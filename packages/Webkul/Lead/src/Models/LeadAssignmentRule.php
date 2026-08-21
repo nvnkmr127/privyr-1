@@ -16,6 +16,9 @@ class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
         'type',
         'status',
         'sort_order',
+        'fallback_type',
+        'fallback_user_id',
+        'fallback_group_id',
     ];
 
     public function conditions()
@@ -26,7 +29,7 @@ class LeadAssignmentRule extends Model implements LeadAssignmentRuleContract
     public function users()
     {
         return $this->belongsToMany(UserProxy::modelClass(), 'lead_assignment_rule_users', 'rule_id', 'user_id')
-            ->withPivot('weight', 'last_assigned_at');
+            ->withPivot('weight', 'last_assigned_at', 'capacity');
     }
 
     public function groups()

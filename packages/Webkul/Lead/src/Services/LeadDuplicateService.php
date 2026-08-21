@@ -23,12 +23,12 @@ class LeadDuplicateService
 
         $isPlus = str_starts_with(trim($phone), '+');
         $normalized = preg_replace('/[^0-9]/', '', $phone);
-
+        
         if (empty($normalized)) {
             return null;
         }
 
-        return $isPlus ? '+'.$normalized : $normalized;
+        return $isPlus ? '+' . $normalized : $normalized;
     }
 
     /**
@@ -40,7 +40,9 @@ class LeadDuplicateService
             return null;
         }
 
-        return Str::lower(trim($email));
+        $data = ['emails' => [['value' => $email]]];
+        $normalized = app(\Webkul\Lead\Services\LeadDataQualityService::class)->normalize($data);
+        return $normalized['normalized_primary_email'] ?? null;
     }
 
     /**

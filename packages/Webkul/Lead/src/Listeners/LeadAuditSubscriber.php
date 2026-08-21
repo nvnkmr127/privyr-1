@@ -18,6 +18,7 @@ class LeadAuditSubscriber
         'expected_close_date' => 'Expected Close Date',
         'rotten_days' => 'Rotten Days',
         'is_qualified' => 'Qualified',
+        'qualification_status' => 'Qualification Status',
     ];
 
     /**

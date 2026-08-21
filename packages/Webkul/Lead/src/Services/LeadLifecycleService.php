@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Event;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\LeadStatusHistoryRepository;
+use Webkul\Lead\Services\LeadFollowUpService;
+use Webkul\Lead\Services\LeadNurtureService;
 
 class LeadLifecycleService
 {
@@ -28,7 +30,8 @@ class LeadLifecycleService
     public function __construct(
         protected LeadRepository $leadRepository,
         protected LeadStatusHistoryRepository $leadStatusHistoryRepository
-    ) {}
+    ) {
+    }
 
     /**
      * Get valid statuses.
@@ -71,6 +74,7 @@ class LeadLifecycleService
         if ($newStatus === self::STATUS_CONVERTED) {
             $updateData['converted_at'] = Carbon::now();
             $updateData['converted_by'] = $userId ?? (auth()->check() ? auth()->id() : null);
+            // Record previous status for history directly on the lead if needed, but we already have status history.
         }
 
         if ($newStatus === self::STATUS_LOST) {
@@ -85,7 +89,7 @@ class LeadLifecycleService
         // since LeadRepository might have its own logic. But using Repository is preferred.
         // We will temporarily unguard or just update what's needed.
         // It's better to update using eloquent or repository carefully.
-
+        
         // Before updating, save the current state for event
         $previousStatus = $lead->status;
 
@@ -112,34 +116,108 @@ class LeadLifecycleService
     }
 
     /**
+     * Convert a Lead.
+     */
+    public function convertLead(Lead $lead, array $data = []): bool
+    {
+        if ($lead->status === self::STATUS_CONVERTED) {
+            throw new \Exception("Lead is already converted.");
+        }
+
+        // End nurturing if active
+        if ($lead->status === self::STATUS_NURTURING) {
+            $this->leadNurtureService->completeNurturing($lead, self::STATUS_CONVERTED);
+        }
+
+        // Handle open follow-ups
+        $followUpAction = $data['follow_up_action'] ?? 'cancel';
+        if ($followUpAction === 'cancel') {
+            $this->leadFollowUpService->cancelOpenFollowUps($lead);
+        }
+
+        $reason = $data['conversion_reason'] ?? null;
+        $userId = $data['user_id'] ?? null;
+
+        return $this->changeStatus($lead, self::STATUS_CONVERTED, $reason, $userId);
+    }
+
+    /**
+     * Mark a Lead as Lost.
+     */
+    public function markLost(Lead $lead, array $data = []): bool
+    {
+        if ($lead->status === self::STATUS_LOST) {
+            throw new \Exception("Lead is already lost.");
+        }
+
+        if ($lead->status === self::STATUS_CONVERTED) {
+            throw new \Exception("Converted leads cannot be marked lost directly.");
+        }
+
+        // End nurturing if active
+        if ($lead->status === self::STATUS_NURTURING) {
+            $this->leadNurtureService->completeNurturing($lead, self::STATUS_LOST, $data['notes'] ?? null);
+        }
+
+        // Handle open follow-ups
+        $followUpAction = $data['follow_up_action'] ?? 'cancel';
+        if ($followUpAction === 'cancel') {
+            $this->leadFollowUpService->cancelOpenFollowUps($lead);
+        }
+
+        $reason = $data['lost_reason'] ?? null;
+        $userId = $data['user_id'] ?? null;
+
+        return $this->changeStatus($lead, self::STATUS_LOST, $reason, $userId);
+    }
+
+    /**
+     * Mark a Lead as Junk.
+     */
+    public function markJunk(Lead $lead, array $data = []): bool
+    {
+        if ($lead->status === self::STATUS_JUNK) {
+            throw new \Exception("Lead is already junk.");
+        }
+
+        // End nurturing if active
+        if ($lead->status === self::STATUS_NURTURING) {
+            $this->leadNurtureService->completeNurturing($lead, self::STATUS_JUNK);
+        }
+
+        $this->leadFollowUpService->cancelOpenFollowUps($lead);
+
+        $reason = $data['junk_reason'] ?? null;
+        $userId = $data['user_id'] ?? null;
+
+        return $this->changeStatus($lead, self::STATUS_JUNK, $reason, $userId);
+    }
+
+    /**
      * Validate if a transition is allowed.
      */
     protected function validateTransition(string $current, string $new)
     {
         // Converted Leads cannot silently be reopened
         if ($current === self::STATUS_CONVERTED) {
-            throw new \Exception('A converted lead cannot change its status automatically. It must be explicitly handled if at all.');
+            throw new \Exception("A converted lead cannot change its status automatically. It must be explicitly handled if at all.");
         }
-
-        // Lost or Junk can only go back to working if explicitly reopened (we handle this as allowed but caller must explicitly do it)
-        // If we want to strictly enforce it, we could have a `reopen()` method instead.
-        // For now, we allow the transition but controllers should use `reopen()` action to signify explicit intent.
     }
 
     /**
      * Reopen a Lost or Junk Lead.
      */
-    public function reopenLead(Lead $lead, ?string $reason = null, ?int $userId = null): bool
+    public function reopenLead(Lead $lead, ?string $reason = null, ?int $userId = null, string $newStatus = self::STATUS_WORKING): bool
     {
         $current = $lead->status;
-
-        if (! in_array($current, [self::STATUS_LOST, self::STATUS_JUNK])) {
-            throw new \Exception('Only Lost or Junk leads can be reopened.');
+        
+        if (!in_array($current, [self::STATUS_LOST, self::STATUS_JUNK])) {
+            throw new \Exception("Only Lost or Junk leads can be reopened.");
         }
 
         // Reopening usually sets it back to Working
         $success = $this->changeStatus($lead, self::STATUS_WORKING, $reason, $userId);
-
+        
         if ($success) {
             Event::dispatch('lead.status.reopened', [
                 'lead' => $lead,

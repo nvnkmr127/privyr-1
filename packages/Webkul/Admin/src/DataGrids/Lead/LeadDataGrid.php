@@ -63,6 +63,7 @@ class LeadDataGrid extends DataGrid
                 'leads.id',
                 'leads.title',
                 'leads.status',
+                'leads.data_quality_state',
                 'leads.temperature',
                 'leads.lead_value',
                 'leads.expected_close_date',
@@ -87,7 +88,10 @@ class LeadDataGrid extends DataGrid
                 'leads.nurture_reason_id',
                 'leads.last_activity_at',
                 'leads.last_contacted_at',
+                'leads.next_action',
                 'leads.next_follow_up_at',
+                'leads.next_action_priority',
+                'leads.follow_up_owner_id',
                 'leads.stage_changed_at',
                 'lead_sources.name as lead_source_name',
                 'first_source.name as first_source_name',
@@ -102,11 +106,13 @@ class LeadDataGrid extends DataGrid
                 'leads.person_name as person_name',
                 'leads.contact_numbers as contact_numbers',
                 'tags.name as tag_name',
+                'follow_up_owners.name as follow_up_owner_name',
                 'lead_pipelines.rotten_days as pipeline_rotten_days',
                 'lead_pipeline_stages.code as stage_code',
                 DB::raw('CASE WHEN DATEDIFF(NOW(),'.$tablePrefix.'leads.created_at) >='.$tablePrefix.'lead_pipelines.rotten_days THEN 1 ELSE 0 END as rotten_lead'),
             )
             ->leftJoin('users', 'leads.user_id', '=', 'users.id')
+            ->leftJoin('users as follow_up_owners', 'leads.follow_up_owner_id', '=', 'follow_up_owners.id')
             ->leftJoin('groups', 'leads.group_id', '=', 'groups.id')
             ->leftJoin('lead_types', 'leads.lead_type_id', '=', 'lead_types.id')
             ->leftJoin('lead_pipeline_stages', 'leads.lead_pipeline_stage_id', '=', 'lead_pipeline_stages.id')
@@ -140,6 +146,17 @@ class LeadDataGrid extends DataGrid
                 ));
             }
         }
+        
+        // Add SLA subqueries
+        $queryBuilder->addSelect(DB::raw(
+            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Assignment" ORDER BY created_at DESC LIMIT 1) as assignment_sla_status'
+        ))->addSelect(DB::raw(
+            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "First Action" ORDER BY created_at DESC LIMIT 1) as first_action_sla_status'
+        ))->addSelect(DB::raw(
+            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Follow-up" ORDER BY created_at DESC LIMIT 1) as follow_up_sla_status'
+        ))->addSelect(DB::raw(
+            '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Stage" ORDER BY created_at DESC LIMIT 1) as stage_sla_status'
+        ));
 
         $user = auth()->guard('user')->user();
         if ($user) {
@@ -210,7 +227,11 @@ class LeadDataGrid extends DataGrid
         $this->addFilter('last_activity_at', 'leads.last_activity_at');
         $this->addFilter('last_contacted_at', 'leads.last_contacted_at');
         $this->addFilter('next_follow_up_at', 'leads.next_follow_up_at');
+        $this->addFilter('next_action', 'leads.next_action');
+        $this->addFilter('next_action_priority', 'leads.next_action_priority');
+        $this->addFilter('follow_up_owner_name', 'follow_up_owners.id');
         $this->addFilter('stage_changed_at', 'leads.stage_changed_at');
+        $this->addFilter('data_quality_state', 'leads.data_quality_state');
 
         return $queryBuilder;
     }
@@ -532,6 +553,30 @@ class LeadDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
+            'index' => 'data_quality_state',
+            'label' => 'Data Quality',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'dropdown',
+            'filterable_options' => [
+                ['label' => 'Complete', 'value' => 'complete'],
+                ['label' => 'Needs Review', 'value' => 'needs_review'],
+                ['label' => 'Incomplete', 'value' => 'incomplete'],
+            ],
+            'closure' => function ($row) {
+                if ($row->data_quality_state === 'complete') {
+                    return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Complete</span>';
+                } elseif ($row->data_quality_state === 'needs_review') {
+                    return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">Needs Review</span>';
+                }
+                
+                return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800">Incomplete</span>';
+            },
+        ]);
+
+        $this->addColumn([
             'index' => 'status',
             'label' => 'Status',
             'type' => 'string',
@@ -668,6 +713,140 @@ class LeadDataGrid extends DataGrid
                 }
 
                 return '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">Active</span>';
+            },
+        ]);
+        $this->addColumn([
+            'index' => 'next_action',
+            'label' => 'Next Action',
+            'type' => 'string',
+            'searchable' => true,
+            'sortable' => true,
+            'filterable' => true,
+            'closure' => function ($row) {
+                if (! $row->next_action) return '--';
+                return '<span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800">' . ucfirst($row->next_action) . '</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'next_follow_up_at',
+            'label' => 'Next Action Date',
+            'type' => 'date',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'date_range',
+            'closure' => function ($row) {
+                if (!$row->next_follow_up_at) return '--';
+                $date = \Carbon\Carbon::parse($row->next_follow_up_at);
+                $class = $date->isPast() ? 'text-rose-600 font-bold' : 'text-slate-600';
+                return '<span class="' . $class . '">' . $date->format('M d, Y h:i A') . '</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'follow_up_owner_name',
+            'label' => 'Next Action Owner',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'filterable_type' => 'searchable_dropdown',
+            'filterable_options' => [
+                'repository' => \Webkul\User\Repositories\UserRepository::class,
+                'column' => [
+                    'label' => 'name',
+                    'value' => 'id',
+                ],
+            ],
+            'closure' => function ($row) {
+                return $row->follow_up_owner_name ?? '--';
+            },
+            'visibility' => false,
+        ]);
+
+        $this->addColumn([
+            'index' => 'next_action_priority',
+            'label' => 'Next Action Priority',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'closure' => function ($row) {
+                if (! $row->next_action_priority) return '--';
+                return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-800">' . ucfirst($row->next_action_priority) . '</span>';
+            },
+            'visibility' => false,
+        ]);
+
+        $slaStatuses = [
+            'On Track' => 'bg-emerald-100 text-emerald-800',
+            'Due Soon' => 'bg-amber-100 text-amber-800',
+            'Breached' => 'bg-rose-100 text-rose-800',
+            'Resolved' => 'bg-slate-100 text-slate-600',
+        ];
+
+        $this->addColumn([
+            'index' => 'assignment_sla_status',
+            'label' => 'Assignment SLA',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'visibility' => false,
+            'closure' => function ($row) use ($slaStatuses) {
+                $status = $row->assignment_sla_status ?? null;
+                if (!$status) return '--';
+                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'first_action_sla_status',
+            'label' => 'First Action SLA',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'visibility' => false,
+            'closure' => function ($row) use ($slaStatuses) {
+                $status = $row->first_action_sla_status ?? null;
+                if (!$status) return '--';
+                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'follow_up_sla_status',
+            'label' => 'Follow-up SLA',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'visibility' => false,
+            'closure' => function ($row) use ($slaStatuses) {
+                $status = $row->follow_up_sla_status ?? null;
+                if (!$status) return '--';
+                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'stage_sla_status',
+            'label' => 'Stage SLA',
+            'type' => 'string',
+            'searchable' => false,
+            'sortable' => true,
+            'filterable' => true,
+            'visibility' => false,
+            'closure' => function ($row) use ($slaStatuses) {
+                $status = $row->stage_sla_status ?? null;
+                if (!$status) return '--';
+                $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
             },
         ]);
 

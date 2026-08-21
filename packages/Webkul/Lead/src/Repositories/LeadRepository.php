@@ -115,11 +115,11 @@ class LeadRepository extends Repository
 
         // Normalize Email and Phone
         if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
-            $data['normalized_primary_email'] = app(LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
+            $data['normalized_primary_email'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+            $data['normalized_primary_phone'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
         $lead = parent::create(array_merge([
@@ -171,6 +171,9 @@ class LeadRepository extends Repository
         // Evaluate Lead Score
         app(LeadScoringEngine::class)->evaluateLead($lead);
 
+        // Calculate Data Quality State
+        app(\Webkul\Lead\Services\LeadDataQualityService::class)->calculateQualityState($lead);
+
         return $lead;
     }
 
@@ -199,11 +202,11 @@ class LeadRepository extends Repository
 
         // Normalize Email and Phone
         if (isset($data['emails']) && is_array($data['emails']) && count($data['emails']) > 0) {
-            $data['normalized_primary_email'] = app(LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
+            $data['normalized_primary_email'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+            $data['normalized_primary_phone'] = app(\Webkul\Lead\Services\LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
         }
 
         // Prevent direct manipulation of lifecycle fields
@@ -278,6 +281,7 @@ class LeadRepository extends Repository
                 'entity_id' => $lead->id,
             ]), $attributes);
             app(LeadScoringEngine::class)->evaluateLead($lead);
+            app(\Webkul\Lead\Services\LeadDataQualityService::class)->calculateQualityState($lead);
 
             return $lead;
         }
@@ -287,6 +291,7 @@ class LeadRepository extends Repository
         ]));
 
         app(LeadScoringEngine::class)->evaluateLead($lead);
+        app(\Webkul\Lead\Services\LeadDataQualityService::class)->calculateQualityState($lead);
 
         return $lead;
     }

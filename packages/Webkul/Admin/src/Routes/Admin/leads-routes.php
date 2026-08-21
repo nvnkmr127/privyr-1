@@ -119,4 +119,10 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
         Route::get('', 'index')->name('admin.leads.audits.index');
     });
 
+    Route::controller(\Webkul\Admin\Http\Controllers\Lead\QualificationController::class)->prefix('{id}/qualification')->group(function () {
+        Route::post('qualify', 'qualify')->name('admin.leads.qualify');
+        Route::post('disqualify', 'disqualify')->name('admin.leads.disqualify');
+        Route::post('requalify', 'requalify')->name('admin.leads.requalify');
+    });
+
 });

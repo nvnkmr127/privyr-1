@@ -53,6 +53,12 @@ return [
                     'event' => 'lead.follow_up.overdue',
                     'name' => 'Follow-up Overdue',
                 ], [
+                    'event' => 'lead.follow_up.rescheduled',
+                    'name' => 'Follow-up Rescheduled',
+                ], [
+                    'event' => 'lead.no_next_action',
+                    'name' => 'No Next Action',
+                ], [
                     'event' => 'lead.inactive',
                     'name' => 'Lead Inactive',
                 ], [
@@ -85,6 +91,18 @@ return [
                 ], [
                     'event' => 'lead.unassigned',
                     'name' => 'Lead Unassigned',
+                ], [
+                    'event' => 'lead.sla.started',
+                    'name' => 'SLA Started',
+                ], [
+                    'event' => 'lead.sla.due_soon',
+                    'name' => 'SLA Due Soon',
+                ], [
+                    'event' => 'lead.sla.breached',
+                    'name' => 'SLA Breached',
+                ], [
+                    'event' => 'lead.sla.resolved',
+                    'name' => 'SLA Resolved',
                 ],
             ],
         ],

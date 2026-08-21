@@ -12,7 +12,7 @@ use Webkul\Lead\Exceptions\LeadIngestionException;
 use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
-use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Models\LeadCaptureLog;
 
 class LeadIngestionService implements LeadIngestionServiceContract
 {
@@ -21,7 +21,8 @@ class LeadIngestionService implements LeadIngestionServiceContract
         protected DuplicateMatchingService $duplicateMatchingService,
         protected SourceRepository $sourceRepository,
         protected PipelineRepository $pipelineRepository,
-        protected LeadAttributionService $leadAttributionService
+        protected LeadAttributionService $leadAttributionService,
+        protected LeadDataQualityService $leadDataQualityService
     ) {}
 
     /**
@@ -53,6 +54,17 @@ class LeadIngestionService implements LeadIngestionServiceContract
 
             // 2. Normalize and Validate
             $leadData = $this->normalizeData($payload);
+            
+            // Centralized Data Quality Normalization
+            $leadData = $this->leadDataQualityService->normalize($leadData);
+            
+            // Centralized Validation
+            $validationErrors = $this->leadDataQualityService->validate($leadData);
+            if (!empty($validationErrors)) {
+                $this->updateLog($logId, 'Validation Failed', null, $startTime, json_encode($validationErrors));
+                throw new LeadIngestionException('Validation Failed: ' . json_encode($validationErrors));
+            }
+            
             Event::dispatch('lead.ingestion.validated', $leadData);
 
             // 3. Duplicate Check

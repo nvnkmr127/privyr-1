@@ -78,6 +78,19 @@ class LeadTimelineEventSubscriber
     }
 
     /**
+     * Handle lead disqualified events.
+     */
+    public function handleLeadDisqualified($lead)
+    {
+        $this->systemActivityLogger->log(
+            $lead,
+            'Lead disqualified',
+            ['old' => ['label' => 'Qualified/Unqualified'], 'new' => ['label' => 'Disqualified']],
+            "Lead was marked as Disqualified. Reason: " . ($lead->latestQualification->reason ?? 'Not specified')
+        );
+    }
+
+    /**
      * Handle lead nurturing started events.
      */
     public function handleLeadNurturingStarted($lead)
@@ -130,6 +143,11 @@ class LeadTimelineEventSubscriber
         $events->listen(
             'lead.qualification.qualified',
             [LeadTimelineEventSubscriber::class, 'handleLeadQualified']
+        );
+
+        $events->listen(
+            'lead.qualification.disqualified',
+            [LeadTimelineEventSubscriber::class, 'handleLeadDisqualified']
         );
 
         $events->listen(

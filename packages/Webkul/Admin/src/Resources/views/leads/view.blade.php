@@ -90,10 +90,22 @@
                     @include ('admin::leads.view.follow-up')
                 </div>
                 
+                <!-- Data Quality Card -->
+                <div class="rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
+                    @include ('admin::leads.view.data-quality')
+                </div>
+
                 <!-- Lead Health Card -->
                 <div class="rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
                     @include ('admin::leads.view.health')
                 </div>
+
+                <!-- SLA Card -->
+                @if($lead->slas->count() > 0)
+                <div class="rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
+                    @include ('admin::leads.view.sla')
+                </div>
+                @endif
 
                 @if($lead->status === 'Nurturing' || $lead->nurtureHistories->count() > 0)
                 <!-- Lead Nurturing Card -->
@@ -125,6 +137,11 @@
                             </span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Qualification Framework Card -->
+                <div class="rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
+                    @include ('admin::leads.view.qualification')
                 </div>
 
                 <!-- Lead Attributes Card -->

@@ -28,12 +28,12 @@ class LeadServiceProvider extends ServiceProvider
         Gate::policy(Lead::class, LeadPolicy::class);
 
         Lead::observe(LeadObserver::class);
-
-        Event::subscribe(LeadAuditSubscriber::class);
+        
+        \Illuminate\Support\Facades\Event::subscribe(\Webkul\Lead\Listeners\LeadAuditSubscriber::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                EvaluateLeadHealth::class,
+                \Webkul\Lead\Console\Commands\EvaluateLeadHealth::class,
             ]);
         }
     }
@@ -45,6 +45,10 @@ class LeadServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(
+            dirname(__DIR__).'/Config/qualification.php', 'lead.qualification'
+        );
+
         $this->app->singleton(
             LeadIngestionService::class,
             \Webkul\Lead\Services\LeadIngestionService::class
