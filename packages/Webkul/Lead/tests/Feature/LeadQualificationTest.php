@@ -8,7 +8,6 @@ use Tests\TestCase;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadQualificationProxy;
 use Webkul\Lead\Services\LeadQualificationService;
-use Webkul\User\Models\User;
 
 class LeadQualificationTest extends TestCase
 {
@@ -19,9 +18,9 @@ class LeadQualificationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->qualificationService = app(LeadQualificationService::class);
-        
+
         // Setup config for tests
         config(['lead.qualification.required_attributes' => ['budget', 'timeline']]);
     }
@@ -35,7 +34,7 @@ class LeadQualificationTest extends TestCase
         ]);
 
         $missing = $this->qualificationService->getMissingFields($lead);
-        
+
         $this->assertContains('budget', $missing);
         $this->assertNotContains('timeline', $missing);
         $this->assertFalse($this->qualificationService->canBeQualified($lead));
@@ -47,7 +46,7 @@ class LeadQualificationTest extends TestCase
         Event::fake([
             'lead.qualification.started',
             'lead.qualification.updated',
-            'lead.qualification.qualified'
+            'lead.qualification.qualified',
         ]);
 
         $lead = Lead::factory()->create([
@@ -61,7 +60,7 @@ class LeadQualificationTest extends TestCase
         $qualifiedLead = $this->qualificationService->qualify($lead);
 
         $this->assertEquals('qualified', $qualifiedLead->qualification_status);
-        
+
         $this->assertDatabaseHas('lead_qualifications', [
             'lead_id' => $lead->id,
             'status' => 'qualified',
@@ -91,7 +90,7 @@ class LeadQualificationTest extends TestCase
     {
         Event::fake([
             'lead.qualification.updated',
-            'lead.qualification.disqualified'
+            'lead.qualification.disqualified',
         ]);
 
         $lead = Lead::factory()->create([
@@ -101,7 +100,7 @@ class LeadQualificationTest extends TestCase
         $disqualifiedLead = $this->qualificationService->disqualify($lead, 'Budget mismatch');
 
         $this->assertEquals('disqualified', $disqualifiedLead->qualification_status);
-        
+
         $this->assertDatabaseHas('lead_qualifications', [
             'lead_id' => $lead->id,
             'status' => 'disqualified',
@@ -127,7 +126,7 @@ class LeadQualificationTest extends TestCase
         $requalifiedLead = $this->qualificationService->requalify($lead);
 
         $this->assertEquals('in_review', $requalifiedLead->qualification_status);
-        
+
         $this->assertDatabaseHas('lead_qualifications', [
             'lead_id' => $lead->id,
             'status' => 'in_review',

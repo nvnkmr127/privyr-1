@@ -86,7 +86,7 @@ class LeadTimelineEventSubscriber
             $lead,
             'Lead disqualified',
             ['old' => ['label' => 'Qualified/Unqualified'], 'new' => ['label' => 'Disqualified']],
-            "Lead was marked as Disqualified. Reason: " . ($lead->latestQualification->reason ?? 'Not specified')
+            'Lead was marked as Disqualified. Reason: '.($lead->latestQualification->reason ?? 'Not specified')
         );
     }
 

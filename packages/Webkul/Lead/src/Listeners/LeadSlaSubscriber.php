@@ -3,9 +3,9 @@
 namespace Webkul\Lead\Listeners;
 
 use Illuminate\Events\Dispatcher;
-use Webkul\Lead\Services\Sla\LeadSlaService;
-use Webkul\Lead\Models\Lead;
 use Webkul\Activity\Models\Activity;
+use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Services\Sla\LeadSlaService;
 
 class LeadSlaSubscriber
 {
@@ -48,7 +48,7 @@ class LeadSlaSubscriber
             $this->leadSlaService->handleActivityCreated($activity->lead, $activity);
         }
     }
-    
+
     /**
      * Handle follow-up due.
      */
@@ -58,7 +58,7 @@ class LeadSlaSubscriber
             $this->leadSlaService->handleFollowUpDue($data['lead'], $data['due_date']);
         }
     }
-    
+
     /**
      * Handle follow-up completed.
      */
@@ -94,44 +94,43 @@ class LeadSlaSubscriber
     /**
      * Register the listeners for the subscriber.
      *
-     * @param  Dispatcher  $events
      * @return void
      */
     public function subscribe(Dispatcher $events)
     {
         $events->listen(
             'lead.create.after',
-            self::class . '@onLeadCreated'
+            self::class.'@onLeadCreated'
         );
 
         $events->listen(
             'lead.assigned',
-            self::class . '@onLeadAssigned'
+            self::class.'@onLeadAssigned'
         );
 
         $events->listen(
             'activity.create.after',
-            self::class . '@onActivityCreated'
+            self::class.'@onActivityCreated'
         );
-        
+
         $events->listen(
             'lead.follow_up.due',
-            self::class . '@onFollowUpDue'
+            self::class.'@onFollowUpDue'
         );
-        
+
         $events->listen(
             'lead.follow_up.completed',
-            self::class . '@onFollowUpCompleted'
+            self::class.'@onFollowUpCompleted'
         );
 
         $events->listen(
             'lead.stage.updated',
-            self::class . '@onStageUpdated'
+            self::class.'@onStageUpdated'
         );
 
         $events->listen(
             'lead.status.changed',
-            self::class . '@onLeadStatusChanged'
+            self::class.'@onLeadStatusChanged'
         );
     }
 }

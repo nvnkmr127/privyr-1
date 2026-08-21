@@ -37,7 +37,6 @@ class QualificationController extends Controller
      * Qualify the given lead.
      *
      * @param  int  $id
-     * @return JsonResponse
      */
     public function qualify($id): JsonResponse
     {
@@ -47,12 +46,12 @@ class QualificationController extends Controller
             $this->qualificationService->qualify($lead, auth()->guard('user')->user()?->id);
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => trans('admin::app.leads.qualified-success'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => $e->getMessage(),
             ], 400);
         }
@@ -62,7 +61,6 @@ class QualificationController extends Controller
      * Disqualify the given lead.
      *
      * @param  int  $id
-     * @return JsonResponse
      */
     public function disqualify(Request $request, $id): JsonResponse
     {
@@ -76,12 +74,12 @@ class QualificationController extends Controller
             $this->qualificationService->disqualify($lead, $request->reason, auth()->guard('user')->user()?->id);
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => trans('admin::app.leads.disqualified-success'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => $e->getMessage(),
             ], 400);
         }
@@ -91,7 +89,6 @@ class QualificationController extends Controller
      * Requalify (Move to In Review) the given lead.
      *
      * @param  int  $id
-     * @return JsonResponse
      */
     public function requalify($id): JsonResponse
     {
@@ -101,12 +98,12 @@ class QualificationController extends Controller
             $this->qualificationService->requalify($lead, auth()->guard('user')->user()?->id);
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => trans('admin::app.leads.requalified-success'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => $e->getMessage(),
             ], 400);
         }

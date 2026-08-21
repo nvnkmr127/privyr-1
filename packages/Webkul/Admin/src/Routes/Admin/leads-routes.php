@@ -28,6 +28,7 @@ use Webkul\Admin\Http\Controllers\Lead\AnalyticsController;
 use Webkul\Admin\Http\Controllers\Lead\AuditController;
 use Webkul\Admin\Http\Controllers\Lead\BulkActionController;
 use Webkul\Admin\Http\Controllers\Lead\ImportWizardController;
+use Webkul\Admin\Http\Controllers\Lead\QualificationController;
 
 Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics.index');
 
@@ -119,7 +120,7 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
         Route::get('', 'index')->name('admin.leads.audits.index');
     });
 
-    Route::controller(\Webkul\Admin\Http\Controllers\Lead\QualificationController::class)->prefix('{id}/qualification')->group(function () {
+    Route::controller(QualificationController::class)->prefix('{id}/qualification')->group(function () {
         Route::post('qualify', 'qualify')->name('admin.leads.qualify');
         Route::post('disqualify', 'disqualify')->name('admin.leads.disqualify');
         Route::post('requalify', 'requalify')->name('admin.leads.requalify');

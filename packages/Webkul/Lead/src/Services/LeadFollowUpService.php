@@ -2,8 +2,8 @@
 
 namespace Webkul\Lead\Services;
 
-use Illuminate\Support\Facades\Event;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Event;
 use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Repositories\LeadRepository;
@@ -94,7 +94,7 @@ class LeadFollowUpService
         if ($nextActivity) {
             $originalDate = $nextActivity->schedule_from;
             $newDate = Carbon::parse($date);
-            
+
             // Record reschedule history
             $additional = $nextActivity->additional ?? [];
             $additional['reschedule_history'][] = [
@@ -129,7 +129,7 @@ class LeadFollowUpService
             ->orderBy('schedule_from', 'asc')
             ->first();
 
-        dump("Next activity found in complete:", $nextActivity ? $nextActivity->id : 'null');
+        dump('Next activity found in complete:', $nextActivity ? $nextActivity->id : 'null');
 
         if ($nextActivity) {
             $updated = $nextActivity->update([
@@ -137,10 +137,10 @@ class LeadFollowUpService
                 'is_done' => 1,
                 'completed_at' => Carbon::now(),
                 'completed_by_id' => auth()->id() ?? $lead->user_id,
-                'comment' => $note ? ($nextActivity->comment ? $nextActivity->comment . "\n" . $note : $note) : $nextActivity->comment,
+                'comment' => $note ? ($nextActivity->comment ? $nextActivity->comment."\n".$note : $note) : $nextActivity->comment,
             ]);
 
-            dump("Update result:", $updated);
+            dump('Update result:', $updated);
 
             $this->markContacted($lead);
             $this->syncNextAction($lead);
@@ -179,7 +179,7 @@ class LeadFollowUpService
                 'is_done' => 1,
                 'completed_at' => Carbon::now(),
                 'completed_by_id' => auth()->id() ?? $lead->user_id,
-                'comment' => $activity->comment ? $activity->comment . "\nCancelled due to lead closure" : "Cancelled due to lead closure",
+                'comment' => $activity->comment ? $activity->comment."\nCancelled due to lead closure" : 'Cancelled due to lead closure',
             ]);
         }
 

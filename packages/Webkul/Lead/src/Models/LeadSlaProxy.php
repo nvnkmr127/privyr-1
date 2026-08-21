@@ -4,6 +4,4 @@ namespace Webkul\Lead\Models;
 
 use Konekt\Concord\Proxies\ModelProxy;
 
-class LeadSlaProxy extends ModelProxy
-{
-}
+class LeadSlaProxy extends ModelProxy {}

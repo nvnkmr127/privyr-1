@@ -5,20 +5,25 @@ namespace Webkul\Lead\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
+use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Models\LeadStatusHistoryProxy;
 use Webkul\Lead\Models\Pipeline;
 use Webkul\Lead\Models\Stage;
-use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Services\LeadLifecycleService;
-use Webkul\Lead\Models\LeadStatusHistoryProxy;
+use Webkul\User\Models\Role;
+use Webkul\User\Models\User;
 
 class LeadLifecycleTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $lifecycleService;
+
     protected $pipelineId;
+
     protected $stageId;
+
     protected $user;
 
     protected function setUp(): void
@@ -26,13 +31,13 @@ class LeadLifecycleTest extends TestCase
         parent::setUp();
         $this->lifecycleService = app(LeadLifecycleService::class);
 
-        $role = \Webkul\User\Models\Role::create([
+        $role = Role::create([
             'name' => 'Administrator',
             'description' => 'Admin Role',
             'permission_type' => 'all',
         ]);
 
-        $this->user = \Webkul\User\Models\User::create([
+        $this->user = User::create([
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => bcrypt('password'),

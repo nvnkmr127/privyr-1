@@ -28,12 +28,12 @@ class LeadServiceProvider extends ServiceProvider
         Gate::policy(Lead::class, LeadPolicy::class);
 
         Lead::observe(LeadObserver::class);
-        
-        \Illuminate\Support\Facades\Event::subscribe(\Webkul\Lead\Listeners\LeadAuditSubscriber::class);
+
+        Event::subscribe(LeadAuditSubscriber::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Webkul\Lead\Console\Commands\EvaluateLeadHealth::class,
+                EvaluateLeadHealth::class,
             ]);
         }
     }

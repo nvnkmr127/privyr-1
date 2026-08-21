@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Event;
-use Webkul\Lead\Models\Lead;
-use Webkul\Lead\Services\LeadDataQualityService;
 use Tests\TestCase;
+use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Services\LeadDataQualityService;
 
 uses(TestCase::class);
 
@@ -16,7 +17,7 @@ it('normalizes phone and email correctly', function () {
         'person_name' => '  John   Doe  ',
         'emails' => [['value' => ' JOHN.DOE@example.com ', 'label' => 'work']],
         'contact_numbers' => [['value' => ' +1 (555) 123-4567 ', 'label' => 'work']],
-        'title' => '<h1>New Lead</h1>'
+        'title' => '<h1>New Lead</h1>',
     ];
 
     $normalized = $this->dataQualityService->normalize($data);
@@ -33,7 +34,7 @@ it('calculates data quality state as complete when all required fields are prese
     Event::fake(['lead.data_quality.changed']);
 
     // Create a lead with all necessary fields
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'entity_type' => 'leads',
         'person_name' => 'Valid Name',
         'lead_source_id' => 1,
@@ -51,7 +52,7 @@ it('calculates data quality state as complete when all required fields are prese
 });
 
 it('calculates data quality state as needs_review for missing some fields', function () {
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'entity_type' => 'leads',
         'person_name' => 'Valid Name',
         'lead_source_id' => null, // Missing source
@@ -67,7 +68,7 @@ it('calculates data quality state as needs_review for missing some fields', func
 });
 
 it('calculates data quality state as incomplete for severely missing fields', function () {
-    $lead = app(\Webkul\Lead\Repositories\LeadRepository::class)->create([
+    $lead = app(LeadRepository::class)->create([
         'entity_type' => 'leads',
         'person_name' => null,
         'lead_source_id' => null,
