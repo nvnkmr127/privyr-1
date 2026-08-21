@@ -2,7 +2,6 @@
 
 namespace Webkul\Lead\Services;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\LeadQualificationProxy;
@@ -21,9 +20,6 @@ class LeadQualificationService
 
     /**
      * Get the missing required fields for qualifying a lead.
-     *
-     * @param  Lead  $lead
-     * @return array
      */
     public function getMissingFields(Lead $lead): array
     {
@@ -42,9 +38,6 @@ class LeadQualificationService
 
     /**
      * Check if a lead can be qualified.
-     *
-     * @param  Lead  $lead
-     * @return bool
      */
     public function canBeQualified(Lead $lead): bool
     {
@@ -54,9 +47,6 @@ class LeadQualificationService
     /**
      * Qualify a lead.
      *
-     * @param  Lead  $lead
-     * @param  int|null  $userId
-     * @return Lead
      *
      * @throws \Exception
      */
@@ -90,10 +80,6 @@ class LeadQualificationService
     /**
      * Disqualify a lead.
      *
-     * @param  Lead  $lead
-     * @param  string  $reason
-     * @param  int|null  $userId
-     * @return Lead
      *
      * @throws \Exception
      */
@@ -104,7 +90,7 @@ class LeadQualificationService
         }
 
         if (empty(trim($reason))) {
-            throw new \Exception("A disqualification reason is required.");
+            throw new \Exception('A disqualification reason is required.');
         }
 
         Event::dispatch('lead.qualification.started', $lead);
@@ -125,10 +111,6 @@ class LeadQualificationService
 
     /**
      * Requalify a lead (Move to In Review).
-     *
-     * @param  Lead  $lead
-     * @param  int|null  $userId
-     * @return Lead
      */
     public function requalify(Lead $lead, ?int $userId = null): Lead
     {

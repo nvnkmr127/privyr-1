@@ -9,7 +9,7 @@ return [
         'budget',
         'decision_maker',
         'requirement',
-        'timeline'
+        'timeline',
     ],
 
     /**
@@ -24,5 +24,5 @@ return [
         'invalid_lead' => 'Invalid Lead',
         'not_interested' => 'Not interested',
         'other' => 'Other',
-    ]
+    ],
 ];

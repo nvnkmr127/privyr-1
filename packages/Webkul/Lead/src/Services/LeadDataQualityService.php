@@ -25,14 +25,14 @@ class LeadDataQualityService
     public function normalize(array $data): array
     {
         // Name
-        if (!empty($data['person_name'])) {
+        if (! empty($data['person_name'])) {
             $data['person_name'] = preg_replace('/\s+/', ' ', trim($data['person_name']));
         }
-        
+
         // Emails
         if (isset($data['emails']) && is_array($data['emails'])) {
             foreach ($data['emails'] as &$emailItem) {
-                if (!empty($emailItem['value'])) {
+                if (! empty($emailItem['value'])) {
                     $emailItem['value'] = strtolower(trim($emailItem['value']));
                 }
             }
@@ -44,11 +44,11 @@ class LeadDataQualityService
         // Phones
         if (isset($data['contact_numbers']) && is_array($data['contact_numbers'])) {
             foreach ($data['contact_numbers'] as &$phoneItem) {
-                if (!empty($phoneItem['value'])) {
+                if (! empty($phoneItem['value'])) {
                     $phone = $phoneItem['value'];
                     $isPlus = str_starts_with(trim($phone), '+');
                     $normalized = preg_replace('/[^0-9]/', '', $phone);
-                    $phoneItem['value'] = $isPlus && !empty($normalized) ? '+' . $normalized : $normalized;
+                    $phoneItem['value'] = $isPlus && ! empty($normalized) ? '+'.$normalized : $normalized;
                 }
             }
             if (count($data['contact_numbers']) > 0) {
@@ -83,15 +83,15 @@ class LeadDataQualityService
             if ($attribute->type === 'boolean') {
                 continue;
             }
-            
+
             $rule = $attribute->is_required ? ['required'] : ['nullable'];
-            
+
             if ($attribute->type === 'email') {
                 $rules[$attribute->code] = $rule;
-                $rules[$attribute->code . '.*.value'] = array_merge($rule, ['email']);
+                $rules[$attribute->code.'.*.value'] = array_merge($rule, ['email']);
             } elseif ($attribute->type === 'phone') {
                 $rules[$attribute->code] = $rule;
-                $rules[$attribute->code . '.*.value'] = $rule;
+                $rules[$attribute->code.'.*.value'] = $rule;
             } else {
                 if ($attribute->validation) {
                     $rule[] = $attribute->validation;
@@ -129,35 +129,35 @@ class LeadDataQualityService
     public function calculateQualityState($lead): void
     {
         $issues = [];
-        
+
         // Example dynamic checks based on required fields and basic presence
         if (empty($lead->person_name)) {
             $issues[] = 'Missing person name';
         }
 
         $hasValidEmail = false;
-        if (!empty($lead->emails)) {
+        if (! empty($lead->emails)) {
             foreach ($lead->emails as $email) {
-                if (!empty($email['value']) && filter_var($email['value'], FILTER_VALIDATE_EMAIL)) {
+                if (! empty($email['value']) && filter_var($email['value'], FILTER_VALIDATE_EMAIL)) {
                     $hasValidEmail = true;
                     break;
                 }
             }
         }
-        if (!$hasValidEmail) {
+        if (! $hasValidEmail) {
             $issues[] = 'Missing or invalid email';
         }
 
         $hasPhone = false;
-        if (!empty($lead->contact_numbers)) {
+        if (! empty($lead->contact_numbers)) {
             foreach ($lead->contact_numbers as $phone) {
-                if (!empty($phone['value'])) {
+                if (! empty($phone['value'])) {
                     $hasPhone = true;
                     break;
                 }
             }
         }
-        if (!$hasPhone) {
+        if (! $hasPhone) {
             $issues[] = 'Missing phone number';
         }
 
@@ -174,7 +174,7 @@ class LeadDataQualityService
         foreach ($requiredAttributes as $attribute) {
             $code = $attribute->code;
             if (empty($lead->{$code})) {
-                if (!in_array("Missing required field: {$attribute->name}", $issues)) {
+                if (! in_array("Missing required field: {$attribute->name}", $issues)) {
                     $issues[] = "Missing required field: {$attribute->name}";
                 }
             }
@@ -194,7 +194,7 @@ class LeadDataQualityService
                 'data_quality_state' => $newState,
                 'data_quality_issues' => json_encode($issues),
             ]);
-            
+
             $lead->data_quality_state = $newState;
             $lead->data_quality_issues = $issues;
 
@@ -202,7 +202,7 @@ class LeadDataQualityService
                 'lead' => $lead,
                 'old_state' => $oldState,
                 'new_state' => $newState,
-                'issues' => $issues
+                'issues' => $issues,
             ]);
         }
     }

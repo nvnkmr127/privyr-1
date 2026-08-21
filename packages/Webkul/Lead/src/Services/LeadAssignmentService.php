@@ -173,18 +173,18 @@ class LeadAssignmentService
                 }
             } elseif ($rule->type === 'least_assigned') {
                 $userIds = $rule->users->pluck('id')->toArray();
-                if (!empty($userIds)) {
+                if (! empty($userIds)) {
                     $leadCounts = DB::table('leads')
                         ->select('user_id', DB::raw('COUNT(id) as lead_count'))
                         ->whereIn('user_id', $userIds)
                         ->where(function ($q) {
                             $q->whereNull('status')
-                              ->orWhereNotIn('status', ['converted', 'lost', 'junk']);
+                                ->orWhereNotIn('status', ['converted', 'lost', 'junk']);
                         })
                         ->groupBy('user_id')
                         ->pluck('lead_count', 'user_id')
                         ->toArray();
-                        
+
                     $minCount = null;
                     foreach ($userIds as $userId) {
                         $count = $leadCounts[$userId] ?? 0;
@@ -197,18 +197,18 @@ class LeadAssignmentService
             } elseif ($rule->type === 'capacity_based') {
                 $users = $rule->users()->orderByPivot('last_assigned_at', 'asc')->lockForUpdate()->get();
                 $userIds = $users->pluck('id')->toArray();
-                if (!empty($userIds)) {
+                if (! empty($userIds)) {
                     $leadCounts = DB::table('leads')
                         ->select('user_id', DB::raw('COUNT(id) as lead_count'))
                         ->whereIn('user_id', $userIds)
                         ->where(function ($q) {
                             $q->whereNull('status')
-                              ->orWhereNotIn('status', ['converted', 'lost', 'junk']);
+                                ->orWhereNotIn('status', ['converted', 'lost', 'junk']);
                         })
                         ->groupBy('user_id')
                         ->pluck('lead_count', 'user_id')
                         ->toArray();
-                        
+
                     foreach ($users as $user) {
                         $capacity = $user->pivot->capacity;
                         if ($capacity === null) {
@@ -245,7 +245,7 @@ class LeadAssignmentService
         } elseif ($rule->fallback_type === 'unassigned') {
             return $this->unassign($lead, auth()->check() ? auth()->id() : null);
         }
-        
+
         return false;
     }
 
@@ -273,11 +273,11 @@ class LeadAssignmentService
             'reason' => $reason,
         ]);
 
-            if ($previousOwner || $previousGroup) {
-                \Illuminate\Support\Facades\Event::dispatch('lead.reassigned', $lead);
-            } else {
-                \Illuminate\Support\Facades\Event::dispatch('lead.assigned', $lead);
-            }
+        if ($previousOwner || $previousGroup) {
+            Event::dispatch('lead.reassigned', $lead);
+        } else {
+            Event::dispatch('lead.assigned', $lead);
+        }
 
         return true;
     }

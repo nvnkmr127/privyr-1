@@ -146,7 +146,7 @@ class LeadDataGrid extends DataGrid
                 ));
             }
         }
-        
+
         // Add SLA subqueries
         $queryBuilder->addSelect(DB::raw(
             '(SELECT status FROM '.$tablePrefix.'lead_slas WHERE lead_id = '.$tablePrefix.'leads.id AND sla_type = "Assignment" ORDER BY created_at DESC LIMIT 1) as assignment_sla_status'
@@ -571,7 +571,7 @@ class LeadDataGrid extends DataGrid
                 } elseif ($row->data_quality_state === 'needs_review') {
                     return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">Needs Review</span>';
                 }
-                
+
                 return '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800">Incomplete</span>';
             },
         ]);
@@ -723,8 +723,11 @@ class LeadDataGrid extends DataGrid
             'sortable' => true,
             'filterable' => true,
             'closure' => function ($row) {
-                if (! $row->next_action) return '--';
-                return '<span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800">' . ucfirst($row->next_action) . '</span>';
+                if (! $row->next_action) {
+                    return '--';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800">'.ucfirst($row->next_action).'</span>';
             },
         ]);
 
@@ -737,10 +740,13 @@ class LeadDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'date_range',
             'closure' => function ($row) {
-                if (!$row->next_follow_up_at) return '--';
-                $date = \Carbon\Carbon::parse($row->next_follow_up_at);
+                if (! $row->next_follow_up_at) {
+                    return '--';
+                }
+                $date = Carbon::parse($row->next_follow_up_at);
                 $class = $date->isPast() ? 'text-rose-600 font-bold' : 'text-slate-600';
-                return '<span class="' . $class . '">' . $date->format('M d, Y h:i A') . '</span>';
+
+                return '<span class="'.$class.'">'.$date->format('M d, Y h:i A').'</span>';
             },
         ]);
 
@@ -753,7 +759,7 @@ class LeadDataGrid extends DataGrid
             'filterable' => true,
             'filterable_type' => 'searchable_dropdown',
             'filterable_options' => [
-                'repository' => \Webkul\User\Repositories\UserRepository::class,
+                'repository' => UserRepository::class,
                 'column' => [
                     'label' => 'name',
                     'value' => 'id',
@@ -773,8 +779,11 @@ class LeadDataGrid extends DataGrid
             'sortable' => true,
             'filterable' => true,
             'closure' => function ($row) {
-                if (! $row->next_action_priority) return '--';
-                return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-800">' . ucfirst($row->next_action_priority) . '</span>';
+                if (! $row->next_action_priority) {
+                    return '--';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-800">'.ucfirst($row->next_action_priority).'</span>';
             },
             'visibility' => false,
         ]);
@@ -796,9 +805,12 @@ class LeadDataGrid extends DataGrid
             'visibility' => false,
             'closure' => function ($row) use ($slaStatuses) {
                 $status = $row->assignment_sla_status ?? null;
-                if (!$status) return '--';
+                if (! $status) {
+                    return '--';
+                }
                 $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
             },
         ]);
 
@@ -812,9 +824,12 @@ class LeadDataGrid extends DataGrid
             'visibility' => false,
             'closure' => function ($row) use ($slaStatuses) {
                 $status = $row->first_action_sla_status ?? null;
-                if (!$status) return '--';
+                if (! $status) {
+                    return '--';
+                }
                 $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
             },
         ]);
 
@@ -828,9 +843,12 @@ class LeadDataGrid extends DataGrid
             'visibility' => false,
             'closure' => function ($row) use ($slaStatuses) {
                 $status = $row->follow_up_sla_status ?? null;
-                if (!$status) return '--';
+                if (! $status) {
+                    return '--';
+                }
                 $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
             },
         ]);
 
@@ -844,9 +862,12 @@ class LeadDataGrid extends DataGrid
             'visibility' => false,
             'closure' => function ($row) use ($slaStatuses) {
                 $status = $row->stage_sla_status ?? null;
-                if (!$status) return '--';
+                if (! $status) {
+                    return '--';
+                }
                 $class = $slaStatuses[$status] ?? 'bg-slate-100 text-slate-800';
-                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ' . $class . '">' . $status . '</span>';
+
+                return '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold '.$class.'">'.$status.'</span>';
             },
         ]);
 

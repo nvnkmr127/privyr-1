@@ -2,8 +2,9 @@
 
 namespace Webkul\Lead\Console\Commands;
 
-use Illuminate\Console\Command;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
 
 class ProcessFollowUps extends Command
@@ -39,7 +40,7 @@ class ProcessFollowUps extends Command
         // For simplicity and since we don't have a flag, let's just trigger it once per activity
         // using a JSON flag in `additional`.
 
-        $activities = \Webkul\Activity\Models\Activity::where('status', 'pending')
+        $activities = Activity::where('status', 'pending')
             ->where('schedule_from', '<', Carbon::now())
             ->whereNull('additional->is_overdue_triggered')
             ->with('lead')
@@ -50,12 +51,12 @@ class ProcessFollowUps extends Command
             if ($activity->lead) {
                 // Fire automation/notification events
                 event('lead.follow_up.overdue', $activity->lead);
-                
+
                 // Mark as triggered so we don't fire again
                 $additional = $activity->additional ?? [];
                 $additional['is_overdue_triggered'] = true;
                 $activity->update(['additional' => $additional]);
-                
+
                 $count++;
             }
         }

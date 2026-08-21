@@ -32,9 +32,9 @@ class SlaEvaluatorService
 
         foreach ($dueSoonSlas as $leadSla) {
             $this->leadSlaRepository->update([
-                'status' => 'Due Soon'
+                'status' => 'Due Soon',
             ], $leadSla->id);
-            
+
             Event::dispatch('lead.sla.due_soon', $leadSla);
         }
 
@@ -44,9 +44,9 @@ class SlaEvaluatorService
         foreach ($breachedSlas as $leadSla) {
             $this->leadSlaRepository->update([
                 'status' => 'Breached',
-                'breached_at' => $now
+                'breached_at' => $now,
             ], $leadSla->id);
-            
+
             Event::dispatch('lead.sla.breached', $leadSla);
         }
     }
