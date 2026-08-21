@@ -27,7 +27,7 @@ class FacebookOAuthController extends Controller
         if (! $clientId || ! config('services.facebook.client_secret')) {
             session()->flash('error', 'Set FACEBOOK_CLIENT_ID and FACEBOOK_CLIENT_SECRET before connecting a Facebook Page.');
 
-            return redirect()->route('admin.settings.lead_connectors.index');
+            return redirect()->route('admin.lead_capture.integrations');
         }
 
         $state = Str::random(40);
@@ -50,7 +50,7 @@ class FacebookOAuthController extends Controller
      */
     public function callback(Request $request)
     {
-        $redirect = redirect()->route('admin.settings.lead_connectors.index');
+        $redirect = redirect()->route('admin.lead_capture.integrations');
 
         // CSRF protection for the OAuth round-trip.
         if (! $request->filled('state') || $request->get('state') !== session('fb_oauth_state')) {

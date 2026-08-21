@@ -93,6 +93,11 @@ class LeadCaptureService
                 'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
                 'phones' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
                 'is_unread' => true,
+                // Honor the connector's configured routing defaults. normalizeData()
+                // only falls back to source/global defaults when these are empty.
+                'user_id' => $connector->default_user_id ?: null,
+                'lead_pipeline_id' => $connector->default_lead_pipeline_id ?: null,
+                'lead_pipeline_stage_id' => $connector->default_lead_pipeline_stage_id ?: null,
             ], $customLeadAttributes);
 
             $metadata = [
@@ -242,7 +247,10 @@ class LeadCaptureService
      */
     protected function maybeFetchFacebookLead(LeadSourceConnector $connector, array $payload): array
     {
-        $leadgenId = data_get($payload, 'entry.0.changes.0.value.leadgen_id') ?? ($payload['leadgen_id'] ?? null);
+        // Prefer an explicit per-lead leadgen_id (set by the batch loop in the
+        // webhook receiver) over the first entry, so batched deliveries fetch
+        // each lead rather than repeatedly fetching entry.0.
+        $leadgenId = $payload['leadgen_id'] ?? data_get($payload, 'entry.0.changes.0.value.leadgen_id');
 
         if (! $leadgenId || ! empty($payload['field_data'])) {
             return $payload;
@@ -256,7 +264,13 @@ class LeadCaptureService
 
         $response = Http::get("https://graph.facebook.com/v18.0/{$leadgenId}", ['access_token' => $token]);
 
-        return $response->successful() ? array_merge($payload, $response->json()) : $payload;
+        // Fail loudly (logged + 422 so Meta retries) instead of silently creating
+        // an empty lead when the Page token is expired/invalid.
+        if (! $response->successful()) {
+            throw new \RuntimeException("Facebook Graph lead fetch failed for leadgen_id {$leadgenId} (HTTP {$response->status()}).");
+        }
+
+        return array_merge($payload, $response->json());
     }
 
     /**

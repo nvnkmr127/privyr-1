@@ -28,11 +28,11 @@ class WebhookIngestionController extends Controller
         // Assuming standard payload matching API or mapping logic here.
 
         $payload = new LeadIngestionPayload(
-            connectorId: 'webhook',
+            connectorId: null, // No connector row for the generic webhook path; origin identifies it.
             origin: $request->input('origin') ?? 'webhook',
             sourceId: null,
             sourceName: $request->input('source'),
-            externalId: $request->input('external_id') ?? $request->input('external_source').'_'.$request->input('external_id'),
+            externalId: $request->input('external_id') ?? $request->input('external_source'),
             leadData: [
                 'emails' => $request->input('email') ? [['value' => $request->input('email'), 'label' => 'work']] : [],
                 'phones' => $request->input('phone') ? [['value' => $request->input('phone'), 'label' => 'work']] : [],

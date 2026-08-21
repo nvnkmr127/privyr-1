@@ -54,9 +54,12 @@
                 <input type="hidden" name="qualification_status" value="{{ $lead->qualification_status === 'qualified' ? 'unqualified' : 'qualified' }}" />
                 <button
                     type="submit"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold transition {{ $lead->qualification_status === 'qualified' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-slate-700 hover:bg-slate-50' }}"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold transition {{ $lead->qualification_status === 'qualified' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-slate-700 hover:bg-slate-50' }}"
                 >
-                    <span>{{ $lead->qualification_status === 'qualified' ? 'Qualified ✓' : 'Qualify Lead' }}</span>
+                    @if ($lead->qualification_status === 'qualified')
+                        <span class="icon-tick text-base"></span>
+                    @endif
+                    <span>{{ $lead->qualification_status === 'qualified' ? 'Qualified' : 'Qualify Lead' }}</span>
                 </button>
             </x-admin::form>
 
@@ -69,7 +72,7 @@
                 >
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 transition dark:border-red-800 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-900/50"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition dark:border-red-800 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-900/50"
                         title="Stop active nurture sequence"
                     >
                         <span>Stop Nurture</span>
@@ -80,7 +83,7 @@
             <!-- Duplicate Lead -->
             <a
                 href="{{ route('admin.leads.duplicate', $lead->id) }}"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                 title="Duplicate this Lead"
             >
                 <span>Duplicate</span>
@@ -92,7 +95,7 @@
                 <button
                     type="button"
                     onclick="document.getElementById('assignLeadModal').classList.remove('hidden')"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800"
                 >
                     <span>Assign</span>
                 </button>

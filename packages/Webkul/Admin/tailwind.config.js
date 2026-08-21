@@ -1,3 +1,5 @@
+const colors = require('tailwindcss/colors');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: ["./src/Resources/**/*.blade.php", "./src/Resources/**/*.js"],
@@ -28,9 +30,17 @@ module.exports = {
         extend: {
             colors: {
                 brandColor: "var(--brand-color)",
+                primary: "var(--brand-color)",
+                secondary: colors.gray[600],
+                success: colors.green[600],
+                warning: colors.amber[500],
+                danger: colors.red[600],
+                info: colors.blue[600],
+                muted: colors.gray[400],
             },
 
             fontFamily: {
+                sans: ['Inter', 'Roboto', 'Lato', 'Open Sans', 'system-ui', '-apple-system', 'sans-serif'],
                 inter: ['Inter'],
                 icon: ['icomoon']
             }

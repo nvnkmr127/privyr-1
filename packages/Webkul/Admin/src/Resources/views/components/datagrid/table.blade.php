@@ -35,7 +35,7 @@
 
                     <template v-else>
                         <div
-                            class="row grid min-h-[47px] items-center gap-2.5 border-b bg-gray-50 px-4 py-2.5 text-black dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 max-lg:hidden"
+                            class="row grid min-h-[47px] items-center gap-2.5 border-b bg-gray-50 px-6 py-3.5 text-black dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 max-lg:hidden"
                             :style="`grid-template-columns: ${gridTemplateColumns}`"
                         >
                             <!-- Mass Actions -->
@@ -174,7 +174,7 @@
                         <template v-if="available.records.length">
                             <!-- Desktop View -->
                             <div
-                                class="row group grid items-center gap-2.5 border-b px-4 py-2.5 text-black transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden cursor-pointer"
+                                class="row group grid items-center gap-2.5 border-b px-6 py-3.5 text-black transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden cursor-pointer"
                                 v-for="record in available.records"
                                 :style="`grid-template-columns: ${gridTemplateColumns}`"
                                 @click="rowClick($event, record)"
@@ -199,7 +199,7 @@
                                 <!-- Columns -->
                                 <template v-for="column in available.columns">
                                     <div
-                                        class="truncate"
+                                        class="truncate min-w-0"
                                         :title="String(record[column.index] || '').replace(/(<([^>]+)>)/gi, '')"
                                         v-html="record[column.index]"
                                         v-if="column.visibility"
@@ -213,7 +213,7 @@
                                     v-if="available.actions.length"
                                 >
                                     <span
-                                        class="cursor-pointer rounded-md p-1.5 text-2xl transition-all hover:bg-gray-200 dark:hover:bg-gray-800 max-sm:place-self-center"
+                                        class="cursor-pointer rounded-md p-2 text-2xl transition-all hover:bg-gray-200 text-gray-400 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 max-sm:place-self-center"
                                         :class="action.icon"
                                         v-text="! action.icon ? action.title : ''"
                                         v-for="action in record.actions"
@@ -292,9 +292,15 @@
                         </template>
 
                         <template v-else>
-                            <div class="row grid border-b px-4 py-4 text-center text-gray-600 dark:border-gray-800 dark:text-gray-300">
-                                <p>
+                            <div class="row border-b px-4 py-12 flex flex-col items-center justify-center text-center bg-white dark:bg-gray-900 dark:border-gray-800">
+                                <div class="bg-gray-100 dark:bg-gray-800 rounded-full p-4 mb-4">
+                                    <span class="icon-info text-4xl text-gray-400 dark:text-gray-500"></span>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
                                     @lang('admin::app.components.datagrid.table.no-records-available')
+                                </h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+                                    Try adjusting your search or filters to find what you're looking for, or create a new record.
                                 </p>
                             </div>
                         </template>

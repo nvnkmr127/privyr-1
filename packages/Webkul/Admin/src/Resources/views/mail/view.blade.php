@@ -1229,28 +1229,8 @@
                     },
 
                     create(params, { setErrors }) {
-                        this.isStoring = true;
-
-                        const formData = new FormData(this.$refs.contactForm);
-
-                        this.$axios.post('{{ route('admin.contacts.persons.store') }}', formData)
-                            .then(response => {
-                                this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
-
-                                this.$refs.contactModal.close();
-                            })
-                            .catch(error => {
-                                if (error.response.status == 422) {
-                                    setErrors(error.response.data.errors);
-                                } else {
-                                    this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
-                                }
-                            })
-                            .finally(() => {
-                                this.isStoring = false;
-
-                                this.$parent.$refs.emailLinkDrawer.open();
-                            });
+                        // ponytail: contacts/persons module retired — no store route exists and no trigger wires openContactModal, so this is dead code. Guarded instead of POSTing to '#' (which would submit the mail-view page). Remove the whole v-create-contact block when cleaning up the retired contacts UI.
+                        this.$emitter.emit('add-flash', { type: 'error', message: 'Contact creation is no longer available.' });
                     },
                 },
             });

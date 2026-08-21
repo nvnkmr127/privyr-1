@@ -99,8 +99,8 @@
                             <!-- Name and Color -->
                             <p class="flex items-center gap-2">
                                 <span 
-                                    class="block h-6 w-6 cursor-pointer rounded-full shadow-md transition duration-200 ease-in-out peer-checked:border-4 peer-checked:border-solid peer-checked:border-white"
-                                    :style="`background-color: ${record.color}`"
+                                    class="block h-6 w-6 cursor-pointer rounded-full shadow-md transition duration-200 ease-in-out peer-checked:border-4 peer-checked:border-solid peer-checked:border-white bg-[var(--record-color)]"
+                                    :style="{'--record-color': record.color}"
                                 ></span>
 
                                 <span>@{{ record.name }}</span>
@@ -265,8 +265,8 @@
     
                                         <label 
                                             :for="index" 
-                                            class="block h-6 w-6 cursor-pointer rounded-full shadow-md transition duration-200 ease-in-out peer-checked:border-2 peer-checked:border-solid peer-checked:border-brandColor"
-                                            :style="`background-color: ${color.background}`"
+                                            class="block h-6 w-6 cursor-pointer rounded-full shadow-md transition duration-200 ease-in-out peer-checked:border-2 peer-checked:border-solid peer-checked:border-brandColor bg-[var(--color-bg)]"
+                                            :style="{'--color-bg': color.background}"
                                         >
                                         </label>
                                     </span>

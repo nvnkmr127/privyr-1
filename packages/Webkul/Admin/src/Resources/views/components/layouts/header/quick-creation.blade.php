@@ -1,7 +1,3 @@
-@php
-    $canCreateLead = bouncer()->hasPermission('leads.create.quick-create');
-    $canCreateMail = bouncer()->hasPermission('mail.compose.quick-create');
-
     @pushOnce('scripts')
         <script
             type="text/x-template"
@@ -53,7 +49,7 @@
 
                             <!-- Tab Panels -->
                             <div class="max-h-[60vh] overflow-y-auto pt-4">
-                                @if ($canCreateLead)
+                                @if (bouncer()->hasPermission('leads.create.quick-create'))
                                     <div v-show="selectedType == 'lead'">
                                         <x-admin::form
                                             v-slot="{ meta, errors, handleSubmit }"
@@ -81,32 +77,8 @@
 
 
 
-                                @if ($canCreateProduct)
-                                    <div v-show="selectedType == 'product'">
-                                        <x-admin::form
-                                            v-slot="{ meta, errors, handleSubmit }"
-                                            as="div"
-                                            ref="productFormWrapper"
-                                        >
-                                            <form
-                                                @submit="handleSubmit($event, createProduct)"
-                                                ref="productForm"
-                                            >
-                                                <input type="hidden" name="quick_add" value="product" />
-                                                <input type="hidden" name="entity_type" value="products" />
 
-                                                <x-admin::attributes
-                                                    :custom-attributes="app('Webkul\Attribute\Repositories\AttributeRepository')->findWhere([
-                                                        'entity_type' => 'products',
-                                                        'quick_add' => 1,
-                                                    ])"
-                                                />
-                                            </form>
-                                        </x-admin::form>
-                                    </div>
-                                @endif
-
-                                @if ($canCreateMail)
+                                @if (bouncer()->hasPermission('mail.compose.quick-create'))
                                     <div v-show="selectedType == 'mail'">
                                         <x-admin::form
                                             v-slot="{ meta, errors, handleSubmit }"
@@ -266,25 +238,19 @@
                     return {
                         isStoring: false,
 
-                        selectedType: @json($defaultQuickAddTab),
+                        selectedType: '{{ bouncer()->hasPermission('leads.create.quick-create') ? 'lead' : (bouncer()->hasPermission('mail.compose.quick-create') ? 'mail' : '') }}',
 
                         types: [
-                            @if ($canCreateLead)
+                            @if (bouncer()->hasPermission('leads.create.quick-create'))
                                 { name: 'lead',         label: "@lang('admin::app.layouts.lead')" },
                             @endif
-                            @if ($canCreateProduct)
-                                { name: 'product',      label: "@lang('admin::app.layouts.product')" },
-                            @endif
-                            @if ($canCreateMail)
+                            @if (bouncer()->hasPermission('mail.compose.quick-create'))
                                 { name: 'mail',         label: "@lang('admin::app.layouts.email')" },
                             @endif
                         ],
 
                         endpoints: {
                             lead:         "{{ route('admin.leads.store') }}",
-                            person:       "{{ route('admin.contacts.persons.store') }}",
-                            organization: "{{ route('admin.contacts.organizations.store') }}",
-                            product:      "{{ route('admin.products.store') }}",
                             mail:         "{{ route('admin.mail.store') }}",
                         },
                     };

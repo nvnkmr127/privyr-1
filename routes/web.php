@@ -22,6 +22,7 @@ Route::middleware([Locale::class, Bouncer::class])
     ->group(function () {
         Route::prefix('lead-capture/integrations')->group(function () {
             Route::get('', [LeadCaptureIntegrationController::class, 'index'])->name('admin.lead_capture.integrations');
+            Route::get('logs', [LeadCaptureIntegrationController::class, 'logs'])->name('admin.lead_capture.integrations.logs');
             Route::post('', [LeadCaptureIntegrationController::class, 'store'])->name('admin.lead_capture.integrations.store');
             Route::post('{id}/test', [LeadCaptureIntegrationController::class, 'test'])->name('admin.lead_capture.integrations.test');
             Route::post('{id}/disconnect', [LeadCaptureIntegrationController::class, 'disconnect'])->name('admin.lead_capture.integrations.disconnect');

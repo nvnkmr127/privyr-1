@@ -17,16 +17,13 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            @if (count($workspaces))
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Workspace</span>
-                    <select id="lc-workspace-switcher" class="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-1.5 text-xs font-bold text-slate-900 shadow-2xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
-                        @foreach ($workspaces as $w)
-                            <option value="{{ $w->id }}" @selected($w->id == $workspaceId)>{{ $w->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
+            {{-- ponytail: workspace switcher removed — multi-tenancy is not implemented yet
+                 (no workspace column, no switch_workspace route, no $workspaces var).
+                 Re-add here when tenancy actually lands. --}}
+            <a href="{{ route('admin.lead_capture.integrations.logs') }}" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 shadow-2xs">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Capture Logs</span>
+            </a>
             <a href="{{ route('admin.settings.index') }}" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 shadow-2xs">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span>Settings</span>
@@ -34,31 +31,12 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            // Tenant switcher: persist the selection server-side, then hard-reload
-            // so all state (connectors, forms, tests) refetches for the new tenant.
-            document.getElementById('lc-workspace-switcher')?.addEventListener('change', function (e) {
-                var xsrf = decodeURIComponent((document.cookie.match(/XSRF-TOKEN=([^;]+)/) || [])[1] || '');
-                fetch("{{ route('admin.lead_capture.integrations.switch_workspace') }}", {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'X-XSRF-TOKEN': xsrf, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ workspace_id: e.target.value }),
-                }).then(function (r) {
-                    if (r.ok) window.location.reload();
-                    else alert('Could not switch workspace.');
-                });
-            });
-        </script>
-    @endpush
-
     <!-- Integrations App -->
     <v-lead-capture-integrations
         :integrations='@json($integrations)'
         :pipelines='@json($pipelines)'
         :users='@json($users)'
-        :workspace-id='@json($workspaceId)'
+        :workspace-id='@json(null)'
     ></v-lead-capture-integrations>
     
     @include('admin::lead_capture.wizard')

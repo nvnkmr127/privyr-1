@@ -11,10 +11,13 @@ class LeadCaptureLog extends Model
 
     protected $fillable = [
         'connector_id',
+        'origin',
+        'external_id',
         'raw_payload',
         'status',
         'lead_id',
         'error_message',
+        'processing_time_ms',
     ];
 
     protected $casts = [

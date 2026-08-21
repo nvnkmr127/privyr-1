@@ -44,13 +44,6 @@ class LeadSourceConnector extends Model
         'api_key',
     ];
 
-    /**
-     * Tenant scope: restrict a query to a single workspace. Callers must pass an
-     * explicit workspace id resolved from the authenticated context — never from
-     * raw browser input.
-     */
-    public function scopeForWorkspace($query, $workspaceId) {}
-
     public function pipeline(): BelongsTo
     {
         return $this->belongsTo(PipelineProxy::modelClass(), 'default_lead_pipeline_id');

@@ -32,10 +32,8 @@
                     class="flex flex-col"
                     v-if="report.statistics.length"
                 >
-                    <a
-                        :href="'{{ route('admin.products.view', ':id') }}'.replace(':id', item.id)"
+                    <div
                         class="flex gap-2.5 border-b p-4 transition-all last:border-b-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-950"
-                        target="_blank"
                         v-for="item in report.statistics"
                     >
                         <!-- Product Details -->
@@ -56,7 +54,7 @@
                                 </p>
                             </div>
                         </div>
-                    </a>
+                    </div>
                 </div>
 
                 <!-- Empty Product Design -->

@@ -45,62 +45,6 @@
                 </div>
 
                 <!-- Searched Results -->
-                    <template v-else>
-                        <div class="grid max-h-[400px] overflow-y-auto">
-                            <template v-for="product in searchedResults.products">
-                                <a
-                                    :href="'{{ route('admin.products.view', ':id') }}'.replace(':id', product.id)"
-                                    class="flex cursor-pointer justify-between gap-2.5 border-b border-slate-300 p-4 last:border-b-0 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-950"
-                                >
-                                    <!-- Left Information -->
-                                    <div class="flex gap-2.5">
-                                        <!-- Details -->
-                                        <div class="grid place-content-start gap-1.5">
-                                            <p class="text-base font-semibold text-gray-600 dark:text-gray-300">
-                                                @{{ product.name }}
-                                            </p>
-
-                                            <p class="text-gray-500">
-                                                @{{ "@lang(':sku')".replace(':sku', product.sku) }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Right Information -->
-                                    <div class="grid place-content-center gap-1 text-right">
-                                        <!-- Formatted Price -->
-                                        <p class="font-semibold text-gray-600 dark:text-gray-300">
-                                            @{{ $admin.formatPrice(product.price) }}
-                                        </p>
-                                    </div>
-                                </a>
-                            </template>
-
-                        </div>
-
-                        <div class="flex border-t p-3 dark:border-gray-800">
-                            <template v-if="searchedResults.products.length">
-                                <a
-                                    :href="'{{ route('admin.products.index') }}?search=:query'.replace(':query', searchTerm)"
-                                    class="cursor-pointer text-xs font-semibold text-brandColor transition-all hover:underline"
-                                >
-
-                                    @{{ `@lang('admin::app.components.layouts.header.mega-search.explore-all-matching-products')`.replace(':query', searchTerm).replace(':count', searchedResults.products.length) }}
-                                </a>
-                            </template>
-
-                            <template v-else>
-                                <a
-                                    href="{{ route('admin.products.index') }}"
-                                    class="cursor-pointer text-xs font-semibold text-brandColor transition-all hover:underline"
-                                >
-                                    @lang('admin::app.components.layouts.header.mega-search.explore-all-products')
-                                </a>
-                            </template>
-                        </div>
-                    </template>
-                </template>
-
                 <template v-if="activeTab == 'leads'">
                     <template v-if="isLoading">
                         <x-admin::shimmer.header.mega-search.leads />
@@ -160,97 +104,6 @@
                     </template>
                 </template>
 
-                    <template v-else>
-                        <div class="grid max-h-[400px] overflow-y-auto">
-                            <template v-for="person in searchedResults.persons">
-                                <a
-                                    :href="'{{ route('admin.contacts.persons.view', ':id') }}'.replace(':id', person.id)"
-                                    class="flex cursor-pointer justify-between gap-2.5 border-b border-slate-300 p-4 last:border-b-0 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-950"
-                                >
-                                    <!-- Left Information -->
-                                    <div class="flex gap-2.5">
-                                        <!-- Details -->
-                                        <div class="grid place-content-start gap-1.5">
-                                            <p class="text-base font-semibold text-gray-600 dark:text-gray-300">
-                                                @{{ person.name }}
-                                            </p>
-
-                                            <p class="text-gray-500">
-                                                @{{ person.emails.map((item) => `${item.value}(${item.label})`).join(', ') }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </template>
-                        </div>
-
-                        <div class="flex border-t p-3 dark:border-gray-800">
-                            <template v-if="searchedResults.persons.length">
-                                <a
-                                    :href="'{{ route('admin.contacts.persons.index') }}?search=:query'.replace(':query', searchTerm)"
-                                    class="cursor-pointer text-xs font-semibold text-brandColor transition-all hover:underline"
-                                >
-                                    @{{ `@lang('admin::app.components.layouts.header.mega-search.explore-all-matching-contacts')`.replace(':query', searchTerm).replace(':count', searchedResults.persons.length) }}
-                                </a>
-                            </template>
-
-                            <template v-else>
-                                <a
-                                    href="{{ route('admin.contacts.persons.index') }}"
-                                    class="cursor-pointer text-xs font-semibold text-brandColor transition-all hover:underline"
-                                >
-                                    @lang('admin::app.components.layouts.header.mega-search.explore-all-contacts')
-                                </a>
-                            </template>
-                        </div>
-                    </template>
-                </template>
-
-                    <template v-else>
-                        <div class="grid max-h-[400px] overflow-y-auto">
-                            <template v-for="quote in searchedResults.quotes">
-                                <a
-                                    :href="'{{ route('admin.quotes.edit', ':id') }}'.replace(':id', quote.id)"
-                                    class="flex cursor-pointer justify-between gap-2.5 border-b border-slate-300 p-4 last:border-b-0 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-950"
-                                >
-                                    <!-- Left Information -->
-                                    <div class="flex gap-2.5">
-                                        <!-- Details -->
-                                        <div class="grid place-content-start gap-1.5">
-                                            <p class="text-base font-semibold text-gray-600 dark:text-gray-300">
-                                                @{{ quote.subject }}
-                                            </p>
-
-                                            <p class="text-gray-500">
-                                                @{{ quote.description }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </template>
-                        </div>
-
-                        <div class="flex border-t p-3 dark:border-gray-800">
-                            <template v-if="searchedResults.quotes.length">
-                                <a
-                                    :href="'{{ route('admin.quotes.index') }}?search=:query'.replace(':query', searchTerm)"
-                                    class="cursor-pointer text-xs font-semibold text-brandColor transition-all hover:underline"
-                                >
-                                    @{{ `@lang('admin::app.components.layouts.header.mega-search.explore-all-matching-quotes')`.replace(':query', searchTerm).replace(':count', searchedResults.quotes.length) }}
-                                </a>
-                            </template>
-
-                            <template v-else>
-                                <a
-                                    href="{{ route('admin.quotes.index') }}"
-                                    class="cursor-pointer text-xs font-semibold text-brandColor transition-all hover:underline"
-                                >
-                                    @lang('admin::app.components.layouts.header.mega-search.explore-all-quotes')
-                                </a>
-                            </template>
-                        </div>
-                    </template>
-                </template>
 
                 <template v-if="activeTab == 'settings'">
                     <template v-if="isLoading">
@@ -359,42 +212,6 @@
                             ],
                         },
 
-                                {
-                                    search: 'description',
-                                    searchFields: 'description:like',
-                                },
-                                {
-                                    search: 'user.name',
-                                    searchFields: 'user.name:like',
-                                },
-                            ],
-                        },
-
-                                {
-                                    search: 'sku',
-                                    searchFields: 'sku:like',
-                                },
-                                {
-                                    search: 'description',
-                                    searchFields: 'description:like',
-                                },
-                            ],
-                        },
-
-                                {
-                                    search: 'job_title',
-                                    searchFields: 'job_title:like',
-                                },
-                                {
-                                    search: 'user.name',
-                                    searchFields: 'user.name:like',
-                                },
-                                {
-                                    search: 'organization.name',
-                                    searchFields: 'organization.name:like',
-                                },
-                            ],
-                        },
 
                         settings: {
                             key: 'settings',

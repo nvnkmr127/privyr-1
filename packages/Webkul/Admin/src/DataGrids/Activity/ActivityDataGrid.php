@@ -22,7 +22,6 @@ class ActivityDataGrid extends DataGrid
             ->distinct()
             ->select(
                 'activities.*',
-                'leads.id as lead_id',
                 'leads.title as lead_title',
                 'leads.lead_pipeline_id',
                 'users.id as created_by_id',

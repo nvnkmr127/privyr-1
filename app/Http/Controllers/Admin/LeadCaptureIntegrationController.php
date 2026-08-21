@@ -7,8 +7,10 @@ use App\Support\LeadSourceCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Models\LeadSourceConnector;
 use Webkul\Lead\Repositories\PipelineRepository;
+use Webkul\Lead\Repositories\SourceRepository;
 use Webkul\Lead\Services\LeadCaptureService;
 use Webkul\User\Repositories\UserRepository;
 
@@ -17,6 +19,7 @@ class LeadCaptureIntegrationController extends Controller
     public function __construct(
         protected PipelineRepository $pipelineRepository,
         protected UserRepository $userRepository,
+        protected SourceRepository $sourceRepository,
         protected LeadCaptureService $leadCaptureService
     ) {}
 
@@ -67,6 +70,7 @@ class LeadCaptureIntegrationController extends Controller
             'duplicate_action' => $validated['duplicate_action'] ?? 'update',
             'field_mappings' => array_filter($request->input('mapping', [])),
             'embed_config' => $request->input('embed_config'),
+            'lead_source_id' => $this->resolveSource($validated['source_type'])?->id,
             'default_lead_pipeline_id' => $validated['pipeline'] ?? null,
             'default_user_id' => $validated['assignee'] ?? null,
             'is_active' => true,
@@ -76,6 +80,39 @@ class LeadCaptureIntegrationController extends Controller
             'message' => 'Integration created.',
             'connector' => $this->connectorPayload($connector),
         ]);
+    }
+
+    /**
+     * Ingestion audit log: every capture attempt across all connectors with its
+     * status, origin, resolved lead, timing, and any error. Optionally filtered
+     * to one connector via ?connector=.
+     */
+    public function logs(Request $request)
+    {
+        $logs = LeadCaptureLog::with(['connector:id,name,source_type', 'lead:id,title'])
+            ->when($request->filled('connector'), fn ($q) => $q->where('connector_id', $request->integer('connector')))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')))
+            ->latest()
+            ->paginate(50)
+            ->withQueryString();
+
+        return view('admin::lead_capture.logs', [
+            'logs' => $logs,
+            'connectors' => LeadSourceConnector::orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    /**
+     * Find (or create) the lead Source row for a source_type so captured leads
+     * are attributed to a stable, human-readable source instead of an arbitrary
+     * fallback. Shared across all connectors of the same type.
+     */
+    protected function resolveSource(string $sourceType)
+    {
+        $name = LeadSourceCatalog::find($sourceType)['name'] ?? Str::title(str_replace('_', ' ', $sourceType));
+
+        return $this->sourceRepository->findOneByField('name', $name)
+            ?? $this->sourceRepository->create(['name' => $name]);
     }
 
     /**

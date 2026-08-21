@@ -44,12 +44,31 @@ class PublicLeadCaptureController extends Controller
         }
 
         try {
-            $lead = $this->leadCaptureService->processIncomingPayload(
-                $connector,
-                $request->all(),
-                $request->getContent(),
-                $request->header('X-Hub-Signature-256'),
-            );
+            // Meta can batch several leadgen notifications in one delivery
+            // (multiple entry[].changes[]). Process each lead, not just the first.
+            $leadgenIds = $connector->source_type === 'meta_ads'
+                ? collect(data_get($request->all(), 'entry.*.changes.*.value.leadgen_id'))->flatten()->filter()->values()
+                : collect();
+
+            if ($leadgenIds->count() > 1) {
+                $lead = null;
+
+                foreach ($leadgenIds as $leadgenId) {
+                    $lead = $this->leadCaptureService->processIncomingPayload(
+                        $connector,
+                        array_merge($request->all(), ['leadgen_id' => $leadgenId]),
+                        $request->getContent(),
+                        $request->header('X-Hub-Signature-256'),
+                    );
+                }
+            } else {
+                $lead = $this->leadCaptureService->processIncomingPayload(
+                    $connector,
+                    $request->all(),
+                    $request->getContent(),
+                    $request->header('X-Hub-Signature-256'),
+                );
+            }
         } catch (\Throwable $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
         }

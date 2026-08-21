@@ -105,7 +105,9 @@ class LeadIngestionService implements LeadIngestionServiceContract
                     return $lead;
                 }
 
-                // Default 'reject' or idempotent match
+                // Idempotency: the exact same external lead pushed again (same
+                // external_id + origin) is never a new lead — return the existing
+                // one regardless of the duplicate action. Guards webhook retries.
                 if ($payload->externalId && $payload->origin && $duplicate->external_id === $payload->externalId && $duplicate->origin === $payload->origin) {
                     $this->updateLog($logId, 'Duplicate', $duplicate->id, $startTime);
                     Event::dispatch('lead.ingestion.duplicate', $duplicate);
@@ -114,14 +116,19 @@ class LeadIngestionService implements LeadIngestionServiceContract
                     return $duplicate;
                 }
 
-                // Configurable duplicate action can be added here
-                // For now, we reject duplicates to prevent overwrite
-                $this->updateLog($logId, 'Rejected', null, $startTime, 'Duplicate lead detected.');
-                Event::dispatch('lead.ingestion.rejected', $payload);
-                DB::commit();
+                // 'attach_contact' intentionally creates a new lead despite the
+                // duplicate contact (it is linked to the existing lead downstream).
+                // Every other action rejects to prevent silent overwrite.
+                if ($payload->duplicateAction !== 'attach_contact') {
+                    $this->updateLog($logId, 'Rejected', null, $startTime, 'Duplicate lead detected.');
+                    Event::dispatch('lead.ingestion.rejected', $payload);
+                    DB::commit();
 
-                // Throw exception outside the transaction so it doesn't trigger rollback
-                throw LeadIngestionException::duplicate();
+                    // Throw exception outside the transaction so it doesn't trigger rollback
+                    throw LeadIngestionException::duplicate();
+                }
+
+                // attach_contact: fall through to create the new lead below.
             }
 
             // 4. Create Lead

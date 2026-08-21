@@ -37,11 +37,11 @@ class LeadIngestionController extends Controller
         }
 
         $payload = new LeadIngestionPayload(
-            connectorId: 'api', // Should ideally be unique per credential
+            connectorId: null, // No connector row for the generic API path; origin identifies it.
             origin: $request->input('origin'),
             sourceId: null,
             sourceName: $request->input('source'),
-            externalId: $request->input('external_id') ?? $request->input('external_source').'_'.$request->input('external_id'),
+            externalId: $request->input('external_id') ?? $request->input('external_source'),
             leadData: [
                 'emails' => $request->input('email') ? [['value' => $request->input('email'), 'label' => 'work']] : [],
                 'phones' => $request->input('phone') ? [['value' => $request->input('phone'), 'label' => 'work']] : [],

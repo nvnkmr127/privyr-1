@@ -14,20 +14,6 @@
     
     {{ vite()->set(['src/Resources/assets/css/app.css', 'src/Resources/assets/js/app.js']) }}
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { dark: '#0F172A' },
-                    fontFamily: {
-                        sans: ['Inter', 'Roboto', 'Lato', 'Open Sans', 'system-ui', '-apple-system', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Lato:wght@300;400;700;900&family=Open+Sans:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -75,9 +61,9 @@
                     
                     @foreach (menu()->getItems('admin') as $menuItem)
                         @if(!in_array($menuItem->getKey(), ['settings', 'configuration']))
-                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition {{ $menuItem->isActive() ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                                <span class="{{ $menuItem->getIcon() }} text-lg {{ $menuItem->isActive() ? 'text-white' : 'text-slate-500' }}"></span>
-                                <span>{{ $menuItem->getName() }}</span>
+                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition overflow-hidden {{ $menuItem->isActive() ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="{{ $menuItem->getIcon() }} text-lg shrink-0 {{ $menuItem->isActive() ? 'text-white' : 'text-slate-500' }}"></span>
+                                <span class="truncate">{{ $menuItem->getName() }}</span>
                             </a>
                         @endif
                     @endforeach
@@ -86,16 +72,16 @@
                     
                     @foreach (menu()->getItems('admin') as $menuItem)
                         @if(in_array($menuItem->getKey(), ['settings', 'configuration']))
-                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition {{ $menuItem->isActive() ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                                <span class="{{ $menuItem->getIcon() }} text-lg {{ $menuItem->isActive() ? 'text-white' : 'text-slate-500' }}"></span>
-                                <span>{{ $menuItem->getName() }}</span>
+                            <a href="{{ $menuItem->getUrl() }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition overflow-hidden {{ $menuItem->isActive() ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                                <span class="{{ $menuItem->getIcon() }} text-lg shrink-0 {{ $menuItem->isActive() ? 'text-white' : 'text-slate-500' }}"></span>
+                                <span class="truncate">{{ $menuItem->getName() }}</span>
                             </a>
                         @endif
                     @endforeach
 
                     <a href="/admin/moldable/builder" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition {{ request()->is('admin/moldable*') ? 'bg-slate-900 text-white shadow-md' : '' }}">
                         <svg class="w-5 h-5 {{ request()->is('admin/moldable*') ? 'text-white' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span>Moldable Studio</span>
+                        <span class="truncate">Moldable Studio</span>
                     </a>
                 </nav>
             </div>
@@ -107,7 +93,7 @@
                         {{ substr(auth()->guard('user')->user()->name ?? 'A', 0, 1) }}
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-slate-900">{{ auth()->guard('user')->user()->name ?? 'Admin' }}</div>
+                        <div class="text-xs font-bold text-slate-900 truncate max-w-[120px]">{{ auth()->guard('user')->user()->name ?? 'Admin' }}</div>
                         <a href="{{ route('admin.session.destroy') }}" class="text-[10px] font-bold text-red-500 hover:underline">Logout</a>
                     </div>
                 </div>
@@ -115,9 +101,9 @@
         </aside>
 
         <!-- Main Content Body Viewport -->
-        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
+        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8FAFC]" style="flex-direction: column;">
             <!-- Top App Sticky Header -->
-            <header class="bg-white border-b border-slate-200/80 px-8 py-3.5 sticky top-0 z-20 flex items-center justify-between">
+            <header class="bg-white border-b border-slate-200/80 px-8 py-3.5 sticky top-0 z-20 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <button type="button" onclick="toggleSidebarCollapse()" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition md:hidden">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -125,6 +111,18 @@
                     <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
                         <span class="text-slate-900 font-bold">{{ $title ?? 'Dashboard' }}</span>
                     </div>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <div class="hidden md:block">
+                        @include('admin::components.layouts.header.desktop.mega-search')
+                    </div>
+                    @include('admin::components.layouts.header.quick-creation')
+                    <v-dark>
+                        <div class="flex">
+                            <span class="{{ request()->cookie('dark_mode') ? 'icon-light' : 'icon-dark' }} p-1.5 rounded-md text-2xl cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-slate-800"></span>
+                        </div>
+                    </v-dark>
                 </div>
             </header>
 

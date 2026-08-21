@@ -44,9 +44,9 @@
             </div>
 
             <!-- Form Content -->
-            <div class="flex gap-2.5 max-xl:flex-wrap-reverse">
+            <div class="flex gap-4 max-xl:flex-wrap-reverse">
                 <!-- Left sub-component -->
-                <div class="box-shadow flex-1 gap-2 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 max-xl:flex-auto">
+                <div class="flex-1 gap-2 rounded-2xl border border-slate-200/80 bg-white shadow-2xs p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900 max-xl:flex-auto">
                     {!! view_render_event('admin.activities.edit.form_controls.before') !!}
 
                     <!-- Schedule Date -->

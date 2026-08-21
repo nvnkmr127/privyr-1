@@ -30,12 +30,10 @@
                 <div class="flex gap-2.5 overflow-x-auto max-h-[calc(100vh-300px)]">
                     <!-- Stage Cards -->
                     <div
-                        class="flex min-w-[280px] max-w-[280px] flex-col gap-2 rounded-2xl border-x border-b border-t-4 bg-slate-50/50 p-2 shadow-sm dark:bg-gray-900"
+                        class="flex w-[320px] min-w-[320px] shrink-0 flex-col gap-2 rounded-2xl border-x border-b border-t-4 bg-slate-50/50 p-2 shadow-sm dark:bg-gray-900 border-t-[var(--stage-color)] border-l-[var(--stage-border)] border-r-[var(--stage-border)] border-b-[var(--stage-border)]"
                         :style="{ 
-                            borderTopColor: stage.color || '#cbd5e1',
-                            borderLeftColor: 'rgba(203, 213, 225, 0.5)',
-                            borderRightColor: 'rgba(203, 213, 225, 0.5)',
-                            borderBottomColor: 'rgba(203, 213, 225, 0.5)'
+                            '--stage-color': stage.color || '#cbd5e1',
+                            '--stage-border': 'rgba(203, 213, 225, 0.5)'
                         }"
                         v-for="(stage, index) in stageLeads"
                     >
@@ -68,8 +66,8 @@
                                 <!-- Progress Bar -->
                                 <div class="h-1 w-32 overflow-hidden rounded-full bg-slate-200 dark:bg-gray-800">
                                     <div
-                                        class="h-1 bg-slate-900"
-                                        :style="{ width: (stage.lead_value / totalStagesAmount) * 100 + '%' }"
+                                        class="h-1 bg-slate-900 w-[var(--progress-width)]"
+                                        :style="{ '--progress-width': (stage.lead_value / totalStagesAmount) * 100 + '%' }"
                                     ></div>
                                 </div>
                             </div>
@@ -81,7 +79,7 @@
 
                         <!-- Draggable Stage Lead Cards -->
                         <draggable
-                            class="flex h-[calc(100vh-317px)] flex-col gap-2 overflow-y-auto p-2"
+                            class="flex h-[calc(100vh-317px)] flex-col gap-3 overflow-y-auto p-2"
                             :class="{ 'justify-center': stage.leads.data.length === 0 }"
                             ghost-class="draggable-ghost"
                             handle=".lead-item"
@@ -102,7 +100,7 @@
                                         src="{{ vite()->asset('images/empty-placeholders/pipedrive.svg') }}"
                                     >
 
-                                    <div class="flex flex-col items-center gap-4">
+                                    <div class="flex flex-col items-center gap-4 p-4 text-center">
                                         <div class="flex flex-col items-center gap-2">
                                             <p class="!text-base font-semibold dark:text-white">
                                                 @lang('admin::app.leads.index.kanban.empty-list')
@@ -130,7 +128,7 @@
                                 {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.before') !!}
 
                                 <a
-                                    class="lead-item flex cursor-pointer flex-col gap-4 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm hover:shadow-md transition dark:border-gray-400 dark:bg-gray-400"
+                                    class="lead-item flex cursor-pointer flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition dark:border-gray-400 dark:bg-gray-400"
                                     :href="'{{ route('admin.leads.view', 'replaceId') }}'.replace('replaceId', element.id)"
                                 >
                                     {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.header.before') !!}
@@ -172,7 +170,7 @@
                                     {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.title.before') !!}
 
                                     <!-- Lead Title -->
-                                    <p class="text-[13px] font-bold text-slate-800 leading-snug">
+                                    <p class="text-[14px] font-bold text-slate-900 leading-snug">
                                         @{{ element.title }}
                                     </p>
 
@@ -180,7 +178,7 @@
 
                                     <div class="flex flex-wrap gap-1 mt-1">
                                         <div
-                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white"
+                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white"
                                             v-if="element.user"
                                         >
                                             <span class="icon-settings-user text-[10px]"></span>
@@ -188,7 +186,7 @@
                                         </div>
 
                                         <div
-                                            class="flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200/60 px-2 py-1 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                            class="flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
                                             v-if="element.group"
                                         >
                                             <i class="fa-solid fa-users"></i>
@@ -196,7 +194,7 @@
                                         </div>
 
                                         <div
-                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-400 dark:bg-gray-800 dark:text-gray-500"
+                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2.5 py-1 text-[11px] font-bold text-slate-400 dark:bg-gray-800 dark:text-gray-500"
                                             v-if="!element.user && !element.group"
                                         >
                                             <span class="icon-settings-user text-[10px]"></span>
@@ -258,11 +256,11 @@
                                             {!! view_render_event('admin.leads.index.kanban.content.stage.body.card.tag.before') !!}
 
                                             <div
-                                                class="rounded-lg border px-2 py-1 text-[10px] font-bold dark:bg-gray-800"
+                                                class="rounded-lg border px-2 py-1 text-[10px] font-bold dark:bg-gray-800 bg-[var(--tag-bg)] border-[var(--tag-border)] text-[var(--tag-text)]"
                                                 :style="{
-                                                    backgroundColor: tag.color ? tag.color : '#f1f5f9',
-                                                    borderColor: tag.color ? tag.color : '#e2e8f0',
-                                                    color: tagTextColor[tag.color] ? tagTextColor[tag.color] : '#475569'
+                                                    '--tag-bg': tag.color ? tag.color : '#f1f5f9',
+                                                    '--tag-border': tag.color ? tag.color : '#e2e8f0',
+                                                    '--tag-text': tagTextColor[tag.color] ? tagTextColor[tag.color] : '#475569'
                                                 }"
                                             >
                                                 @{{ tag.name }}
