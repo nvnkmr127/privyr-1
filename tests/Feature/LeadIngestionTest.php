@@ -7,7 +7,8 @@ use Webkul\Lead\Exceptions\LeadIngestionException;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Services\LeadIngestionService;
 
-uses(RefreshDatabase::class);
+// Removed RefreshDatabase to prevent wiping the shared pre-seeded database
+// uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->artisan('db:seed');

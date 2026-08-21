@@ -5,6 +5,8 @@ namespace Webkul\Lead\Services;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
 use Webkul\Attribute\Repositories\AttributeRepository;
+use Webkul\Attribute\Repositories\AttributeValueRepository;
+use Webkul\Core\Contracts\Validations\Decimal;
 use Webkul\Lead\Contracts\Lead;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
@@ -14,6 +16,7 @@ class LeadDataQualityService
 {
     public function __construct(
         protected AttributeRepository $attributeRepository,
+        protected AttributeValueRepository $attributeValueRepository,
         protected PipelineRepository $pipelineRepository,
         protected SourceRepository $sourceRepository,
         protected UserRepository $userRepository
@@ -25,8 +28,8 @@ class LeadDataQualityService
     public function normalize(array $data): array
     {
         // Name
-        if (! empty($data['person_name'])) {
-            $data['person_name'] = preg_replace('/\s+/', ' ', trim($data['person_name']));
+        if (! empty($data['name'])) {
+            $data['name'] = preg_replace('/\s+/', ' ', trim($data['name']));
         }
 
         // Emails
@@ -42,23 +45,20 @@ class LeadDataQualityService
         }
 
         // Phones
-        if (isset($data['contact_numbers']) && is_array($data['contact_numbers'])) {
-            foreach ($data['contact_numbers'] as &$phoneItem) {
+        if (isset($data['phones']) && is_array($data['phones'])) {
+            foreach ($data['phones'] as &$phoneItem) {
                 if (! empty($phoneItem['value'])) {
-                    $phone = $phoneItem['value'];
-                    $isPlus = str_starts_with(trim($phone), '+');
-                    $normalized = preg_replace('/[^0-9]/', '', $phone);
-                    $phoneItem['value'] = $isPlus && ! empty($normalized) ? '+'.$normalized : $normalized;
+                    $phoneItem['value'] = app(LeadDuplicateService::class)->normalizePhone($phoneItem['value']);
                 }
             }
-            if (count($data['contact_numbers']) > 0) {
-                $data['normalized_primary_phone'] = $data['contact_numbers'][0]['value'] ?? null;
+            if (count($data['phones']) > 0) {
+                $data['normalized_primary_phone'] = $data['phones'][0]['value'] ?? null;
             }
         }
 
         // Basic Sanitization for string fields (title, description, etc)
         // We'll strip tags from standard string fields to prevent XSS
-        $textFields = ['title', 'description', 'organization_name'];
+        $textFields = ['title', 'description', 'organization'];
         foreach ($textFields as $field) {
             if (isset($data[$field]) && is_string($data[$field])) {
                 $data[$field] = strip_tags($data[$field]);
@@ -69,35 +69,83 @@ class LeadDataQualityService
     }
 
     /**
-     * Validates data against the EAV rules and standard rules.
-     * Throws an exception or returns errors.
+     * Centralized validation rules generator for Leads.
      */
-    public function validate(array $data, ?int $leadId = null): array
+    public function getValidationRules(array $data, ?int $leadId = null, bool $quickAdd = false): array
     {
         $rules = [];
-        $messages = [];
 
-        // Dynamic EAV Rules (similar to LeadForm)
-        $attributes = $this->attributeRepository->where('entity_type', 'leads')->get();
+        // Build base query for attributes
+        $query = $this->attributeRepository->where('entity_type', 'leads');
+
+        if ($quickAdd) {
+            $query = $query->where('quick_add', 1);
+        }
+
+        $attributes = $query->get();
+
         foreach ($attributes as $attribute) {
+            $validations = [];
+
             if ($attribute->type === 'boolean') {
                 continue;
-            }
-
-            $rule = $attribute->is_required ? ['required'] : ['nullable'];
-
-            if ($attribute->type === 'email') {
-                $rules[$attribute->code] = $rule;
-                $rules[$attribute->code.'.*.value'] = array_merge($rule, ['email']);
-            } elseif ($attribute->type === 'phone') {
-                $rules[$attribute->code] = $rule;
-                $rules[$attribute->code.'.*.value'] = $rule;
-            } else {
-                if ($attribute->validation) {
-                    $rule[] = $attribute->validation;
+            } elseif ($attribute->type === 'address') {
+                if (! $attribute->is_required) {
+                    continue;
                 }
-                $rules[$attribute->code] = $rule;
+                $validations = [
+                    $attribute->code.'.address' => 'required',
+                    $attribute->code.'.country' => 'required',
+                    $attribute->code.'.state' => 'required',
+                    $attribute->code.'.city' => 'required',
+                    $attribute->code.'.postcode' => 'required',
+                ];
+            } elseif ($attribute->type === 'email') {
+                $validations = [
+                    $attribute->code => [$attribute->is_required ? 'required' : 'nullable'],
+                    $attribute->code.'.*.value' => [$attribute->is_required ? 'required' : 'nullable', 'email'],
+                    $attribute->code.'.*.label' => $attribute->is_required ? 'required' : 'nullable',
+                ];
+            } elseif ($attribute->type === 'phone') {
+                $validations = [
+                    $attribute->code => [$attribute->is_required ? 'required' : 'nullable'],
+                    $attribute->code.'.*.value' => [$attribute->is_required ? 'required' : 'nullable'],
+                    $attribute->code.'.*.label' => $attribute->is_required ? 'required' : 'nullable',
+                ];
+            } else {
+                $validations[$attribute->code] = [$attribute->is_required ? 'required' : 'nullable'];
+
+                if ($attribute->type === 'text' && $attribute->validation) {
+                    array_push($validations[$attribute->code],
+                        $attribute->validation === 'decimal'
+                        ? new Decimal
+                        : $attribute->validation
+                    );
+                }
+
+                if ($attribute->type === 'price') {
+                    array_push($validations[$attribute->code], new Decimal);
+                }
             }
+
+            if ($attribute->is_unique) {
+                $uniqueField = in_array($attribute->type, ['email', 'phone'])
+                    ? $attribute->code.'.*.value'
+                    : $attribute->code;
+
+                array_push($validations[$uniqueField], function ($field, $value, $fail) use ($attribute, $leadId) {
+                    if (! $this->attributeValueRepository->isValueUnique(
+                        $leadId,
+                        $attribute->entity_type,
+                        $attribute,
+                        $value
+                    )) {
+                        $fail('The value has already been taken.');
+                    }
+                });
+            }
+
+            $rules = array_merge($rules, $validations);
         }
 
         // Basic relational rules
@@ -113,6 +161,18 @@ class LeadDataQualityService
         if (isset($data['lead_pipeline_stage_id'])) {
             $rules['lead_pipeline_stage_id'][] = 'exists:lead_pipeline_stages,id';
         }
+
+        return $rules;
+    }
+
+    /**
+     * Validates data against the EAV rules and standard rules.
+     * Throws an exception or returns errors.
+     */
+    public function validate(array $data, ?int $leadId = null): array
+    {
+        $rules = $this->getValidationRules($data, $leadId);
+        $messages = [];
 
         $validator = Validator::make($data, $rules, $messages);
 
@@ -131,7 +191,7 @@ class LeadDataQualityService
         $issues = [];
 
         // Example dynamic checks based on required fields and basic presence
-        if (empty($lead->person_name)) {
+        if (empty($lead->name)) {
             $issues[] = 'Missing person name';
         }
 
@@ -149,8 +209,8 @@ class LeadDataQualityService
         }
 
         $hasPhone = false;
-        if (! empty($lead->contact_numbers)) {
-            foreach ($lead->contact_numbers as $phone) {
+        if (! empty($lead->phones)) {
+            foreach ($lead->phones as $phone) {
                 if (! empty($phone['value'])) {
                     $hasPhone = true;
                     break;

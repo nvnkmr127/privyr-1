@@ -13,6 +13,7 @@ use Webkul\Lead\Models\LeadCaptureLog;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\Lead\Repositories\TypeRepository;
 
 class LeadIngestionService implements LeadIngestionServiceContract
 {
@@ -70,7 +71,7 @@ class LeadIngestionService implements LeadIngestionServiceContract
             // 3. Duplicate Check
             $duplicate = $this->duplicateMatchingService->findDuplicate(
                 $leadData['emails'] ?? [],
-                $leadData['contact_numbers'] ?? [],
+                $leadData['phones'] ?? [],
                 $payload->externalId,
                 $payload->origin
             );
@@ -214,6 +215,14 @@ class LeadIngestionService implements LeadIngestionServiceContract
                 if ($stage && empty($data['lead_pipeline_stage_id'])) {
                     $data['lead_pipeline_stage_id'] = $stage->id;
                 }
+            }
+        }
+
+        // Fallback Type
+        if (empty($data['lead_type_id'])) {
+            $type = app(TypeRepository::class)->first();
+            if ($type) {
+                $data['lead_type_id'] = $type->id;
             }
         }
 

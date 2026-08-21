@@ -42,9 +42,9 @@
                             <select v-model="mapping[header]" class="rounded border p-2 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
                                 <option value="">-- Ignore --</option>
                                 <option value="title">Title (Required)</option>
-                                <option value="person_name">Person Name</option>
+                                <option value="name">Person Name</option>
                                 <option value="emails">Email</option>
-                                <option value="contact_numbers">Phone</option>
+                                <option value="phones">Phone</option>
                                 <option value="lead_source_id">Source</option>
                                 <!-- In reality, populated by $attributes passed from backend -->
                             </select>
@@ -182,7 +182,7 @@
                                 let l = h.toLowerCase();
                                 if (['title', 'name'].includes(l)) this.mapping[h] = 'title';
                                 else if (['email', 'emails'].includes(l)) this.mapping[h] = 'emails';
-                                else if (['phone', 'contact'].includes(l)) this.mapping[h] = 'contact_numbers';
+                                else if (['phone', 'contact'].includes(l)) this.mapping[h] = 'phones';
                                 else this.mapping[h] = '';
                             });
                             

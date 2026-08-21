@@ -30,7 +30,7 @@ class LeadRepository extends Repository
         'user_id',
         'user.name',
         'user.name',
-        'person_name',
+        'name',
         'lead_source_id',
         'lead_type_id',
         'lead_pipeline_id',
@@ -85,7 +85,7 @@ class LeadRepository extends Repository
                 'leads.created_at as created_at',
                 'title',
                 'lead_value',
-                'person_name',
+                'name',
                 'lead_pipelines.id as lead_pipeline_id',
                 'leads.status as status',
                 'lead_pipeline_stages.id as lead_pipeline_stage_id'
@@ -119,13 +119,13 @@ class LeadRepository extends Repository
             $data['normalized_primary_email'] = app(LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
-        if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+        if (isset($data['phones']) && is_array($data['phones']) && count($data['phones']) > 0) {
+            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['phones'][0]['value'] ?? null);
         }
 
         $data['entity_type'] = $data['entity_type'] ?? 'leads';
         $lead = $this->model->newInstance();
-        $leadData = $data;
+        $leadData = collect($data)->only($this->model->getFillable())->toArray();
         unset($leadData['entity_type']);
         $lead->fill(array_merge([
             'lead_pipeline_id' => 1,
@@ -217,8 +217,8 @@ class LeadRepository extends Repository
             $data['normalized_primary_email'] = app(LeadDuplicateService::class)->normalizeEmail($data['emails'][0]['value'] ?? null);
         }
 
-        if (isset($data['contact_numbers']) && is_array($data['contact_numbers']) && count($data['contact_numbers']) > 0) {
-            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['contact_numbers'][0]['value'] ?? null);
+        if (isset($data['phones']) && is_array($data['phones']) && count($data['phones']) > 0) {
+            $data['normalized_primary_phone'] = app(LeadDuplicateService::class)->normalizePhone($data['phones'][0]['value'] ?? null);
         }
 
         // Prevent direct manipulation of lifecycle fields
@@ -229,6 +229,7 @@ class LeadRepository extends Repository
         $originalLead = $this->find($id);
         $originalUserId = $originalLead ? $originalLead->user_id : null;
 
+        $leadData = collect($data)->only($this->model->getFillable())->toArray();
         $lead = parent::update($leadData, $id);
 
         if (isset($stage) && $stage->code === 'won') {
@@ -393,7 +394,7 @@ class LeadRepository extends Repository
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('person_name', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
                     ->orWhere('emails', 'like', "%{$search}%");
             });
         }

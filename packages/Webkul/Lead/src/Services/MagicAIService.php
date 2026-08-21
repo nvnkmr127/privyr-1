@@ -206,7 +206,7 @@ class MagicAIService
                         "value": null,
                         "label": null
                     },
-                    "contact_numbers": {
+                    "phones": {
                         "value": null,
                         "label": null
                     }

@@ -46,7 +46,7 @@ class LeadCaptureService
             $mappedData = $this->mapPayloadToFields($payload, $connector->field_mappings ?? []);
 
             $email = $mappedData['person']['emails'] ?? null;
-            $phone = $mappedData['person']['contact_numbers'] ?? null;
+            $phone = $mappedData['person']['phones'] ?? null;
 
             $origin = match ($connector->source_type) {
                 'meta_ads' => 'meta',
@@ -89,9 +89,9 @@ class LeadCaptureService
                 'title' => $leadTitle,
                 'description' => $mappedData['description'] ?? 'Captured automatically via '.$connector->name,
                 'lead_value' => $mappedData['lead_value'] ?? 0,
-                'person_name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
+                'name' => $mappedData['person']['name'] ?? 'Web Lead Contact',
                 'emails' => $email ? [['value' => $email, 'label' => 'work']] : [],
-                'contact_numbers' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
+                'phones' => $phone ? [['value' => $phone, 'label' => 'mobile']] : [],
                 'is_unread' => true,
             ], $customLeadAttributes);
 
@@ -164,7 +164,7 @@ class LeadCaptureService
             'person' => [
                 'name' => null,
                 'emails' => null,
-                'contact_numbers' => null,
+                'phones' => null,
             ],
         ];
 
@@ -191,8 +191,8 @@ class LeadCaptureService
                 $result['person']['name'] = $val;
             } elseif (! $result['person']['emails'] && (Str::contains($lowerKey, ['email', 'mail']))) {
                 $result['person']['emails'] = $val;
-            } elseif (! $result['person']['contact_numbers'] && (Str::contains($lowerKey, ['phone', 'mobile', 'contact', 'whatsapp', 'tel']))) {
-                $result['person']['contact_numbers'] = $val;
+            } elseif (! $result['person']['phones'] && (Str::contains($lowerKey, ['phone', 'mobile', 'contact', 'whatsapp', 'tel']))) {
+                $result['person']['phones'] = $val;
             } elseif (! $result['title'] && (Str::contains($lowerKey, ['title', 'subject', 'query', 'requirement', 'product']))) {
                 $result['title'] = $val;
             } elseif (! $result['lead_value'] && (Str::contains($lowerKey, ['budget', 'value', 'price', 'amount'])) && is_numeric($val)) {

@@ -64,6 +64,22 @@ class LeadCoreAnalyticsService
         $now = now()->toDateTimeString();
         $selects[] = "SUM(CASE WHEN leads.next_follow_up_at IS NOT NULL AND leads.next_follow_up_at < '{$now}' THEN 1 ELSE 0 END) as overdue_followups";
 
+        $openStagesCsv = DB::table('lead_pipeline_stages')->whereNotIn('code', ['won', 'lost'])->pluck('id')->toArray();
+        $openStagesCsvStr = ! empty($openStagesCsv) ? implode(',', $openStagesCsv) : '0';
+
+        // Average aging for open leads
+        $selects[] = 'ROUND(AVG(CASE WHEN leads.lead_pipeline_stage_id IN ('.$openStagesCsvStr.") THEN DATEDIFF('{$now}', leads.created_at) ELSE NULL END), 1) as aging_leads_avg_days";
+
+        // Average response time (hours to last activity as proxy)
+        $selects[] = 'ROUND(AVG(CASE WHEN leads.last_activity_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, leads.created_at, leads.last_activity_at) ELSE NULL END), 1) as avg_response_time_hours';
+
+        // Score distribution
+        $selects[] = 'SUM(CASE WHEN leads.lead_score >= 0 AND leads.lead_score <= 20 THEN 1 ELSE 0 END) as score_0_20';
+        $selects[] = 'SUM(CASE WHEN leads.lead_score > 20 AND leads.lead_score <= 40 THEN 1 ELSE 0 END) as score_21_40';
+        $selects[] = 'SUM(CASE WHEN leads.lead_score > 40 AND leads.lead_score <= 60 THEN 1 ELSE 0 END) as score_41_60';
+        $selects[] = 'SUM(CASE WHEN leads.lead_score > 60 AND leads.lead_score <= 80 THEN 1 ELSE 0 END) as score_61_80';
+        $selects[] = 'SUM(CASE WHEN leads.lead_score > 80 AND leads.lead_score <= 100 THEN 1 ELSE 0 END) as score_81_100';
+
         $query->selectRaw(implode(', ', $selects));
 
         $result = $query->first();
@@ -87,6 +103,15 @@ class LeadCoreAnalyticsService
             'needs_attention_leads' => (int) ($result->needs_attention_leads ?? 0),
             'overdue_followups' => (int) ($result->overdue_followups ?? 0),
             'conversion_rate' => $totalLeads > 0 ? round(($wonLeads / $totalLeads) * 100, 1) : 0,
+            'aging_leads_avg_days' => (float) ($result->aging_leads_avg_days ?? 0),
+            'avg_response_time_hours' => (float) ($result->avg_response_time_hours ?? 0),
+            'score_distribution' => [
+                '0-20' => (int) ($result->score_0_20 ?? 0),
+                '21-40' => (int) ($result->score_21_40 ?? 0),
+                '41-60' => (int) ($result->score_41_60 ?? 0),
+                '61-80' => (int) ($result->score_61_80 ?? 0),
+                '81-100' => (int) ($result->score_81_100 ?? 0),
+            ],
         ];
     }
 }

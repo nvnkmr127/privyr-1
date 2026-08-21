@@ -48,7 +48,7 @@ class DataGridExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
                 $value = $record->{$index};
 
                 if (
-                    in_array($index, ['emails', 'contact_numbers'])
+                    in_array($index, ['emails', 'phones'])
                     && is_string($value)
                 ) {
                     return $this->extractValuesFromJson($value);

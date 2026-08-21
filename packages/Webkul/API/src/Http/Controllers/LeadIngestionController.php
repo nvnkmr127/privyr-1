@@ -44,7 +44,7 @@ class LeadIngestionController extends Controller
             externalId: $request->input('external_id') ?? $request->input('external_source').'_'.$request->input('external_id'),
             leadData: [
                 'emails' => $request->input('email') ? [['value' => $request->input('email'), 'label' => 'work']] : [],
-                'contact_numbers' => $request->input('phone') ? [['value' => $request->input('phone'), 'label' => 'work']] : [],
+                'phones' => $request->input('phone') ? [['value' => $request->input('phone'), 'label' => 'work']] : [],
                 'person' => [
                     'name' => $request->input('name') ?? 'Unknown',
                 ],

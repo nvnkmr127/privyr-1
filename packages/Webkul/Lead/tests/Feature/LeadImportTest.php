@@ -19,7 +19,7 @@ beforeEach(function () {
     $this->actingAs($this->user, 'user');
 
     // Create a dummy CSV file
-    $this->csvHeader = "title,emails,contact_numbers\n";
+    $this->csvHeader = "title,emails,phones\n";
     $this->csvRow1 = "Test Lead 1,test1@example.com,1234567890\n";
     $this->csvRow2 = "Test Lead 2,test2@example.com,0987654321\n";
 
@@ -32,7 +32,7 @@ it('can analyze a csv file and return headers', function () {
     $service = app(LeadImportService::class);
     $result = $service->analyzeFile(storage_path('app/imports/test.csv'));
 
-    expect($result['headers'])->toContain('title', 'emails', 'contact_numbers');
+    expect($result['headers'])->toContain('title', 'emails', 'phones');
     expect(count($result['preview_rows']))->toBe(2);
     expect($result['preview_rows'][0]['title'])->toBe('Test Lead 1');
 });

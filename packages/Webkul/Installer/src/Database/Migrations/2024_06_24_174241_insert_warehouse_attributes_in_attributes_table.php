@@ -74,7 +74,7 @@ return new class extends Migration
                     'created_at' => $now,
                     'updated_at' => $now,
                 ], [
-                    'code' => 'contact_numbers',
+                    'code' => 'phones',
                     'name' => trans('installer::app.seeders.attributes.warehouses.contact-numbers'),
                     'type' => 'phone',
                     'entity_type' => 'warehouses',

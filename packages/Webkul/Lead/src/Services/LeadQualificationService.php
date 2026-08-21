@@ -65,7 +65,7 @@ class LeadQualificationService
 
         $oldStatus = $lead->qualification_status;
         $lead->qualification_status = 'qualified';
-        $lead->save();
+        Lead::where('id', $lead->id)->update(['qualification_status' => 'qualified']);
 
         $this->recordQualificationHistory($lead, 'qualified', null, $userId);
 
@@ -97,7 +97,7 @@ class LeadQualificationService
 
         $oldStatus = $lead->qualification_status;
         $lead->qualification_status = 'disqualified';
-        $lead->save();
+        Lead::where('id', $lead->id)->update(['qualification_status' => 'disqualified']);
 
         $this->recordQualificationHistory($lead, 'disqualified', $reason, $userId);
 
@@ -122,7 +122,7 @@ class LeadQualificationService
 
         $oldStatus = $lead->qualification_status;
         $lead->qualification_status = 'in_review';
-        $lead->save();
+        Lead::where('id', $lead->id)->update(['qualification_status' => 'in_review']);
 
         $this->recordQualificationHistory($lead, 'in_review', null, $userId);
 

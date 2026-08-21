@@ -19,7 +19,8 @@ class BulkLeadOperationService
         protected LeadFollowUpService $followUpService,
         protected LeadNurtureService $nurtureService,
         protected TagRepository $tagRepository,
-        protected LeadQualificationService $qualificationService
+        protected LeadQualificationService $qualificationService,
+        protected LeadArchiveService $archiveService
     ) {}
 
     /**
@@ -104,7 +105,7 @@ class BulkLeadOperationService
                     $searchTerm = $column['value'][0];
                     $query->where(function ($q) use ($searchTerm) {
                         $q->where('leads.title', 'like', "%{$searchTerm}%")
-                            ->orWhere('leads.person_name', 'like', "%{$searchTerm}%")
+                            ->orWhere('leads.name', 'like', "%{$searchTerm}%")
                             ->orWhere('leads.id', $searchTerm);
                     });
 
@@ -240,8 +241,16 @@ class BulkLeadOperationService
                 $lead->tags()->detach($tagId);
                 break;
 
+            case 'archive':
+                $this->archiveService->archive($lead, 'Bulk archive');
+                break;
+
+            case 'restore':
+                $this->archiveService->restore($lead, 'Bulk restore');
+                break;
+
             case 'delete':
-                $this->leadRepository->delete($lead->id);
+                $this->archiveService->permanentDelete($lead);
                 break;
 
             default:

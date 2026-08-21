@@ -12,7 +12,7 @@ class DuplicateMatchingService
     ) {}
 
     /**
-     * Check if a duplicate lead exists based on emails, contact_numbers, or external_id.
+     * Check if a duplicate lead exists based on emails, phones, or external_id.
      *
      * @return \Webkul\Lead\Contracts\Lead|null
      */

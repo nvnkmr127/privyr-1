@@ -138,15 +138,15 @@
                                     <!-- Header -->
                                     <div class="flex items-start justify-between">
                                         <div class="flex items-center gap-1">
-                                            <x-admin::avatar ::name="element.person_name || 'Unknown'" />
+                                            <x-admin::avatar ::name="element.name || 'Unknown'" />
 
                                             <div class="flex flex-col gap-0.5">
                                                 <span class="text-xs font-bold text-slate-900">
-                                                    @{{ element.person_name || 'Unknown' }}
+                                                    @{{ element.name || 'Unknown' }}
                                                 </span>
 
                                                 <span class="text-[10px] font-semibold text-slate-500 leading-normal">
-                                                    @{{ element.organization_name || '' }}
+                                                    @{{ element.organization || '' }}
                                                 </span>
                                             </div>
                                         </div>
@@ -275,11 +275,11 @@
                                     <!-- One-Tap Card Quick Actions -->
                                     <div 
                                         class="mt-1 flex items-center justify-between border-t border-gray-200 pt-2 dark:border-gray-700"
-                                        v-if="element.contact_numbers && element.contact_numbers.length > 0"
+                                        v-if="element.phones && element.phones.length > 0"
                                     >
                                         <div class="flex items-center gap-1.5">
                                             <a
-                                                :href="'https://wa.me/' + element.contact_numbers[0].replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hi ' + (element.person_name || 'there') + ', regarding ' + element.title)"
+                                                :href="'https://wa.me/' + element.phones[0].replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hi ' + (element.name || 'there') + ', regarding ' + element.title)"
                                                 target="_blank"
                                                 class="flex items-center gap-1 rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-emerald-700 transition"
                                                 @click.stop
@@ -288,7 +288,7 @@
                                             </a>
 
                                             <a
-                                                :href="'tel:' + element.contact_numbers[0]"
+                                                :href="'tel:' + element.phones[0]"
                                                 class="flex items-center gap-1 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-blue-700 transition"
                                                 @click.stop
                                             >

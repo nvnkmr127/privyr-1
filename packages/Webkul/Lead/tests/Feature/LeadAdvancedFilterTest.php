@@ -17,7 +17,7 @@ beforeEach(function () {
 it('can filter leads by normalized phone number', function () {
     // Create a lead with a phone number
     $lead = Lead::factory()->create([
-        'contact_numbers' => json_encode([['value' => '+1 (555) 123-4567']]),
+        'phones' => json_encode([['value' => '+1 (555) 123-4567']]),
     ]);
 
     $service = app(LeadFilterService::class);

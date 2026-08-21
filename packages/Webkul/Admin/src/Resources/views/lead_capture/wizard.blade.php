@@ -152,7 +152,7 @@
                                                 <option value="">-- Ignore --</option>
                                                 <option value="person.name">Name</option>
                                                 <option value="person.emails">Email</option>
-                                                <option value="person.contact_numbers">Phone</option>
+                                                <option value="person.phones">Phone</option>
                                                 <option value="title">Title / Requirement</option>
                                                 <option value="lead_value">Budget / Value</option>
                                                 <option value="description">Notes</option>
@@ -326,7 +326,7 @@
                         mapping: {
                             full_name: 'person.name',
                             email: 'person.emails',
-                            phone_number: 'person.contact_numbers',
+                            phone_number: 'person.phones',
                             company_name: '',
                             message: 'description',
                         },

@@ -67,14 +67,14 @@ class LeadImportService
         $required = ['title'];
         $mappedFields = array_filter(array_values($mapping));
 
-        // If neither person_name nor title is mapped, we might have issues, but let's assume `LeadIngestionService` fallback is okay.
+        // If neither name nor title is mapped, we might have issues, but let's assume `LeadIngestionService` fallback is okay.
 
         // 2. Pre-flight duplicate scan
         $csv = new CSV($filePath);
         $headers = $csv->getColumns();
 
         $emailIndex = array_search('emails', $mapping);
-        $phoneIndex = array_search('contact_numbers', $mapping);
+        $phoneIndex = array_search('phones', $mapping);
 
         $duplicatesCount = 0;
         $totalCount = 0;
@@ -109,7 +109,7 @@ class LeadImportService
                 }
                 if (! empty($phonesToSearch)) {
                     foreach ($phonesToSearch as $phone) {
-                        $q->orWhere('contact_numbers', 'like', "%\"value\":\"{$phone}\"%");
+                        $q->orWhere('phones', 'like', "%\"value\":\"{$phone}\"%");
                     }
                 }
             });
@@ -148,10 +148,15 @@ class LeadImportService
             // DataTransfer natively reads the CSV and creates `ImportBatch` records.
             $this->chunkAndCreateBatches($import, $filePath, $mapping, $settings);
 
-            // Dispatch the job
-            // The job will read all batches for this import and process them.
-            // We use a custom Job to route through LeadIngestionService instead of the default IndexBatch.
-            dispatch(new LeadIngestionBatch($import->id));
+            // Dispatch a job for each batch to ensure granular retry boundaries
+            $batches = $this->importBatchRepository->findWhere([
+                'import_id' => $import->id,
+                'state' => Import::STATE_PENDING,
+            ]);
+
+            foreach ($batches as $batch) {
+                dispatch(new LeadIngestionBatch($batch->id, $import->id));
+            }
 
             DB::commit();
 

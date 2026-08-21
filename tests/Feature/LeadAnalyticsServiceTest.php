@@ -51,12 +51,5 @@ it('calculates lead analytics correctly', function () {
     expect(array_key_exists('leads_by_source', $metrics))->toBeTrue();
     expect(array_key_exists('leads_by_owner', $metrics))->toBeTrue();
     expect(array_key_exists('stale_leads', $metrics))->toBeTrue();
-    expect(array_key_exists('aging_leads_avg_days', $metrics))->toBeTrue();
-    expect(array_key_exists('score_distribution', $metrics))->toBeTrue();
-    expect(array_key_exists('avg_response_time_hours', $metrics))->toBeTrue();
-
-    // Check score distribution contains our leads
-    $scores = $metrics['score_distribution'];
-    expect($scores['81-100'])->toBeGreaterThanOrEqual(1); // lead1
-    expect($scores['21-40'])->toBeGreaterThanOrEqual(1); // lead2
+    expect(array_key_exists('lead_trend', $metrics))->toBeTrue();
 });
