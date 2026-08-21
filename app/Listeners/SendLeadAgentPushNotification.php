@@ -4,11 +4,15 @@ namespace App\Listeners;
 
 use App\Services\PushNotificationService;
 use App\Services\WhatsAppService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Webkul\Activity\Repositories\ActivityRepository;
 
-class SendLeadAgentPushNotification
+class SendLeadAgentPushNotification implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public function __construct(
         protected WhatsAppService $whatsAppService,
         protected PushNotificationService $pushService

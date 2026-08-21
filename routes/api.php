@@ -27,8 +27,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::middleware(['throttle:60,1'])->group(function () {
     Route::get('/v1/lead-capture/facebook', [LeadCaptureController::class, 'verify']);
     Route::post('/v1/lead-capture', [LeadCaptureController::class, 'capture']);
-    Route::post('/v1/lead-capture/whatsapp-chat', [LeadCaptureController::class, 'importWhatsAppChat']);
-    Route::post('/v1/lead-capture/csv-import', [LeadCsvImportController::class, 'import']);
+
+    // Shared-secret ingestion endpoints: unlike capture() (which authenticates
+    // inline per provider), these have no other auth, so gate them explicitly.
+    Route::middleware('capture.secret')->group(function () {
+        Route::post('/v1/lead-capture/whatsapp-chat', [LeadCaptureController::class, 'importWhatsAppChat']);
+        Route::post('/v1/lead-capture/csv-import', [LeadCsvImportController::class, 'import']);
+    });
+
     Route::post('/v1/lead-capture/{provider}', [LeadCaptureController::class, 'capture']);
 });
 Route::middleware('auth:sanctum')->group(function () {

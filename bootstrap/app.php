@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(CanInstall::class);
 
+        $middleware->alias([
+            'capture.secret' => \App\Http\Middleware\EnsureCaptureSecret::class,
+        ]);
+
         $middleware->encryptCookies(except: [
             'dark_mode',
             'sidebar_collapsed',

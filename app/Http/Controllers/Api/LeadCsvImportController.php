@@ -15,7 +15,9 @@ class LeadCsvImportController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'rows' => 'required|array',
+            // Cap the batch so a single request can't exhaust memory/DB with a
+            // synchronous ingest loop. ponytail: chunk + queue for larger imports.
+            'rows' => 'required|array|max:1000',
             'mapping' => 'required|array', // e.g. {"Client Name": "name", "Mobile": "phone", "Budget": "value"}
         ]);
 

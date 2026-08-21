@@ -51,7 +51,11 @@ class LeadCaptureController extends Controller
     {
         try {
             $data = $request->all();
-            Log::info("Lead capture incoming payload [Provider: {$provider}]:", $data);
+            // Log the shape only — never raw values (name/email/phone are PII).
+            Log::info('Lead capture incoming', [
+                'provider' => $provider,
+                'keys' => array_keys($data),
+            ]);
 
             $providerLower = strtolower((string) $provider);
             $isFbOrGoogle = in_array($providerLower, ['facebook', 'google'], true);
