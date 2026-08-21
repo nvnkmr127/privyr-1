@@ -119,3 +119,77 @@ it('executes round robin assignment', function () {
     // Now user1 has a recent timestamp, so user2 should be next
     expect($lead2->user_id)->toBe($user2->id);
 });
+it('executes least assigned assignment', function () {
+    $this->loginAsAdmin();
+    $user1 = User::create(['name' => 'User 1', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
+    $user2 = User::create(['name' => 'User 2', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
+
+    $rule = LeadAssignmentRule::create([
+        'name' => 'Least Assigned Rule',
+        'type' => 'least_assigned',
+        'status' => true,
+        'sort_order' => 1,
+    ]);
+
+    $rule->users()->attach([$user1->id, $user2->id]);
+
+    // Give user1 a lead
+    app(LeadRepository::class)->create([
+        'title' => 'Existing Lead',
+        'entity_type' => 'leads',
+        'lead_pipeline_id' => 1,
+        'lead_pipeline_stage_id' => 1,
+        'user_id' => $user1->id,
+    ]);
+
+    // user2 has 0 leads, user1 has 1. Rule should pick user2.
+    $lead1 = app(LeadRepository::class)->create([
+        'title' => 'New Lead',
+        'entity_type' => 'leads',
+        'lead_pipeline_id' => 1,
+        'lead_pipeline_stage_id' => 1,
+    ]);
+
+    expect($lead1->user_id)->toBe($user2->id);
+});
+
+it('executes capacity based assignment with fallback', function () {
+    $this->loginAsAdmin();
+    $user1 = User::create(['name' => 'User 1', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
+    $user2 = User::create(['name' => 'User 2', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
+    $fallbackUser = User::create(['name' => 'Fallback User', 'email' => uniqid().'@example.com', 'password' => bcrypt('password'), 'role_id' => 1]);
+
+    $rule = LeadAssignmentRule::create([
+        'name' => 'Capacity Rule',
+        'type' => 'capacity_based',
+        'status' => true,
+        'sort_order' => 1,
+        'fallback_type' => 'user',
+        'fallback_user_id' => $fallbackUser->id,
+    ]);
+
+    // Capacity 1 for user1
+    $rule->users()->attach($user1->id, ['capacity' => 1, 'last_assigned_at' => now()->subDays(2)]);
+    // Capacity 0 for user2 (should skip)
+    $rule->users()->attach($user2->id, ['capacity' => 0, 'last_assigned_at' => now()->subDays(1)]);
+
+    // This should go to user1 since they have capacity 1 and 0 leads
+    $lead1 = app(LeadRepository::class)->create([
+        'title' => 'Capacity Lead 1',
+        'entity_type' => 'leads',
+        'lead_pipeline_id' => 1,
+        'lead_pipeline_stage_id' => 1,
+    ]);
+
+    expect($lead1->user_id)->toBe($user1->id);
+
+    // This should hit fallback because user1 capacity is full, and user2 capacity is 0
+    $lead2 = app(LeadRepository::class)->create([
+        'title' => 'Capacity Lead 2',
+        'entity_type' => 'leads',
+        'lead_pipeline_id' => 1,
+        'lead_pipeline_stage_id' => 1,
+    ]);
+
+    expect($lead2->user_id)->toBe($fallbackUser->id);
+});

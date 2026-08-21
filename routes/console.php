@@ -22,3 +22,4 @@ Artisan::command('inspire', function () {
 Schedule::command('inbound-emails:process')->everyFiveMinutes();
 Schedule::command('meta:poll-insights')->hourly();
 Schedule::command('lead:process-sequences')->dailyAt('09:00');
+Schedule::command('lead:process-follow-ups')->everyFiveMinutes();

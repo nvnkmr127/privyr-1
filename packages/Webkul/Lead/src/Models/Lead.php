@@ -758,4 +758,12 @@ class Lead extends Model implements LeadContract
     {
         return $this->hasMany(LeadNurtureHistoryProxy::modelClass(), 'lead_id')->orderBy('created_at', 'desc');
     }
+
+    /**
+     * Get the SLAs for the lead.
+     */
+    public function slas(): HasMany
+    {
+        return $this->hasMany(LeadSlaProxy::modelClass(), 'lead_id');
+    }
 }

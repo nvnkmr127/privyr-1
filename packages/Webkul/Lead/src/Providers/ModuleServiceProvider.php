@@ -35,7 +35,7 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
         LeadMergeHistory::class,
         LeadStageHistory::class,
         LeadStatusHistory::class,
-        LeadAttributionHistory::class,
-        LeadNurtureHistory::class,
+        \Webkul\Lead\Models\LeadAttributionHistory::class,
+        \Webkul\Lead\Models\LeadNurtureHistory::class,
     ];
 }

@@ -1,7 +1,7 @@
 <div class="p-4">
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-semibold text-slate-800 dark:text-white">
-            @lang('admin::app.follow-ups.next-follow-up')
+            Next Action
         </h3>
 
         <!-- Action Dropdown for Follow up -->
@@ -21,10 +21,14 @@
     </div>
 
     @php
-        $nextFollowUp = $lead->next_follow_up;
+        $nextFollowUp = clone $lead; 
+        $nextFollowUp->type = $lead->next_action;
+        $nextFollowUp->schedule_from = $lead->next_follow_up_at;
+        $nextFollowUp->title = $lead->next_action_note;
+        $nextFollowUp->priority = $lead->next_action_priority;
     @endphp
 
-    @if ($nextFollowUp)
+    @if ($lead->next_action)
         <div class="flex flex-col gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
             <div class="flex items-center justify-between">
                 <span class="text-sm font-medium {{ $nextFollowUp->schedule_from < now() ? 'text-red-600' : 'text-slate-700 dark:text-slate-300' }}">
@@ -40,18 +44,26 @@
             </p>
 
             <div class="flex items-center justify-between pt-2 mt-1 border-t border-slate-200 dark:border-slate-700/50">
-                <div class="text-xs text-slate-500">
-                    <span class="icon-user text-sm align-middle mr-1"></span>
-                    {{ $nextFollowUp->user->name ?? 'Unassigned' }}
+                <div class="flex gap-2 text-xs text-slate-500">
+                    <span>
+                        <span class="icon-user text-sm align-middle mr-1"></span>
+                        {{ $lead->followUpOwner->name ?? 'Unassigned' }}
+                    </span>
+                    @if($nextFollowUp->priority)
+                        <span class="ml-2 px-1.5 rounded bg-slate-200 text-slate-700">{{ ucfirst($nextFollowUp->priority) }}</span>
+                    @endif
                 </div>
                 
                 <div class="flex gap-2">
-                    <form method="POST" action="{{ route('admin.follow_ups.complete', $nextFollowUp->id) }}">
+                    <form method="POST" action="{{ route('admin.leads.follow_up.complete', $lead->id) }}">
                         @csrf
-                        <button type="submit" class="text-xs font-medium text-green-600 hover:text-green-700">
-                            @lang('admin::app.follow-ups.complete')
+                        <button type="submit" class="text-xs font-medium text-green-600 hover:text-green-700 bg-green-50 px-2 py-1 rounded">
+                            Complete
                         </button>
                     </form>
+                    <button type="button" class="text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded" @click="$emitter.emit('open-follow-up-snooze-modal', { lead_id: {{ $lead->id }} })">
+                        Reschedule
+                    </button>
                 </div>
             </div>
         </div>

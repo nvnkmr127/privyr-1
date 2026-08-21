@@ -134,76 +134,151 @@ class LeadAssignmentService
 
     protected function executeRule(LeadAssignmentRule $rule, Lead $lead): bool
     {
-        if ($rule->users->isEmpty() && $rule->groups->isEmpty()) {
-            return false;
-        }
+        return DB::transaction(function () use ($rule, $lead) {
+            if ($rule->users->isEmpty() && $rule->groups->isEmpty()) {
+                return $this->applyFallback($rule, $lead);
+            }
 
-        $assignedUserId = null;
-        $assignedGroupId = null;
+            $assignedUserId = null;
+            $assignedGroupId = null;
 
-        if ($rule->type === 'direct') {
-            if ($rule->users->isNotEmpty()) {
-                $assignedUserId = $rule->users->first()->id;
-            }
-        } elseif ($rule->type === 'team') {
-            if ($rule->groups->isNotEmpty()) {
-                $assignedGroupId = $rule->groups->first()->id;
-            }
-        } elseif ($rule->type === 'round_robin') {
-            // Find the user who was assigned least recently. Should ideally use atomic locking.
-            $user = $rule->users()->orderByPivot('last_assigned_at', 'asc')->lockForUpdate()->first();
-            if ($user) {
-                $assignedUserId = $user->id;
-                $rule->users()->updateExistingPivot($user->id, ['last_assigned_at' => now()]);
-            }
-        } elseif ($rule->type === 'weighted') {
-            $totalWeight = $rule->users->sum('pivot.weight');
-            if ($totalWeight > 0) {
-                $rand = rand(1, $totalWeight);
-                $current = 0;
-                foreach ($rule->users as $u) {
-                    $current += $u->pivot->weight;
-                    if ($rand <= $current) {
-                        $assignedUserId = $u->id;
-                        $rule->users()->updateExistingPivot($u->id, ['last_assigned_at' => now()]);
-                        break;
+            if ($rule->type === 'direct') {
+                if ($rule->users->isNotEmpty()) {
+                    $assignedUserId = $rule->users->first()->id;
+                }
+            } elseif ($rule->type === 'team') {
+                if ($rule->groups->isNotEmpty()) {
+                    $assignedGroupId = $rule->groups->first()->id;
+                }
+            } elseif ($rule->type === 'round_robin') {
+                $user = $rule->users()->orderByPivot('last_assigned_at', 'asc')->lockForUpdate()->first();
+                if ($user) {
+                    $assignedUserId = $user->id;
+                    $rule->users()->updateExistingPivot($user->id, ['last_assigned_at' => now()]);
+                }
+            } elseif ($rule->type === 'weighted') {
+                $users = $rule->users()->lockForUpdate()->get();
+                $totalWeight = $users->sum('pivot.weight');
+                if ($totalWeight > 0) {
+                    $rand = rand(1, $totalWeight);
+                    $current = 0;
+                    foreach ($users as $u) {
+                        $current += $u->pivot->weight;
+                        if ($rand <= $current) {
+                            $assignedUserId = $u->id;
+                            $rule->users()->updateExistingPivot($u->id, ['last_assigned_at' => now()]);
+                            break;
+                        }
+                    }
+                }
+            } elseif ($rule->type === 'least_assigned') {
+                $userIds = $rule->users->pluck('id')->toArray();
+                if (!empty($userIds)) {
+                    $leadCounts = DB::table('leads')
+                        ->select('user_id', DB::raw('COUNT(id) as lead_count'))
+                        ->whereIn('user_id', $userIds)
+                        ->where(function ($q) {
+                            $q->whereNull('status')
+                              ->orWhereNotIn('status', ['converted', 'lost', 'junk']);
+                        })
+                        ->groupBy('user_id')
+                        ->pluck('lead_count', 'user_id')
+                        ->toArray();
+                        
+                    $minCount = null;
+                    foreach ($userIds as $userId) {
+                        $count = $leadCounts[$userId] ?? 0;
+                        if ($minCount === null || $count < $minCount) {
+                            $minCount = $count;
+                            $assignedUserId = $userId;
+                        }
+                    }
+                }
+            } elseif ($rule->type === 'capacity_based') {
+                $users = $rule->users()->orderByPivot('last_assigned_at', 'asc')->lockForUpdate()->get();
+                $userIds = $users->pluck('id')->toArray();
+                if (!empty($userIds)) {
+                    $leadCounts = DB::table('leads')
+                        ->select('user_id', DB::raw('COUNT(id) as lead_count'))
+                        ->whereIn('user_id', $userIds)
+                        ->where(function ($q) {
+                            $q->whereNull('status')
+                              ->orWhereNotIn('status', ['converted', 'lost', 'junk']);
+                        })
+                        ->groupBy('user_id')
+                        ->pluck('lead_count', 'user_id')
+                        ->toArray();
+                        
+                    foreach ($users as $user) {
+                        $capacity = $user->pivot->capacity;
+                        if ($capacity === null) {
+                            $capacity = 0; // Or treat null as infinite. Let's treat null as no capacity limit for safety.
+                            $assignedUserId = $user->id;
+                            $rule->users()->updateExistingPivot($user->id, ['last_assigned_at' => now()]);
+                            break;
+                        } else {
+                            $count = $leadCounts[$user->id] ?? 0;
+                            if ($count < $capacity) {
+                                $assignedUserId = $user->id;
+                                $rule->users()->updateExistingPivot($user->id, ['last_assigned_at' => now()]);
+                                break;
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        if ($assignedUserId || $assignedGroupId) {
-            $previousOwner = $lead->user_id;
-            $previousGroup = $lead->group_id;
-
-            // Bypass updating Lead updated_at timestamp to avoid infinite loops if triggered via observers
-            DB::table('leads')->where('id', $lead->id)->update([
-                'user_id' => $assignedUserId,
-                'group_id' => $assignedGroupId,
-            ]);
-            $lead->user_id = $assignedUserId;
-            $lead->group_id = $assignedGroupId;
-
-            // Log history
-            app(LeadAssignmentRepository::class)->create([
-                'lead_id' => $lead->id,
-                'assigned_to' => $assignedUserId,
-                'assigned_group_id' => $assignedGroupId,
-                'assigned_by' => auth()->check() ? auth()->id() : null,
-                'previous_owner' => $previousOwner,
-                'previous_group_id' => $previousGroup,
-                'reason' => "Assigned via Rule: {$rule->name}",
-            ]);
-
-            if ($previousOwner || $previousGroup) {
-                Event::dispatch('lead.reassigned', $lead);
-            } else {
-                Event::dispatch('lead.assigned', $lead);
+            if ($assignedUserId || $assignedGroupId) {
+                return $this->performAssignment($lead, $assignedUserId, $assignedGroupId, "Assigned via Rule: {$rule->name}");
             }
 
-            return true;
-        }
+            return $this->applyFallback($rule, $lead);
+        });
+    }
 
+    protected function applyFallback(LeadAssignmentRule $rule, Lead $lead): bool
+    {
+        if ($rule->fallback_type === 'user' && $rule->fallback_user_id) {
+            return $this->performAssignment($lead, $rule->fallback_user_id, null, "Assigned via Fallback Rule: {$rule->name}");
+        } elseif ($rule->fallback_type === 'team' && $rule->fallback_group_id) {
+            return $this->performAssignment($lead, null, $rule->fallback_group_id, "Assigned via Fallback Rule: {$rule->name}");
+        } elseif ($rule->fallback_type === 'unassigned') {
+            return $this->unassign($lead, auth()->check() ? auth()->id() : null);
+        }
+        
         return false;
+    }
+
+    protected function performAssignment(Lead $lead, $assignedUserId, $assignedGroupId, $reason): bool
+    {
+        $previousOwner = $lead->user_id;
+        $previousGroup = $lead->group_id;
+
+        // Bypass updating Lead updated_at timestamp to avoid infinite loops if triggered via observers
+        DB::table('leads')->where('id', $lead->id)->update([
+            'user_id' => $assignedUserId,
+            'group_id' => $assignedGroupId,
+        ]);
+        $lead->user_id = $assignedUserId;
+        $lead->group_id = $assignedGroupId;
+
+        // Log history
+        app(LeadAssignmentRepository::class)->create([
+            'lead_id' => $lead->id,
+            'assigned_to' => $assignedUserId,
+            'assigned_group_id' => $assignedGroupId,
+            'assigned_by' => auth()->check() ? auth()->id() : null,
+            'previous_owner' => $previousOwner,
+            'previous_group_id' => $previousGroup,
+            'reason' => $reason,
+        ]);
+
+            if ($previousOwner || $previousGroup) {
+                \Illuminate\Support\Facades\Event::dispatch('lead.reassigned', $lead);
+            } else {
+                \Illuminate\Support\Facades\Event::dispatch('lead.assigned', $lead);
+            }
+
+        return true;
     }
 }

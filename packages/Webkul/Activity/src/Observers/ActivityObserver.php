@@ -5,6 +5,7 @@ namespace Webkul\Activity\Observers;
 use Carbon\Carbon;
 use Webkul\Activity\Models\Activity;
 use Webkul\Lead\Models\Lead;
+use Webkul\Lead\Services\LeadFollowUpService;
 
 class ActivityObserver
 {
@@ -20,6 +21,14 @@ class ActivityObserver
      * Handle the Activity "updated" event.
      */
     public function updated(Activity $activity): void
+    {
+        $this->updateLeadTimestamps($activity);
+    }
+
+    /**
+     * Handle the Activity "deleted" event.
+     */
+    public function deleted(Activity $activity): void
     {
         $this->updateLeadTimestamps($activity);
     }
@@ -60,5 +69,8 @@ class ActivityObserver
             // since the Activity itself is already the log of the action.
             $lead->saveQuietly();
         }
+
+        // Sync Next Action
+        app(LeadFollowUpService::class)->syncNextAction($lead);
     }
 }
