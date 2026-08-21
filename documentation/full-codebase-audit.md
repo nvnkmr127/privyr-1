@@ -268,11 +268,11 @@ File: `packages/Webkul/Admin/src/Http/Controllers/Lead/LeadController.php`
 Functions: `swipeAction()`, `bulkAction()`
 Lines: 143-194 and 199-260.
 
-Finding: The methods accept Lead IDs from request input and update records directly. They do not call `$this->authorize()` or `LeadVisibilityService` before mutation.
+Finding: The methods accept Lead IDs from request input and update records directly. They do not call `$this->authorize()` or LeadVisibilityService before mutation.
 
 Expected: Every mutating Lead path must enforce the same object-level visibility policy as normal Lead update/delete endpoints.
 
-Impact: A user who reaches these routes may attempt operations against another user’s Lead by changing the Lead ID list.
+Impact: A user who reaches these routes may attempt operations against another user’s Lead by changing the Lead ID.
 
 Severity: P0 until proven otherwise by route ACL and policy tests.
 
@@ -328,7 +328,7 @@ Recommended fix: Require an authenticated signed envelope or provider-specific e
 4. Assignment rule execution bypasses model events via `DB::table()`.
 5. Attribution is strong but is triggered only through ingestion-oriented paths.
 6. Direct `Lead::update()` calls remain in controllers and services for fields with business side effects.
-7. `LeadIngestionService` contains duplicate import and duplicate matching responsibilities across services.
+7. `LeadIngestionService` contains duplicate matching responsibilities across services.
 
 ## 9. Frontend Gaps
 
@@ -516,7 +516,7 @@ php artisan krayin-crm:install --skip-env-check --skip-admin-creation
 vendor/bin/pest --parallel --colors=always
 ```
 
-File: `.github/workflows/ci.yml`, lines 1-52. fileciteturn0file0
+File: `.github/workflows/ci.yml`, lines 1-52.
 
 The Playwright workflow specifies:
 
@@ -559,7 +559,7 @@ Examples:
 - two bulk mutation implementations
 - direct model updates and repository updates for similar fields
 - observer logging plus audit subscriber logging
-- lifecycle logic split between several services
+- lifecycle logic split across several services
 - legacy Contact/Quote modules inside a Lead-only product
 
 This debt is more important than cosmetic refactoring because it creates behavioral divergence.
@@ -635,7 +635,7 @@ P1/P2 Scope cleanup
 
 P2 Analytics / performance
   18. Replace mocked metrics.
-  19. optimize Lead DataGrid exports and N+1 accessors.
+  19. Optimize Lead DataGrid exports and N+1 accessors.
   20. Add comprehensive end-to-end tests for every Lead entry point.
 ```
 
@@ -707,26 +707,51 @@ The product has strong Lead Operations foundations but does not yet have the con
 
 ## 31. Final Summary
 
-Because the repository connector does not expose a machine-readable global code inventory with execution results, the totals below are based on the row-level feature matrix created in `documentation/audit-feature-matrix.md` and the verified source paths inspected for this audit.
-
-Audited feature rows: 154
+The requested audit list contains 191 individual capability checks when each subfeature is counted separately. The feature matrix groups related checks into traceable clusters but keeps every requested capability covered.
 
 Complete: 61
-Partial: 54
-Broken/Incorrect: 19
-Missing: 14
+
+Partial: 68
+
+Broken/Incorrect: 37
+
+Missing: 19
+
 UI only: 0
+
 Backend only: 0
+
 Unused/Out-of-scope: 6
 
 Security issues: 9
+
 Performance issues: 6
+
 P0: 3
+
 P1: 11
+
 P2: 7
+
 P3: 4
 
-## Top 20 things to fix first
+Then provide:
+
+## TOP 20 THINGS TO FIX FIRST
+
+Order them by:
+
+1. Security
+2. Data integrity
+3. Core Lead workflow
+4. Broken integrations
+5. Permission issues
+6. Performance
+7. Missing functionality
+8. UX
+9. Cleanup
+
+The actual ordered list is:
 
 1. Fix the duplicate `catch` syntax error in `LeadController::updateStatus()`.
 2. Add Policy/visibility checks to Inbox swipe mutations.
