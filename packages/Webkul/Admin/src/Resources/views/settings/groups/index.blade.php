@@ -6,7 +6,7 @@
 
     <div class="flex flex-col gap-4">
         <!-- Header section -->
-        <div class="scroll-reactive-sticky sticky top-[60px] z-[1000] flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+        <div class="scroll-reactive-sticky sticky top-[60px] z-[1000] flex items-center justify-between rounded-2xl border border-white/40 dark:border-gray-800/60 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md px-6 py-4 text-sm shadow-[0_4px_30px_rgb(0,0,0,0.05)] dark:text-gray-300">
             <div class="flex flex-col gap-2">
                 {!! view_render_event('admin.settings.groups.index.breadcrumbs.before') !!}
 
@@ -15,7 +15,7 @@
 
                 {!! view_render_event('admin.settings.groups.index.breadcrumbs.after') !!}
 
-                <div class="text-xl font-bold dark:text-gray-300">
+                <div class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">
                     @lang('admin::app.settings.groups.index.title')
                 </div>
             </div>
@@ -28,7 +28,7 @@
                     @if (bouncer()->hasPermission('settings.user.groups.create'))
                         <button
                             type="button"
-                            class="primary-button"
+                            class="px-5 py-2.5 rounded-xl bg-brandColor text-white font-semibold text-sm shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_15px_rgba(0,0,0,0.15)] hover:opacity-90 hover:-translate-y-0.5 transition-all duration-300"
                             @click="$refs.groupSettings.openModal()"
                         >
                             @lang('admin::app.settings.groups.index.create-btn')
@@ -73,7 +73,7 @@
                     <template v-else>
                         <div
                             v-for="record in available.records"
-                            class="row grid items-center gap-2.5 border-b px-4 py-4 text-gray-600 transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden"
+                            class="row group grid items-center gap-2.5 border-b border-gray-100 dark:border-gray-800/50 px-6 py-4 text-gray-700 dark:text-gray-300 transition-all duration-300 hover:bg-brandColor/5 dark:hover:bg-brandColor/10 hover:shadow-sm hover:-translate-y-[1px] hover:z-10 relative max-lg:hidden cursor-pointer"
                             :style="`grid-template-columns: repeat(${gridsCount}, minmax(0, 1fr))`"
                         >
                             <!-- Group ID -->

@@ -822,6 +822,32 @@ class LeadDataGrid extends DataGrid
                 ]);
             }
         }
+
+        /**
+         * Keep the default grid readable. The lead datagrid defines ~30 columns;
+         * showing them all overflows the viewport horizontally. Here we show a
+         * focused, high-signal set by default — every other column stays one
+         * click away in the column-visibility picker, and exports are untouched
+         * (this only runs for the on-screen grid, not the export request).
+         */
+        if (! request()->boolean('export')) {
+            $defaultVisible = [
+                'id',
+                'sales_person',
+                'title',
+                'lead_source_name',
+                'name',
+                'stage',
+                'status',
+                'lead_value',
+                'lead_score',
+                'created_at',
+            ];
+
+            foreach ($this->columns as $column) {
+                $column->setVisibility(in_array($column->getIndex(), $defaultVisible, true));
+            }
+        }
     }
 
     /**

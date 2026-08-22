@@ -1887,6 +1887,7 @@ return [
         'index' => [
             'title' => 'Leads',
             'create-btn' => 'Create Lead',
+            'import' => 'Import Leads',
             'datagrid' => [
                 'id' => 'ID',
                 'sales-person' => 'Sales Person',

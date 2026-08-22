@@ -25,11 +25,11 @@
             <x-slot:toggle>
                 {!! view_render_event('admin.leads.index.kanban.filter.drawer.toggle_button.before') !!}
 
-                <div class="relative flex cursor-pointer items-center rounded-md bg-sky-100 px-4 py-[9px] font-semibold text-sky-600 dark:bg-brandColor dark:text-white">
+                <div class="relative flex cursor-pointer items-center rounded-md bg-slate-100 px-4 py-[9px] font-semibold text-slate-700 dark:bg-gray-800 dark:text-white">
                     @lang('admin::app.leads.index.kanban.toolbar.filters.filter')
 
                     <span
-                        class="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-sky-600 dark:bg-white"
+                        class="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-slate-900 dark:bg-white"
                         v-if="hasAnyAppliedColumn()"
                     >
                     </span>
@@ -527,7 +527,7 @@
                                             @click="removeAppliedColumnAllValues(column.index)"
                                         >
                                             <p
-                                                class="cursor-pointer text-xs font-medium leading-6 text-blue-600"
+                                                class="cursor-pointer text-xs font-medium leading-6 text-slate-700 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white"
                                                 v-if="hasAnyAppliedColumnValues(column.index)"
                                             >
                                                 @lang('admin::app.components.datagrid.filters.custom-filters.clear-all')

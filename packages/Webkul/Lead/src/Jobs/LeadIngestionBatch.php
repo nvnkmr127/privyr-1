@@ -79,35 +79,33 @@ class LeadIngestionBatch implements ShouldQueue
                     });
                 }
 
+                // Assign override logic
+                if (($settings['assignment'] ?? '') === 'user' && ! empty($settings['assign_to_user'])) {
+                    $row['user_id'] = $settings['assign_to_user'];
+                } elseif (($settings['assignment'] ?? '') === 'team' && ! empty($settings['assign_to_team'])) {
+                    $row['group_id'] = $settings['assign_to_team'];
+                }
+
+                // Ensure emails and phones are formatted for IngestionService if mapped as flat strings
+                if (isset($row['emails']) && is_string($row['emails'])) {
+                    $row['emails'] = [['label' => 'work', 'value' => $row['emails']]];
+                }
+                if (isset($row['phones']) && is_string($row['phones'])) {
+                    $row['phones'] = [['label' => 'work', 'value' => $row['phones']]];
+                }
+
+                $sourceId = ! empty($settings['source']) ? $settings['source'] : null;
+
                 // Create the payload
                 $payload = new LeadIngestionPayload(
                     origin: 'csv_import',
+                    sourceId: $sourceId,
+                    externalId: $row['external_id'] ?? null,
                     leadData: $row,
                     metadata: ['import_id' => $import->id],
                     duplicateAction: $settings['duplicate_action'] ?? 'reject',
                     connectorId: 'local_import',
-                    externalId: $row['external_id'] ?? null,
                 );
-
-                // Assign override logic
-                if (($settings['assignment'] ?? '') === 'user' && ! empty($settings['assign_to_user'])) {
-                    $payload->leadData['user_id'] = $settings['assign_to_user'];
-                } elseif (($settings['assignment'] ?? '') === 'team' && ! empty($settings['assign_to_team'])) {
-                    $payload->leadData['group_id'] = $settings['assign_to_team'];
-                }
-
-                // Source override
-                if (! empty($settings['source'])) {
-                    $payload->sourceId = $settings['source'];
-                }
-
-                // Ensure emails and phones are formatted for IngestionService if mapped as flat strings
-                if (isset($payload->leadData['emails']) && is_string($payload->leadData['emails'])) {
-                    $payload->leadData['emails'] = [['label' => 'work', 'value' => $payload->leadData['emails']]];
-                }
-                if (isset($payload->leadData['phones']) && is_string($payload->leadData['phones'])) {
-                    $payload->leadData['phones'] = [['label' => 'work', 'value' => $payload->leadData['phones']]];
-                }
 
                 // Process via Ingestion Service
                 $result = $ingestionService->ingest($payload);

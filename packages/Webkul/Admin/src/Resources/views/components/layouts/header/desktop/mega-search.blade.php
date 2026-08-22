@@ -263,6 +263,8 @@
 
             methods: {
                 search(endpoint = null) {
+                    endpoint = endpoint || this.tabs[this.activeTab]?.endpoint;
+
                     if (! endpoint) {
                         return;
                     }

@@ -7,6 +7,7 @@ This changelog consists of the bug & security fixes and new features being inclu
 * [fixed] Fixed a `TypeError` in `LeadFilterService` causing a 500 error on the `/admin/leads` page when applying advanced filters to a `Query\Builder`.
 * [fixed] Fixed the missing "Edit" action button in the Leads DataGrid.
 * [fixed] Fixed a 500 error on the `/admin/analytics` page by calculating and returning the missing `aging_leads_avg_days`, `avg_response_time_hours`, and `score_distribution` metrics in the `LeadAnalyticsService`.
+* [fixed] Fixed admin theme layout errors, ensuring `v-dark` and `v-quick-add` Vue components are properly registered and rendered, and added full dark mode support across layout and header components.
 
 * [enhancement] Centralized Moldable custom-field system (`/admin/moldable/builder`) across the workspace with full support for Leads, Contacts, Organizations, Products, Quotes, Lead Capture mapping, dynamic Web Forms, DataGrid exports, cascade deletion, and multi-tenant isolation.
 * [enhancement] Overhauled Moldable Field Builder UI/UX with high-density compact field rows, multi-axis sticky filter toolbar, interactive presentation group manager with field previews, 6-step drawer with categorized field types and sticky footer, and accessible custom confirmation dialogs.

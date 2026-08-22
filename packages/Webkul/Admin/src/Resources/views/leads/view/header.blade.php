@@ -54,7 +54,7 @@
                 <input type="hidden" name="qualification_status" value="{{ $lead->qualification_status === 'qualified' ? 'unqualified' : 'qualified' }}" />
                 <button
                     type="submit"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold transition {{ $lead->qualification_status === 'qualified' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-slate-700 hover:bg-slate-50' }}"
+                    class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition {{ $lead->qualification_status === 'qualified' ? 'bg-slate-900 border-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:border-white dark:text-slate-900 dark:hover:bg-slate-200' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                 >
                     @if ($lead->qualification_status === 'qualified')
                         <span class="icon-tick text-base"></span>
@@ -72,7 +72,7 @@
                 >
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition dark:border-red-800 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-900/50"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-400 bg-white px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 transition dark:border-gray-500 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
                         title="Stop active nurture sequence"
                     >
                         <span>Stop Nurture</span>
@@ -83,7 +83,7 @@
             <!-- Duplicate Lead -->
             <a
                 href="{{ route('admin.leads.duplicate', $lead->id) }}"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                 title="Duplicate this Lead"
             >
                 <span>Duplicate</span>
@@ -95,7 +95,7 @@
                 <button
                     type="button"
                     onclick="document.getElementById('assignLeadModal').classList.remove('hidden')"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                 >
                     <span>Assign</span>
                 </button>
@@ -105,7 +105,7 @@
             <button
                 type="button"
                 onclick="document.getElementById('mergeLeadModal').classList.remove('hidden')"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
             >
                 <span>Merge</span>
             </button>
@@ -113,7 +113,7 @@
             @if (bouncer()->hasPermission('leads.edit'))
                 <a
                     href="{{ route('admin.leads.edit', $lead->id) }}"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                     title="@lang('admin::app.leads.view.edit-btn')"
                 >
                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -138,7 +138,7 @@
                         {{ $leadTitle }}
                     </h1>
                     @if ($leadValue)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800 shrink-0">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-900 text-white border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shrink-0">
                             {{ $leadValue }}
                         </span>
                     @endif
@@ -146,13 +146,11 @@
                     <!-- Health State Badge -->
                     @php
                         $healthState = $lead->health_state;
+                        // Monochrome: urgent states carry a solid fill, calm states stay light. Meaning comes from the label, not colour.
                         $healthColor = match($healthState) {
-                            'hot' => 'bg-orange-50 text-orange-700 border-orange-200/60 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800',
-                            'warm' => 'bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-                            'cold' => 'bg-blue-50 text-blue-700 border-blue-200/60 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
-                            'at_risk' => 'bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800',
-                            'stale' => 'bg-slate-100 text-slate-700 border-slate-300/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
-                            default => 'bg-slate-50 text-slate-700 border-slate-200/60',
+                            'hot', 'at_risk' => 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white',
+                            'warm' => 'bg-slate-200 text-slate-800 border-slate-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600',
+                            default => 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
                         };
                         $healthLabels = [
                             'hot' => 'Hot', 'warm' => 'Warm', 'cold' => 'Cold', 'at_risk' => 'At Risk', 'stale' => 'Stale'
@@ -164,18 +162,18 @@
 
                     <!-- Score Badge with Popover -->
                     <div class="relative group inline-block shrink-0">
-                        <span class="inline-flex cursor-help items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200/60 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                        <span tabindex="0" role="button" aria-label="Show lead score breakdown" class="inline-flex cursor-help items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             Score: {{ $lead->lead_score ?? 0 }}
                         </span>
-                        
+
                         <!-- Popover -->
-                        <div class="absolute left-0 top-full mt-2 w-64 rounded-lg bg-white p-3 shadow-lg ring-1 ring-slate-900/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 dark:bg-gray-800 dark:ring-white/10">
+                        <div class="absolute left-0 top-full mt-2 w-64 rounded-lg bg-white p-3 shadow-lg ring-1 ring-slate-900/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all z-50 dark:bg-gray-800 dark:ring-white/10">
                             <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 dark:text-gray-400">Score Reasons</h4>
                             <div class="space-y-1">
                                 @forelse($lead->scoreLogs as $log)
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-700 dark:text-gray-300">{{ str_replace(strstr($log->reason, ' ('), '', $log->reason) }}</span>
-                                        <span class="font-medium {{ $log->points > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                        <span class="font-semibold tabular-nums {{ $log->points > 0 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-gray-500' }}">
                                             {{ $log->points > 0 ? '+' : '' }}{{ $log->points }}
                                         </span>
                                     </div>
@@ -188,14 +186,14 @@
 
                     <!-- Qualification Badge -->
                     @if ($lead->qualification_status === 'qualified')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800 shrink-0">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-900 text-white border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shrink-0">
                             Qualified
                         </span>
                     @endif
 
                     <!-- Nurture Badge -->
                     @if ($nurtureStatus = $lead->active_nurture_status)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/60 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 shrink-0">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 shrink-0">
                             <i class="fa-solid fa-bolt mr-1"></i> {{ $nurtureStatus }}
                         </span>
                     @endif
@@ -203,10 +201,11 @@
                     <!-- FollowUp State Badge -->
                     @php
                         $fuState = $lead->follow_up_state;
+                        // Monochrome: attention-needed states use a solid fill; the rest stay light.
                         $fuColor = match($fuState) {
-                            'Overdue', 'Needs Attention', 'Stale' => 'bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800',
-                            'Due Today' => 'bg-blue-50 text-blue-700 border-blue-200/60 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
-                            default => 'bg-slate-100 text-slate-700 border-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+                            'Overdue', 'Needs Attention', 'Stale' => 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white',
+                            'Due Today' => 'bg-slate-200 text-slate-800 border-slate-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600',
+                            default => 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
                         };
                     @endphp
                     <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border shrink-0 {{ $fuColor }}">
@@ -241,7 +240,7 @@
                 >
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-300"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-900 bg-slate-900 px-2.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition dark:bg-white dark:border-white dark:text-slate-900 dark:hover:bg-slate-200"
                         title="Complete active follow-up action"
                     >
                         <i class="fa-solid fa-check"></i>
@@ -258,7 +257,7 @@
                     <input type="hidden" name="date" value="{{ \Carbon\Carbon::now()->addDay()->format('Y-m-d H:i:s') }}" />
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                         title="Snooze for 1 day"
                     >
                         <i class="fa-regular fa-clock"></i>
@@ -272,30 +271,30 @@
                 <a
                     href="https://wa.me/{{ $cleanPhone }}?text={{ $waGreeting }}"
                     target="_blank"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-green-50 border border-green-200 px-2.5 py-1.5 text-xs font-bold text-green-700 hover:bg-green-100 transition dark:bg-green-950/50 dark:border-green-800 dark:text-green-300"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
                     title="Send WhatsApp Message"
                 >
-                    <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    <svg class="w-4 h-4 text-slate-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                     <span>WhatsApp</span>
                 </a>
 
                 <!-- One-Tap Call -->
                 <a
                     href="tel:{{ $phone }}"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-300"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
                     title="Call {{ $phone }}"
                 >
-                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    <svg class="w-4 h-4 text-slate-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                     <span>Call</span>
                 </a>
 
                 <!-- One-Tap SMS -->
                 <a
                     href="sms:{{ $phone }}"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-purple-50 border border-purple-200 px-2.5 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition dark:bg-purple-950/50 dark:border-purple-800 dark:text-purple-300"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
                     title="Send SMS"
                 >
-                    <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    <svg class="w-4 h-4 text-slate-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     <span>SMS</span>
                 </a>
 
@@ -303,10 +302,10 @@
                 <a
                     href="https://wa.me/{{ $cleanPhone }}?text={{ $waBrochure }}"
                     target="_blank"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 border border-orange-200 px-2.5 py-1.5 text-xs font-bold text-orange-700 hover:bg-orange-100 transition dark:bg-orange-950/50 dark:border-orange-800 dark:text-orange-300"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
                     title="Share Brochure via WhatsApp"
                 >
-                    <svg class="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    <svg class="w-4 h-4 text-slate-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     <span>Brochure</span>
                 </a>
             @endif
@@ -440,21 +439,21 @@
                 <button
                     type="button"
                     onclick="logOutcome('Interested')"
-                    class="rounded-md bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700 hover:bg-green-100 transition dark:bg-green-950/50 dark:text-green-300"
+                    class="rounded-md bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 border border-slate-200 hover:border-slate-400 hover:text-slate-900 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
                 >
                     + Interested
                 </button>
                 <button
                     type="button"
                     onclick="logOutcome('Call Back Later')"
-                    class="rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition dark:bg-amber-950/50 dark:text-amber-300"
+                    class="rounded-md bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 border border-slate-200 hover:border-slate-400 hover:text-slate-900 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
                 >
                     + Call Back
                 </button>
                 <button
                     type="button"
                     onclick="logOutcome('Not Interested')"
-                    class="rounded-md bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-700 hover:bg-red-100 transition dark:bg-red-950/50 dark:text-red-300"
+                    class="rounded-md bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 border border-slate-200 hover:border-slate-400 hover:text-slate-900 transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
                 >
                     + Not Interested
                 </button>
@@ -483,7 +482,7 @@
 </script>
 
 <!-- Merge Lead Modal -->
-<div id="mergeLeadModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/50">
+<div id="mergeLeadModal" data-lead-modal role="dialog" aria-modal="true" aria-label="Merge lead" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/50">
     <div class="bg-white dark:bg-gray-900 rounded-xl max-w-md w-full p-6 shadow-xl border dark:border-gray-800">
         <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Merge Lead</h3>
         <p class="text-xs text-slate-500 mb-4">Select another lead to merge into this one. Activities, tags, quotes, and products will be merged, and the chosen target lead will be permanently deleted.</p>
@@ -520,7 +519,7 @@
 </div>
 
 <!-- Assign Lead Modal -->
-<div id="assignLeadModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/50">
+<div id="assignLeadModal" data-lead-modal role="dialog" aria-modal="true" aria-label="Assign lead" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/50">
     <div class="bg-white dark:bg-gray-900 rounded-xl max-w-md w-full p-6 shadow-xl border dark:border-gray-800">
         <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Assign Lead</h3>
         <p class="text-xs text-slate-500 mb-4">Assign this lead to a specific user or team.</p>

@@ -18,7 +18,7 @@
     >
         <div class="w-full">
             <!-- Table view for larger screens, Card view for mobile -->
-            <div class="table-responsive box-shadow rounded-t-0 grid w-full overflow-x-auto border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
+            <div class="table-responsive shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(255,255,255,0.02)] rounded-2xl grid w-full overflow-x-auto border border-gray-200 dark:border-gray-800/60 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300">
                 <!-- Table Header - Always visible on all screens -->
                 <slot
                     name="header"
@@ -35,11 +35,11 @@
 
                     <template v-else>
                         <div
-                            class="row grid min-h-[47px] items-center gap-2.5 border-b bg-gray-50 px-6 py-3.5 text-black dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 max-lg:hidden"
+                            class="row grid min-h-[50px] items-center gap-2.5 border-b border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 px-6 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 max-lg:hidden"
                             :style="`grid-template-columns: ${gridTemplateColumns}`"
                         >
                             <!-- Mass Actions -->
-                            <div class="flex items-center sticky left-4 z-20 bg-gray-50 dark:bg-gray-900" v-if="available.massActions.length">
+                            <div class="flex items-center sticky left-4 z-20 bg-gray-50/80 dark:bg-gray-800/40" v-if="available.massActions.length">
                                 <label for="mass_action_select_all_records" class="flex items-center">
                                     <input
                                         type="checkbox"
@@ -54,7 +54,7 @@
                                         class="icon-checkbox-outline cursor-pointer rounded-md text-2xl text-gray-500 peer-checked:text-brandColor"
                                         :class="[
                                             applied.massActions.meta.mode === 'all' ? 'peer-checked:icon-checkbox-select peer-checked:text-brandColor ' : (
-                                                applied.massActions.meta.mode === 'partial' ? 'peer-checked:icon-checkbox-multiple peer-checked:brandColor' : ''
+                                                applied.massActions.meta.mode === 'partial' ? 'peer-checked:icon-checkbox-multiple peer-checked:text-brandColor' : ''
                                             ),
                                         ]"
                                     >
@@ -83,7 +83,7 @@
 
                             <!-- Actions -->
                             <p
-                                class="text-end sticky right-4 z-20 bg-gray-50 dark:bg-gray-900"
+                                class="text-end sticky right-4 z-20 bg-gray-50/80 dark:bg-gray-800/40"
                                 v-if="available.actions.length"
                             >
                                 @lang('admin::app.components.datagrid.table.actions')
@@ -109,7 +109,7 @@
                                             class="icon-checkbox-outline cursor-pointer rounded-md text-2xl text-gray-500 peer-checked:text-brandColor"
                                             :class="[
                                                 applied.massActions.meta.mode === 'all' ? 'peer-checked:icon-checkbox-select peer-checked:text-brandColor ' : (
-                                                    applied.massActions.meta.mode === 'partial' ? 'peer-checked:icon-checkbox-multiple peer-checked:brandColor' : ''
+                                                    applied.massActions.meta.mode === 'partial' ? 'peer-checked:icon-checkbox-multiple peer-checked:text-brandColor' : ''
                                                 ),
                                             ]"
                                         >
@@ -174,13 +174,13 @@
                         <template v-if="available.records.length">
                             <!-- Desktop View -->
                             <div
-                                class="row group grid items-center gap-2.5 border-b px-6 py-3.5 text-black transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden cursor-pointer"
+                                class="row group grid items-center gap-2.5 border-b border-gray-100 dark:border-gray-800/50 px-6 py-4 text-gray-700 dark:text-gray-300 transition-all duration-300 hover:bg-brandColor/5 dark:hover:bg-brandColor/10 hover:shadow-sm hover:-translate-y-[1px] hover:z-10 relative max-lg:hidden cursor-pointer"
                                 v-for="record in available.records"
                                 :style="`grid-template-columns: ${gridTemplateColumns}`"
                                 @click="rowClick($event, record)"
                             >
                                 <!-- Mass Actions -->
-                                <div class="flex items-center sticky left-4 z-10 bg-white group-hover:bg-gray-50 dark:bg-gray-900 transition-colors" v-if="available.massActions.length">
+                                <div class="flex items-center sticky left-4 z-10 bg-white group-hover:bg-transparent dark:bg-gray-900 transition-colors" v-if="available.massActions.length">
                                     <label :for="`mass_action_select_record_${record[available.meta.primary_column]}`" class="flex items-center">
                                         <input
                                             type="checkbox"
@@ -209,7 +209,7 @@
 
                                 <!-- Actions -->
                                 <p
-                                    class="flex h-full items-center justify-end gap-1 flex-nowrap shrink-0 sticky right-4 z-10 bg-white group-hover:bg-gray-50 dark:bg-gray-900 transition-colors"
+                                    class="flex h-full items-center justify-end gap-1 flex-nowrap shrink-0 sticky right-4 z-10 bg-white group-hover:bg-transparent dark:bg-gray-900 transition-colors"
                                     v-if="available.actions.length"
                                 >
                                     <span
@@ -292,15 +292,18 @@
                         </template>
 
                         <template v-else>
-                            <div class="row border-b px-4 py-12 flex flex-col items-center justify-center text-center bg-white dark:bg-gray-900 dark:border-gray-800">
-                                <div class="bg-gray-100 dark:bg-gray-800 rounded-full p-4 mb-4">
-                                    <span class="icon-info text-4xl text-gray-400 dark:text-gray-500"></span>
+                            <div class="row border-b border-gray-200 dark:border-gray-800/60 px-4 py-24 flex flex-col items-center justify-center text-center bg-white/50 dark:bg-gray-900/50">
+                                <div class="relative mb-6">
+                                    <div class="absolute inset-0 bg-brandColor/20 blur-xl rounded-full"></div>
+                                    <div class="relative bg-gradient-to-br from-brandColor/10 to-brandColor/5 dark:from-brandColor/20 dark:to-brandColor/10 rounded-full p-6 shadow-sm border border-brandColor/20">
+                                        <span class="icon-info text-5xl text-brandColor dark:text-brandColor"></span>
+                                    </div>
                                 </div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
                                     @lang('admin::app.components.datagrid.table.no-records-available')
                                 </h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-                                    Try adjusting your search or filters to find what you're looking for, or create a new record.
+                                <p class="text-base text-gray-500 dark:text-gray-400 max-w-md">
+                                    We couldn't find anything to show here. Try adjusting your search filters or <span class="text-brandColor font-medium">create a new record</span> to get started.
                                 </p>
                             </div>
                         </template>

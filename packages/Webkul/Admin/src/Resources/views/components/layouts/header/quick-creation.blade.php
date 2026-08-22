@@ -1,8 +1,17 @@
-    @pushOnce('scripts')
-        <script
-            type="text/x-template"
-            id="v-quick-add-template"
-        >
+<v-quick-add>
+    <button
+        type="button"
+        class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-brandColor text-white"
+    >
+        <i class="icon-add text-2xl"></i>
+    </button>
+</v-quick-add>
+
+@pushOnce('scripts')
+    <script
+        type="text/x-template"
+        id="v-quick-add-template"
+    >
             <!-- Trigger Button -->
             <button
                 type="button"
@@ -328,4 +337,3 @@
             });
         </script>
     @endPushOnce
-</div>

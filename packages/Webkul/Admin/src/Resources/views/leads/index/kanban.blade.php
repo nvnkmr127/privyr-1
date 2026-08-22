@@ -153,7 +153,7 @@
                                             class="group relative"
                                             v-if="element.rotten_days > 0"
                                         >
-                                            <span class="icon-rotten cursor-default text-xl text-rose-600"></span>
+                                            <span class="icon-rotten cursor-default text-xl text-slate-900 dark:text-white"></span>
 
                                             <div class="absolute -top-1 right-7 hidden w-max flex-col items-center group-hover:flex">
                                                 <span class="whitespace-no-wrap relative rounded-md bg-black px-4 py-2 text-xs leading-none text-white shadow-lg">
@@ -186,7 +186,7 @@
                                         </div>
 
                                         <div
-                                            class="flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                            class="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200/60 px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:bg-gray-800 dark:text-gray-300"
                                             v-if="element.group"
                                         >
                                             <i class="fa-solid fa-users"></i>
@@ -220,18 +220,18 @@
                                         </div>
 
                                         <!-- Score -->
-                                        <div class="rounded-lg bg-amber-50 border border-amber-200/60 px-2 py-1 text-[10px] font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                                        <div class="rounded-lg bg-slate-100 border border-slate-200/60 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-gray-800 dark:text-white">
                                             Score: @{{ element.lead_score ?? 0 }}
                                         </div>
 
                                         <!-- Priority -->
-                                        <div 
-                                            class="rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                                        <div
+                                            class="rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider"
                                             :class="{
-                                                'bg-gray-500': element.priority === 'low',
-                                                'bg-blue-500': element.priority === 'medium',
-                                                'bg-orange-500': element.priority === 'high',
-                                                'bg-red-500': element.priority === 'urgent'
+                                                'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700': element.priority === 'low',
+                                                'bg-slate-300 text-slate-800 dark:bg-gray-600 dark:text-white': element.priority === 'medium',
+                                                'bg-slate-600 text-white dark:bg-gray-400 dark:text-gray-900': element.priority === 'high',
+                                                'bg-slate-900 text-white dark:bg-white dark:text-slate-900': element.priority === 'urgent'
                                             }"
                                             v-if="element.priority"
                                         >
@@ -244,10 +244,10 @@
                                         </div>
 
                                         <!-- Qualification Status -->
-                                        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800" v-if="element.qualification_status === 'qualified'">
+                                        <div class="rounded-lg bg-slate-900 border border-slate-900 px-2 py-1 text-[10px] font-bold text-white dark:bg-white dark:border-white dark:text-slate-900" v-if="element.qualification_status === 'qualified'">
                                             Qualified
                                         </div>
-                                        <div class="rounded-lg bg-rose-50 border border-rose-200 px-2 py-1 text-[10px] font-bold text-rose-800" v-if="element.qualification_status === 'disqualified'">
+                                        <div class="rounded-lg bg-slate-100 border border-slate-300 px-2 py-1 text-[10px] font-bold text-slate-500 line-through dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400" v-if="element.qualification_status === 'disqualified'">
                                             Disqualified
                                         </div>
 
@@ -279,7 +279,7 @@
                                             <a
                                                 :href="'https://wa.me/' + element.phones[0].replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hi ' + (element.name || 'there') + ', regarding ' + element.title)"
                                                 target="_blank"
-                                                class="flex items-center gap-1 rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-emerald-700 transition"
+                                                class="flex items-center gap-1 rounded bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-slate-800 transition dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                                                 @click.stop
                                             >
                                                 <i class="fa-brands fa-whatsapp"></i> WhatsApp
@@ -287,7 +287,7 @@
 
                                             <a
                                                 :href="'tel:' + element.phones[0]"
-                                                class="flex items-center gap-1 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-blue-700 transition"
+                                                class="flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                 @click.stop
                                             >
                                                 <i class="fa-solid fa-phone"></i> Call
@@ -296,7 +296,7 @@
 
                                         <span 
                                             v-if="element.rotten_days > 0"
-                                            class="text-[10px] font-bold text-rose-600 dark:text-rose-400"
+                                            class="text-[10px] font-bold text-slate-900 dark:text-white"
                                         >
                                             <i class="fa-solid fa-fire mr-0.5"></i> Rotten
                                         </span>
@@ -306,13 +306,13 @@
                                     <div class="mt-1 flex flex-wrap gap-1 border-t border-gray-100 pt-1.5 dark:border-gray-700">
                                         <div 
                                             v-if="element.health_state === 'Overdue'"
-                                            class="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800"
+                                            class="rounded bg-slate-900 px-1.5 py-0.5 text-[9px] font-bold text-white dark:bg-white dark:text-slate-900"
                                         >
                                             Overdue Follow-up
                                         </div>
-                                        <div 
+                                        <div
                                             v-if="element.health_state === 'Inactive' || element.health_state === 'Needs Attention'"
-                                            class="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800"
+                                            class="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-bold text-slate-800 dark:bg-gray-700 dark:text-gray-100"
                                         >
                                             @{{ element.health_state }}
                                         </div>
